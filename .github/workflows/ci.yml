@@ -21,6 +21,7 @@ jobs:
     name: ${{ matrix.os }}
     needs: validate-docs
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -32,24 +33,53 @@ jobs:
           - os: ubuntu-24.04
             preset: ci-release
 
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg/bincache,read;files,${{ github.workspace }}/vcpkg/bincache,write
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Linux deps
+      - name: Install Linux build dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build
+          sudo apt-get install -y \
+            ninja-build \
+            autoconf \
+            autoconf-archive \
+            automake \
+            libtool \
+            pkg-config
+
+      - name: Install macOS build dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install ninja autoconf autoconf-archive automake libtool pkg-config
+
+      - name: Install Windows build dependencies
+        if: runner.os == 'Windows'
+        run: |
+          choco install ninja autoconf automake libtool -y
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
 
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg/bincache
+            ${{ github.workspace }}/vcpkg/downloads
+            ${{ github.workspace }}/build/ci-release/vcpkg_installed
+          key: vcpkg-${{ matrix.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: |
+            vcpkg-${{ matrix.os }}-
+
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
@@ -59,4 +89,4 @@ jobs:
 
       - name: Check core has no Qt
         if: runner.os != 'Windows'
-        run: ./scripts/check-core-no-qt.sh
+        run: chmod +x scripts/check-core-no-qt.sh && ./scripts/check-core-no-qt.sh
