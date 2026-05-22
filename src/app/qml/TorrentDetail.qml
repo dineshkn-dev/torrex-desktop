@@ -133,11 +133,12 @@ Item {
                             onClicked: appController.resumeTorrent(root.detailInfoHash)
                         }
                         TgIconButton {
+                            id: detailMoreButton
                             text: "⋯"
                             enabled: root.hasSelection
-                            onClicked: detailMenu.open()
+                            onClicked: detailMenu.popupAt(detailMoreButton, 0, detailMoreButton.height)
 
-                            Menu {
+                            TgMenu {
                                 id: detailMenu
                                 MenuItem {
                                     text: qsTr("Remove")

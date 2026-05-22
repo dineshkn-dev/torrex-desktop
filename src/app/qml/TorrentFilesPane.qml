@@ -32,9 +32,9 @@ Item {
                     Layout.fillWidth: true
                 }
 
-                Switch {
+                TgSwitch {
                     checked: root.sequential
-                    onToggled: root.sequentialToggled(checked)
+                    onToggled: function(on) { root.sequentialToggled(on) }
                 }
             }
         }
@@ -99,11 +99,11 @@ Item {
                         }
                     }
 
-                    ComboBox {
-                        id: priorityBox
+                    TgMenuPicker {
+                        id: priorityPicker
                         Layout.preferredWidth: 100
-                        textRole: "label"
-                        model: [
+                        model: priorityPicker.priorityModel
+                        property var priorityModel: [
                             { label: qsTr("Skip"), value: 0 },
                             { label: qsTr("Low"), value: 1 },
                             { label: qsTr("Normal"), value: 4 },
@@ -113,8 +113,8 @@ Item {
 
                         Component.onCompleted: syncFromModel()
 
-                        onActivated: {
-                            const item = model[currentIndex]
+                        onActivated: function(pickIndex) {
+                            const item = priorityModel[pickIndex]
                             if (item.value === lastPriority)
                                 return
                             root.filePriorityChanged(
@@ -124,8 +124,8 @@ Item {
 
                         function syncFromModel() {
                             const p = fileDelegate.modelData.priority
-                            for (let i = 0; i < model.length; ++i) {
-                                if (model[i].value === p) {
+                            for (let i = 0; i < priorityModel.length; ++i) {
+                                if (priorityModel[i].value === p) {
                                     currentIndex = i
                                     lastPriority = p
                                     return
@@ -136,7 +136,7 @@ Item {
                         Connections {
                             target: root
                             function onDataRevisionChanged() {
-                                priorityBox.syncFromModel()
+                                priorityPicker.syncFromModel()
                             }
                         }
                     }

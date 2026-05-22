@@ -18,7 +18,7 @@ Item {
     property bool hovered: false
 
     signal clicked()
-    signal contextMenuRequested()
+    signal contextMenuRequested(real menuX, real menuY)
 
     Rectangle {
         anchors.fill: parent
@@ -108,7 +108,7 @@ Item {
             if (mouse.button === Qt.LeftButton)
                 root.clicked()
             else
-                root.contextMenuRequested()
+                root.contextMenuRequested(mouse.x, mouse.y)
         }
     }
 

@@ -14,6 +14,8 @@ ToolButton {
     background: Rectangle {
         radius: width / 2
         color: {
+            if (!root.enabled)
+                return "transparent"
             if (root.pressed)
                 return Theme.accentPressed
             if (root.hovered)
@@ -26,7 +28,11 @@ ToolButton {
         text: root.text
         font.pixelSize: root.filled ? Theme.fontBody : Theme.fontHeadline
         font.weight: root.filled ? Font.DemiBold : Font.Normal
-        color: root.filled ? Theme.textOnAccent : Theme.textPrimary
+        color: {
+            if (!root.enabled)
+                return Theme.textMuted
+            return root.filled ? Theme.textOnAccent : Theme.textPrimary
+        }
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }

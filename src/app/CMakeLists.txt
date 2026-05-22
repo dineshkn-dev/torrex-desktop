@@ -21,8 +21,12 @@ qt_add_qml_module(torrex
         qml/ThemedPanel.qml
         qml/ThemedProgressBar.qml
         qml/ConfirmPopup.qml
+        qml/MagnetAddDialog.qml
+        qml/TorrentAddDialog.qml
         qml/NotificationBanner.qml
         qml/SettingsDialog.qml
+        qml/SettingsNumberRow.qml
+        qml/TgToggleRow.qml
         qml/TorrentDetail.qml
         qml/TorrentListPane.qml
         qml/TorrentRow.qml
@@ -37,6 +41,10 @@ qt_add_qml_module(torrex
         qml/TorrentOverviewPane.qml
         qml/TorrentFilesPane.qml
         qml/TgTabButton.qml
+        qml/TgSwitch.qml
+        qml/TgMenu.qml
+        qml/TgMenuSeparator.qml
+        qml/TgMenuPicker.qml
 )
 
 target_link_libraries(torrex
@@ -46,6 +54,9 @@ target_link_libraries(torrex
         Qt6::QuickControls2
         Qt6::QuickDialogs2
 )
+
+include(${CMAKE_SOURCE_DIR}/cmake/TorrexQtRuntime.cmake)
+torrex_configure_qt_runtime(torrex)
 
 target_include_directories(torrex
     PRIVATE

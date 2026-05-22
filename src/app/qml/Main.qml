@@ -21,8 +21,6 @@ ApplicationWindow {
 
     property string _removeInfoHash: ""
     property bool _removeDeleteFiles: false
-    property var folderPathTarget: null
-
     Connections {
         target: Application.styleHints
         function onColorSchemeChanged() {
@@ -31,23 +29,6 @@ ApplicationWindow {
     }
 
     Component.onCompleted: appController.refreshTorrents()
-
-    function localFilePath(fileUrl) {
-        if (!fileUrl)
-            return ""
-        const path = fileUrl.toString()
-        if (path.startsWith("file://"))
-            return fileUrl.toLocalFile()
-        return path
-    }
-
-    function pathToFolderUrl(path) {
-        if (!path)
-            return ""
-        if (path.indexOf("file://") === 0)
-            return path
-        return "file://" + path
-    }
 
     function confirmRemove(infoHash, deleteFiles, torrentName) {
         window._removeInfoHash = infoHash
@@ -73,8 +54,7 @@ ApplicationWindow {
 
     SettingsDialog {
         id: settingsDialog
-        parent: window.contentItem
-        anchors.centerIn: parent
+        parent: Overlay.overlay
     }
 
     NotificationBanner {
@@ -96,13 +76,14 @@ ApplicationWindow {
         }
     }
 
-    FolderDialog {
-        id: downloadFolderDialog
-        title: qsTr("Choose download folder")
-        onAccepted: {
-            if (folderPathTarget)
-                folderPathTarget.text = selectedFolder.toLocalFile()
-        }
+    MagnetAddDialog {
+        id: magnetDialog
+        parent: Overlay.overlay
+    }
+
+    TorrentAddDialog {
+        id: torrentAddDialog
+        parent: Overlay.overlay
     }
 
     FileDialog {
@@ -112,132 +93,6 @@ ApplicationWindow {
         onAccepted: {
             torrentAddDialog.torrentFile = selectedFile
             torrentAddDialog.open()
-        }
-    }
-
-    Dialog {
-        id: magnetDialog
-        parent: window.contentItem
-        title: qsTr("Add magnet link")
-        modal: true
-        anchors.centerIn: parent
-        width: 480
-        standardButtons: Dialog.Cancel | Dialog.Ok
-        onAboutToShow: downloadPathField.text = appController.defaultDownloadFolder
-        onAccepted: {
-            appController.addMagnetUri(magnetField.text.trim(), downloadPathField.text)
-            magnetField.text = ""
-        }
-
-        background: Rectangle {
-            radius: Theme.radiusLarge
-            color: Theme.surface
-            border.color: Theme.border
-        }
-
-        contentItem: ColumnLayout {
-            spacing: Theme.spacingMd
-            anchors.margins: Theme.spacingLg
-
-            Label {
-                text: qsTr("Paste a magnet URI")
-                color: Theme.textSecondary
-                font.pixelSize: Theme.fontCaption
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-            }
-            TgTextField {
-                id: magnetField
-                placeholderText: qsTr("magnet:?xt=urn:btih:…")
-                Layout.fillWidth: true
-                selectByMouse: true
-            }
-            Label {
-                text: qsTr("Download folder")
-                color: Theme.textSecondary
-                font.pixelSize: Theme.fontCaption
-                Layout.fillWidth: true
-            }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Theme.spacingSm
-                TgTextField {
-                    id: downloadPathField
-                    Layout.fillWidth: true
-                    selectByMouse: true
-                    placeholderText: qsTr("Folder path…")
-                }
-                TgButton {
-                    text: qsTr("Browse")
-                    onClicked: {
-                        folderPathTarget = downloadPathField
-                        downloadFolderDialog.currentFolder = pathToFolderUrl(downloadPathField.text)
-                        downloadFolderDialog.open()
-                    }
-                }
-            }
-        }
-    }
-
-    Dialog {
-        id: torrentAddDialog
-        parent: window.contentItem
-        title: qsTr("Add torrent")
-        modal: true
-        anchors.centerIn: parent
-        width: 480
-        standardButtons: Dialog.Cancel | Dialog.Ok
-        property url torrentFile
-
-        onAboutToShow: downloadPathFieldTorrent.text = appController.defaultDownloadFolder
-        onAccepted: appController.addTorrentFile(torrentFile, downloadPathFieldTorrent.text)
-
-        background: Rectangle {
-            radius: Theme.radiusLarge
-            color: Theme.surface
-            border.color: Theme.border
-        }
-
-        contentItem: ColumnLayout {
-            spacing: Theme.spacingMd
-            anchors.margins: Theme.spacingLg
-
-            Label {
-                text: qsTr("Torrent file")
-                color: Theme.textSecondary
-                font.pixelSize: Theme.fontCaption
-            }
-            Label {
-                text: window.localFilePath(torrentAddDialog.torrentFile)
-                wrapMode: Text.WrapAnywhere
-                color: Theme.textPrimary
-                Layout.fillWidth: true
-            }
-            Label {
-                text: qsTr("Download folder")
-                color: Theme.textSecondary
-                font.pixelSize: Theme.fontCaption
-                Layout.fillWidth: true
-            }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Theme.spacingSm
-                TgTextField {
-                    id: downloadPathFieldTorrent
-                    Layout.fillWidth: true
-                    selectByMouse: true
-                    placeholderText: qsTr("Folder path…")
-                }
-                TgButton {
-                    text: qsTr("Browse")
-                    onClicked: {
-                        folderPathTarget = downloadPathFieldTorrent
-                        downloadFolderDialog.currentFolder =
-                            pathToFolderUrl(downloadPathFieldTorrent.text)
-                        downloadFolderDialog.open()
-                    }
-                }
-            }
         }
     }
 

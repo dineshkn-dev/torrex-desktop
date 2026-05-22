@@ -55,13 +55,14 @@ Item {
             Item { Layout.fillWidth: true }
 
             TgIconButton {
+                id: addTorrentButton
                 text: "+"
                 filled: true
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Add torrent")
-                onClicked: addMenu.open()
+                onClicked: addMenu.popupAt(addTorrentButton, 0, addTorrentButton.height)
 
-                Menu {
+                TgMenu {
                     id: addMenu
                     MenuItem {
                         text: qsTr("Magnet link")
@@ -209,9 +210,11 @@ Item {
                     selected: torrentList.currentIndex === index
 
                     onClicked: torrentList.currentIndex = index
-                    onContextMenuRequested: rowMenu.open()
+                    onContextMenuRequested: function(menuX, menuY) {
+                        rowMenu.popupAt(rowDelegate, menuX, menuY)
+                    }
 
-                    Menu {
+                    TgMenu {
                         id: rowMenu
                         MenuItem {
                             text: qsTr("Pause")
@@ -223,7 +226,7 @@ Item {
                             enabled: rowDelegate.state === 4
                             onTriggered: appController.resumeTorrent(rowDelegate.infoHash)
                         }
-                        MenuSeparator {}
+                        TgMenuSeparator {}
                         MenuItem {
                             text: qsTr("Remove")
                             onTriggered: rowDelegate.confirmRemove(

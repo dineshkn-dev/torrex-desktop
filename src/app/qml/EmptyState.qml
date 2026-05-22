@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import Torrex
 
 ColumnLayout {
+    id: root
     spacing: Theme.spacingLg
 
     property string title: qsTr("No torrents yet")
@@ -42,11 +43,11 @@ ColumnLayout {
         TgButton {
             text: qsTr("Add magnet")
             primary: true
-            onClicked: parent.addMagnet()
+            onClicked: root.addMagnet()
         }
         TgButton {
             text: qsTr("Add .torrent")
-            onClicked: parent.addTorrent()
+            onClicked: root.addTorrent()
         }
     }
 }
