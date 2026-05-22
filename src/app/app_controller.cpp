@@ -22,10 +22,34 @@ QString builtin_default_download_path()
     return path;
 }
 
+QString session_data_directory()
+{
+    const QString base =
+        QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    const QString path = base + QStringLiteral("/session");
+    QDir().mkpath(path);
+    return path;
+}
+
+int clampPort(int port)
+{
+    if (port < kMinListenPort || port > kMaxListenPort) {
+        return 6881;
+    }
+    return port;
+}
+
+int clampKbps(int kbps)
+{
+    return kbps < 0 ? 0 : kbps;
+}
+
 } // namespace
 
 AppController::AppController(QObject* parent)
-    : QObject(parent), torrent_model_(session_, this)
+    : QObject(parent)
+    , session_(session_data_directory().toStdString())
+    , torrent_model_(session_, this)
 {
     download_folder_ =
         QSettings().value(QStringLiteral("downloadFolder"), builtin_default_download_path())
@@ -34,6 +58,9 @@ AppController::AppController(QObject* parent)
         download_folder_ = builtin_default_download_path();
     }
     QDir().mkpath(download_folder_);
+
+    loadSessionSettingsFromStore();
+    pushSettingsToEngine();
 
     session_.start();
     setStatusMessage(tr("Ready — downloads go to %1").arg(download_folder_));
@@ -46,6 +73,127 @@ AppController::AppController(QObject* parent)
 AppController::~AppController() { session_.shutdown(); }
 
 QString AppController::version() const { return QString::fromUtf8(torrex::kVersion); }
+
+void AppController::loadSessionSettingsFromStore()
+{
+    QSettings store;
+    download_limit_kbps_ = clampKbps(store.value(QStringLiteral("downloadLimitKbps"), 0).toInt());
+    upload_limit_kbps_ = clampKbps(store.value(QStringLiteral("uploadLimitKbps"), 0).toInt());
+    listen_port_ = clampPort(store.value(QStringLiteral("listenPort"), 6881).toInt());
+    enable_upnp_ = store.value(QStringLiteral("enableUpnp"), true).toBool();
+    enable_natpmp_ = store.value(QStringLiteral("enableNatPmp"), true).toBool();
+    enable_dht_ = store.value(QStringLiteral("enableDht"), true).toBool();
+    enable_lsd_ = store.value(QStringLiteral("enableLsd"), true).toBool();
+    emit sessionSettingsChanged();
+}
+
+void AppController::persistSessionSettings()
+{
+    QSettings store;
+    store.setValue(QStringLiteral("downloadLimitKbps"), download_limit_kbps_);
+    store.setValue(QStringLiteral("uploadLimitKbps"), upload_limit_kbps_);
+    store.setValue(QStringLiteral("listenPort"), listen_port_);
+    store.setValue(QStringLiteral("enableUpnp"), enable_upnp_);
+    store.setValue(QStringLiteral("enableNatPmp"), enable_natpmp_);
+    store.setValue(QStringLiteral("enableDht"), enable_dht_);
+    store.setValue(QStringLiteral("enableLsd"), enable_lsd_);
+}
+
+SessionSettings AppController::engineSettingsFromProperties() const
+{
+    SessionSettings settings;
+    settings.download_rate_limit =
+        download_limit_kbps_ > 0 ? download_limit_kbps_ * 1024 : 0;
+    settings.upload_rate_limit = upload_limit_kbps_ > 0 ? upload_limit_kbps_ * 1024 : 0;
+    settings.listen_port = listen_port_;
+    settings.enable_upnp = enable_upnp_;
+    settings.enable_natpmp = enable_natpmp_;
+    settings.enable_dht = enable_dht_;
+    settings.enable_lsd = enable_lsd_;
+    return settings;
+}
+
+void AppController::pushSettingsToEngine()
+{
+    session_.set_session_settings(engineSettingsFromProperties());
+}
+
+void AppController::applySessionSettings()
+{
+    listen_port_ = clampPort(listen_port_);
+    download_limit_kbps_ = clampKbps(download_limit_kbps_);
+    upload_limit_kbps_ = clampKbps(upload_limit_kbps_);
+    persistSessionSettings();
+    pushSettingsToEngine();
+    emit sessionSettingsChanged();
+    setStatusMessage(tr("Settings applied."));
+}
+
+void AppController::setDownloadLimitKbps(const int kbps)
+{
+    const int value = clampKbps(kbps);
+    if (download_limit_kbps_ == value) {
+        return;
+    }
+    download_limit_kbps_ = value;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setUploadLimitKbps(const int kbps)
+{
+    const int value = clampKbps(kbps);
+    if (upload_limit_kbps_ == value) {
+        return;
+    }
+    upload_limit_kbps_ = value;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setListenPort(const int port)
+{
+    const int value = clampPort(port);
+    if (listen_port_ == value) {
+        return;
+    }
+    listen_port_ = value;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setEnableUpnp(const bool enabled)
+{
+    if (enable_upnp_ == enabled) {
+        return;
+    }
+    enable_upnp_ = enabled;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setEnableNatPmp(const bool enabled)
+{
+    if (enable_natpmp_ == enabled) {
+        return;
+    }
+    enable_natpmp_ = enabled;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setEnableDht(const bool enabled)
+{
+    if (enable_dht_ == enabled) {
+        return;
+    }
+    enable_dht_ = enabled;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setEnableLsd(const bool enabled)
+{
+    if (enable_lsd_ == enabled) {
+        return;
+    }
+    enable_lsd_ = enabled;
+    emit sessionSettingsChanged();
+}
 
 void AppController::setDefaultDownloadFolder(const QString& path)
 {

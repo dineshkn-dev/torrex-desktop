@@ -52,8 +52,16 @@ phases:
 
   - id: phase-4-settings
     name: Settings and polish
-    status: pending
-    items: []
+    status: done
+    items:
+      - id: F-040-settings-ui
+        spec: docs/specs/MVP.md#session-network
+        tests: [tests/core/session_settings_test.cpp]
+        done_when: tests_pass
+      - id: F-041-fast-resume
+        spec: docs/specs/MVP.md#torrent-lifecycle
+        tests: [tests/core/session_settings_test.cpp]
+        done_when: tests_pass
 
   - id: phase-5-release
     name: Signed release

@@ -115,7 +115,18 @@ ApplicationWindow {
                 display: AbstractButton.TextOnly
                 onClicked: appController.refreshTorrents()
             }
+            ToolButton {
+                text: qsTr("Settings")
+                display: AbstractButton.TextOnly
+                onClicked: settingsDialog.open()
+            }
         }
+    }
+
+    SettingsDialog {
+        id: settingsDialog
+        parent: window.contentItem
+        anchors.centerIn: parent
     }
 
     footer: ToolBar {

@@ -24,14 +24,15 @@
 
 - [x] Add magnet URI and `.torrent` file
 - [x] Pause, resume, remove (optional delete data)
-- [x] Per-torrent save path on add (folder picker); global default remembered
+- [x] Per-torrent save path on add (folder picker); global default in Settings
 - [ ] File priorities and sequential download
-- [ ] Fast-resume across restarts
+- [x] Fast-resume across restarts
 
 ## Session / network
 
-- [ ] Global download/upload limits
-- [ ] Port, UPnP, proxy settings
+- [x] Global download/upload limits
+- [x] Port, UPnP (NAT-PMP, DHT, LSD) settings
+- [ ] Proxy settings
 
 ## UI
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <torrex/session_settings.hpp>
 #include <torrex/types.hpp>
 
 #include <atomic>
@@ -12,7 +13,8 @@ namespace torrex {
 /// Owns the libtorrent session on a dedicated worker thread. No Qt types.
 class SessionManager {
 public:
-    SessionManager();
+    /// `data_directory` stores `session.dat` and `torrents/*.resume` for fast-resume.
+    explicit SessionManager(std::string data_directory = {});
     ~SessionManager();
 
     SessionManager(const SessionManager&) = delete;
@@ -22,6 +24,11 @@ public:
     void shutdown();
 
     [[nodiscard]] bool is_running() const noexcept { return running_.load(); }
+
+    void set_session_settings(SessionSettings settings);
+    [[nodiscard]] SessionSettings session_settings() const;
+
+    [[nodiscard]] const std::string& data_directory() const noexcept;
 
     /// Thread-safe snapshot for UI (may be called from any thread).
     [[nodiscard]] std::vector<TorrentSnapshot> snapshots() const;

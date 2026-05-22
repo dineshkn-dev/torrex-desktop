@@ -4,18 +4,22 @@
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/load_torrent.hpp>
 #include <libtorrent/magnet_uri.hpp>
+#include <libtorrent/read_resume_data.hpp>
 #include <libtorrent/session.hpp>
 #include <libtorrent/settings_pack.hpp>
 #include <libtorrent/torrent_flags.hpp>
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/torrent_status.hpp>
+#include <libtorrent/session_params.hpp>
+#include <libtorrent/write_resume_data.hpp>
 
 #include <chrono>
+#include <cctype>
 #include <deque>
 #include <filesystem>
 #include <fstream>
 #include <mutex>
-#include <cctype>
+#include <optional>
 #include <sstream>
 #include <thread>
 #include <unordered_map>
@@ -33,6 +37,18 @@ std::string hash_key(const lt::info_hash_t& hashes)
         out << hashes.v2;
     }
     return out.str();
+}
+
+std::string resume_filename_key(const std::string& key)
+{
+    std::string out;
+    out.reserve(key.size());
+    for (const char c : key) {
+        if (std::isalnum(static_cast<unsigned char>(c)) != 0) {
+            out.push_back(c);
+        }
+    }
+    return out.empty() ? std::string("unknown") : out;
 }
 
 TorrentState map_state(const lt::torrent_status::state_t state)
@@ -125,13 +141,51 @@ std::vector<char> read_file_bytes(const std::string& path)
                             std::istreambuf_iterator<char>());
 }
 
+bool write_file_bytes(const std::filesystem::path& path, const std::vector<char>& data)
+{
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    if (!out) {
+        return false;
+    }
+    if (!data.empty()) {
+        out.write(data.data(), static_cast<std::streamsize>(data.size()));
+    }
+    return out.good();
+}
+
+std::string listen_interfaces_for_port(const int port)
+{
+    std::ostringstream out;
+    out << "0.0.0.0:" << port << ",[::]:" << port;
+    return out.str();
+}
+
+SessionSettings clamp_settings(SessionSettings settings)
+{
+    if (settings.listen_port < kMinListenPort || settings.listen_port > kMaxListenPort) {
+        settings.listen_port = 6881;
+    }
+    if (settings.download_rate_limit < 0) {
+        settings.download_rate_limit = 0;
+    }
+    if (settings.upload_rate_limit < 0) {
+        settings.upload_rate_limit = 0;
+    }
+    return settings;
+}
+
 } // namespace
 
 struct SessionManager::Impl {
-    lt::session session{lt::session_params{}};
+    std::string data_directory;
+    SessionSettings settings{};
+    std::optional<lt::session> session;
     mutable std::mutex mutex;
     std::thread worker;
     std::atomic<bool> stop{false};
+    int pending_resume_saves = 0;
 
     struct TorrentEntry {
         lt::torrent_handle handle;
@@ -151,6 +205,42 @@ struct SessionManager::Impl {
     std::deque<Command> commands;
     std::mutex command_mutex;
     std::string last_error;
+
+    [[nodiscard]] std::filesystem::path torrents_dir() const
+    {
+        return std::filesystem::path(data_directory) / "torrents";
+    }
+
+    [[nodiscard]] std::filesystem::path resume_path_for_key(const std::string& key) const
+    {
+        return torrents_dir() / (resume_filename_key(key) + ".resume");
+    }
+
+    void delete_resume_file(const std::string& key)
+    {
+        if (data_directory.empty()) {
+            return;
+        }
+        std::error_code ec;
+        std::filesystem::remove(resume_path_for_key(key), ec);
+    }
+
+    void apply_settings_to_session()
+    {
+        if (!session) {
+            return;
+        }
+        lt::settings_pack pack = session->get_settings();
+        pack.set_int(lt::settings_pack::download_rate_limit, settings.download_rate_limit);
+        pack.set_int(lt::settings_pack::upload_rate_limit, settings.upload_rate_limit);
+        pack.set_str(lt::settings_pack::listen_interfaces,
+                     listen_interfaces_for_port(settings.listen_port));
+        pack.set_bool(lt::settings_pack::enable_dht, settings.enable_dht);
+        pack.set_bool(lt::settings_pack::enable_lsd, settings.enable_lsd);
+        pack.set_bool(lt::settings_pack::enable_upnp, settings.enable_upnp);
+        pack.set_bool(lt::settings_pack::enable_natpmp, settings.enable_natpmp);
+        session->apply_settings(pack);
+    }
 
     void set_error(std::string message)
     {
@@ -211,8 +301,141 @@ struct SessionManager::Impl {
         return {};
     }
 
+    void handle_save_resume_alert(const lt::save_resume_data_alert* alert)
+    {
+        if (pending_resume_saves > 0) {
+            --pending_resume_saves;
+        }
+        if (data_directory.empty() || !alert) {
+            return;
+        }
+        const std::string key = hash_key(alert->params.info_hashes);
+        if (key.empty()) {
+            return;
+        }
+        const std::vector<char> buf = lt::write_resume_data_buf(alert->params);
+        write_file_bytes(resume_path_for_key(key), buf);
+    }
+
+    void pump_alerts_once()
+    {
+        if (!session) {
+            return;
+        }
+        std::vector<lt::alert*> alerts;
+        session->pop_alerts(&alerts);
+        for (lt::alert* raw : alerts) {
+            if (auto* a = lt::alert_cast<lt::save_resume_data_alert>(raw)) {
+                handle_save_resume_alert(a);
+            } else if (auto* a = lt::alert_cast<lt::save_resume_data_failed_alert>(raw)) {
+                if (pending_resume_saves > 0) {
+                    --pending_resume_saves;
+                }
+                (void)a;
+            } else if (auto* a = lt::alert_cast<lt::add_torrent_alert>(raw)) {
+                update_entry(a->handle);
+            } else if (auto* a = lt::alert_cast<lt::state_changed_alert>(raw)) {
+                update_entry(a->handle);
+            } else if (auto* a = lt::alert_cast<lt::torrent_finished_alert>(raw)) {
+                update_entry(a->handle);
+            } else if (auto* a = lt::alert_cast<lt::metadata_received_alert>(raw)) {
+                update_entry(a->handle);
+            } else if (auto* a = lt::alert_cast<lt::torrent_removed_alert>(raw)) {
+                std::scoped_lock lock(mutex);
+                const std::string key = hash_key(a->info_hashes);
+                if (!key.empty()) {
+                    torrents.erase(key);
+                }
+            } else if (auto* a = lt::alert_cast<lt::torrent_error_alert>(raw)) {
+                update_entry(a->handle);
+                set_error(a->error.message());
+            }
+        }
+
+        {
+            std::scoped_lock lock(mutex);
+            for (auto& [key, entry] : torrents) {
+                if (entry.handle.is_valid()) {
+                    apply_snapshot_from_handle(entry.handle, entry.snapshot);
+                }
+                (void)key;
+            }
+        }
+    }
+
+    void restore_torrents()
+    {
+        if (!session || data_directory.empty()) {
+            return;
+        }
+        const std::filesystem::path dir = torrents_dir();
+        std::error_code ec;
+        if (!std::filesystem::is_directory(dir, ec)) {
+            return;
+        }
+
+        for (const std::filesystem::directory_entry& entry :
+             std::filesystem::directory_iterator(dir, ec)) {
+            if (!entry.is_regular_file() || entry.path().extension() != ".resume") {
+                continue;
+            }
+            const std::vector<char> buf = read_file_bytes(entry.path().string());
+            if (buf.empty()) {
+                continue;
+            }
+            lt::error_code read_ec;
+            lt::add_torrent_params params = lt::read_resume_data(buf, read_ec);
+            if (read_ec) {
+                continue;
+            }
+            params.flags |= lt::torrent_flags::auto_managed;
+            lt::error_code add_ec;
+            lt::torrent_handle handle = session->add_torrent(params, add_ec);
+            if (handle.is_valid()) {
+                update_entry(handle);
+            }
+        }
+    }
+
+    void persist_state()
+    {
+        if (!session || data_directory.empty()) {
+            return;
+        }
+
+        std::error_code ec;
+        std::filesystem::create_directories(torrents_dir(), ec);
+
+        {
+            std::scoped_lock lock(mutex);
+            pending_resume_saves = 0;
+            for (auto& [key, entry] : torrents) {
+                if (entry.handle.is_valid()) {
+                    entry.handle.save_resume_data(lt::torrent_handle::save_info_dict);
+                    ++pending_resume_saves;
+                }
+                (void)key;
+            }
+        }
+
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        while (pending_resume_saves > 0
+               && std::chrono::steady_clock::now() < deadline) {
+            pump_alerts_once();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        const lt::session_params state = session->session_state();
+        const std::vector<char> session_buf = lt::write_session_params_buf(state);
+        write_file_bytes(std::filesystem::path(data_directory) / "session.dat", session_buf);
+    }
+
     void process_commands()
     {
+        if (!session) {
+            return;
+        }
+
         std::deque<Command> batch;
         {
             std::scoped_lock lock(command_mutex);
@@ -260,7 +483,7 @@ struct SessionManager::Impl {
                 }
             }
 
-            lt::torrent_handle handle = session.add_torrent(params, ec);
+            lt::torrent_handle handle = session->add_torrent(params, ec);
             if (ec) {
                 lt::torrent_handle existing = find_handle_by_id(key);
                 if (!key.empty() && existing.is_valid()) {
@@ -292,7 +515,6 @@ struct SessionManager::Impl {
             }
 
             if (cmd.type == CommandType::Pause) {
-                // auto_managed torrents ignore pause until auto_managed is cleared.
                 handle.unset_flags(lt::torrent_flags::auto_managed);
                 handle.pause();
             } else if (cmd.type == CommandType::Resume) {
@@ -303,9 +525,10 @@ struct SessionManager::Impl {
                 if (cmd.delete_files) {
                     flags |= lt::session::delete_files;
                 }
-                session.remove_torrent(handle, flags);
+                session->remove_torrent(handle, flags);
                 std::scoped_lock lock(mutex);
                 torrents.erase(cmd.primary);
+                delete_resume_file(cmd.primary);
             }
             if (cmd.type != CommandType::Remove && handle.is_valid()) {
                 update_entry(handle);
@@ -313,47 +536,36 @@ struct SessionManager::Impl {
         }
     }
 
-    void process_alerts()
-    {
-        std::vector<lt::alert*> alerts;
-        session.pop_alerts(&alerts);
-
-        for (lt::alert* raw : alerts) {
-            if (auto* a = lt::alert_cast<lt::add_torrent_alert>(raw)) {
-                update_entry(a->handle);
-            } else if (auto* a = lt::alert_cast<lt::state_changed_alert>(raw)) {
-                update_entry(a->handle);
-            } else if (auto* a = lt::alert_cast<lt::torrent_finished_alert>(raw)) {
-                update_entry(a->handle);
-            } else if (auto* a = lt::alert_cast<lt::metadata_received_alert>(raw)) {
-                update_entry(a->handle);
-            } else if (auto* a = lt::alert_cast<lt::torrent_removed_alert>(raw)) {
-                std::scoped_lock lock(mutex);
-                const std::string key = hash_key(a->info_hashes);
-                if (!key.empty()) {
-                    torrents.erase(key);
-                }
-            } else if (auto* a = lt::alert_cast<lt::torrent_error_alert>(raw)) {
-                update_entry(a->handle);
-                set_error(a->error.message());
-            }
-        }
-
-        {
-            std::scoped_lock lock(mutex);
-            for (auto& [key, entry] : torrents) {
-                if (entry.handle.is_valid()) {
-                    apply_snapshot_from_handle(entry.handle, entry.snapshot);
-                }
-                (void)key;
-            }
-        }
-    }
+    void process_alerts() { pump_alerts_once(); }
 };
 
-SessionManager::SessionManager() : impl_(std::make_unique<Impl>()) {}
+SessionManager::SessionManager(std::string data_directory)
+    : impl_(std::make_unique<Impl>())
+{
+    impl_->data_directory = std::move(data_directory);
+    impl_->settings = clamp_settings(impl_->settings);
+}
 
 SessionManager::~SessionManager() { shutdown(); }
+
+void SessionManager::set_session_settings(SessionSettings settings)
+{
+    impl_->settings = clamp_settings(std::move(settings));
+    if (running_.load()) {
+        impl_->apply_settings_to_session();
+    }
+}
+
+SessionSettings SessionManager::session_settings() const
+{
+    std::scoped_lock lock(impl_->mutex);
+    return impl_->settings;
+}
+
+const std::string& SessionManager::data_directory() const noexcept
+{
+    return impl_->data_directory;
+}
 
 void SessionManager::start()
 {
@@ -361,13 +573,23 @@ void SessionManager::start()
         return;
     }
 
-    lt::settings_pack settings;
-    settings.set_str(lt::settings_pack::listen_interfaces, "0.0.0.0:6881,[::]:6881");
-    settings.set_bool(lt::settings_pack::enable_dht, true);
-    settings.set_bool(lt::settings_pack::enable_lsd, true);
-    settings.set_bool(lt::settings_pack::enable_upnp, true);
-    settings.set_bool(lt::settings_pack::enable_natpmp, true);
-    impl_->session.apply_settings(settings);
+    lt::session_params params;
+    if (!impl_->data_directory.empty()) {
+        const std::filesystem::path session_file =
+            std::filesystem::path(impl_->data_directory) / "session.dat";
+        if (std::filesystem::is_regular_file(session_file)) {
+            const std::vector<char> buf = read_file_bytes(session_file.string());
+            if (!buf.empty()) {
+                params = lt::read_session_params(buf);
+            }
+        }
+        std::error_code ec;
+        std::filesystem::create_directories(impl_->torrents_dir(), ec);
+    }
+
+    impl_->session.emplace(std::move(params));
+    impl_->apply_settings_to_session();
+    impl_->restore_torrents();
 
     impl_->stop = false;
     impl_->worker = std::thread([this] {
@@ -388,6 +610,16 @@ void SessionManager::shutdown()
     impl_->stop = true;
     if (impl_->worker.joinable()) {
         impl_->worker.join();
+    }
+
+    if (impl_->session) {
+        impl_->persist_state();
+        impl_->session.reset();
+    }
+
+    {
+        std::scoped_lock lock(impl_->mutex);
+        impl_->torrents.clear();
     }
 }
 
