@@ -14,7 +14,7 @@ jobs:
   validate-docs:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
 
   build:
@@ -33,7 +33,7 @@ jobs:
             preset: ci-release
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Linux deps
         if: runner.os == 'Linux'
