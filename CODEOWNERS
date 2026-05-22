@@ -1,0 +1,12 @@
+# Default owners
+* @dineshkn
+
+# Engine and security-sensitive paths
+/src/core/ @dineshkn
+/include/torrex/ @dineshkn
+/cmake/ @dineshkn
+/.github/workflows/ @dineshkn
+/packaging/ @dineshkn
+/docs/security/ @dineshkn
+/vcpkg.json @dineshkn
+/vcpkg-configuration.json @dineshkn

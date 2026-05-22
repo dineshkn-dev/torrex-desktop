@@ -1,0 +1,55 @@
+# Machine-readable roadmap. CI validates via scripts/validate-docs.sh
+version: 1
+project: torrex
+phases:
+  - id: phase-0-governance
+    name: Governance and automation foundation
+    status: in_progress
+    note: Scaffold committed; local vcpkg Qt build blocked until Xcode installed on macOS
+    items:
+      - id: F-000-agents-docs
+        spec: docs/specs/MVP.md#phase-0
+        tests: []
+        done_when: docs_present
+      - id: F-001-ci-matrix
+        spec: docs/specs/MVP.md#ci
+        issue: null
+        tests: [tests/core/version_test.cpp]
+        done_when: ci_green_all_platforms
+      - id: F-002-compile-skeleton
+        spec: docs/specs/MVP.md#skeleton
+        tests: [tests/core/session_manager_test.cpp]
+        done_when: ci_green_all_platforms
+
+  - id: phase-1-engine
+    name: Engine skeleton
+    status: pending
+    items:
+      - id: F-010-session-start
+        spec: docs/specs/engine-session.md
+        tests: [tests/core/session_manager_test.cpp]
+        done_when: tests_pass
+
+  - id: phase-2-torrent-ops
+    name: Torrent operations
+    status: pending
+    items:
+      - id: F-020-add-magnet
+        spec: docs/specs/MVP.md#torrent-lifecycle
+        tests: []
+        done_when: tests_pass
+
+  - id: phase-3-ui
+    name: Master-detail UI
+    status: pending
+    items: []
+
+  - id: phase-4-settings
+    name: Settings and polish
+    status: pending
+    items: []
+
+  - id: phase-5-release
+    name: Signed release
+    status: pending
+    items: []

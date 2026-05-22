@@ -1,0 +1,23 @@
+# Security policy
+
+## Supported versions
+
+| Version | Supported |
+|---------|-----------|
+| 0.1.x   | Yes       |
+
+## Reporting a vulnerability
+
+Email security reports to the maintainers via GitHub Security Advisories (preferred) or open a private security advisory on the repository when published.
+
+Please include:
+
+- Description and impact
+- Steps to reproduce
+- Affected version and platform
+
+We aim to acknowledge within 72 hours and provide a fix timeline for confirmed issues.
+
+## Safe use
+
+Torrex is a BitTorrent **tool**. Users are responsible for complying with applicable laws and rights when downloading or sharing content.

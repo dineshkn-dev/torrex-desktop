@@ -1,0 +1,13 @@
+---
+description: Keep specs and ROADMAP in sync with behavior changes
+alwaysApply: true
+---
+
+# Documentation updates
+
+When changing user-visible behavior or architecture:
+
+1. Update the relevant file in `docs/specs/`.
+2. Update `docs/tracker/ROADMAP.yaml` item status or links.
+3. Add an ADR under `docs/architecture/` for non-trivial decisions.
+4. Ensure `scripts/validate-docs.sh` passes.

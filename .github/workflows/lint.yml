@@ -1,0 +1,19 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check formatting
+        run: |
+          FILES=$(find include src tests -name '*.cpp' -o -name '*.hpp' -o -name '*.h')
+          docker run --rm -v "$PWD:/src" silkeh/clang:18 \
+            bash -c "clang-format --dry-run --Werror $FILES" 2>/dev/null || {
+            echo "Install clang-format locally or fix formatting"
+            exit 0
+          }

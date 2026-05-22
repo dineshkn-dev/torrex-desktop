@@ -1,0 +1,16 @@
+{
+  "name": "torrex",
+  "version": "0.1.0",
+  "description": "Cross-platform BitTorrent client",
+  "license": "GPL-3.0-or-later",
+  "dependencies": [
+    "libtorrent",
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": ["gui", "network"]
+    },
+    "qtdeclarative",
+    "gtest"
+  ]
+}

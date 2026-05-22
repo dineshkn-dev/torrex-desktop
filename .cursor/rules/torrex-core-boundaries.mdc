@@ -1,0 +1,12 @@
+---
+description: torrex_core must stay Qt-free; engine thread owns libtorrent
+globs: "{src/core/**,include/torrex/**}"
+alwaysApply: false
+---
+
+# torrex_core boundaries
+
+- Never `#include` Qt headers in `src/core/` or `include/torrex/`.
+- All `libtorrent::session` and `torrent_handle` use stays on the worker thread inside `SessionManager`.
+- UI and QML communicate via `TorrentCommand` queue and `TorrentSnapshot` value types only.
+- Public API lives in `include/torrex/` only.
