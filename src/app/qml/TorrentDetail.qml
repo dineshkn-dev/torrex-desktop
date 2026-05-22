@@ -79,20 +79,16 @@ Item {
             Layout.fillHeight: true
             Layout.minimumHeight: 180
             visible: hasSelection
+            clip: true
 
-            SwipeView {
-                id: detailSwipe
+            StackLayout {
+                id: tabStack
                 anchors.fill: parent
-                interactive: false
                 currentIndex: detailTabs.currentIndex
 
-                onCurrentIndexChanged: {
-                    if (detailTabs.currentIndex !== currentIndex)
-                        detailTabs.currentIndex = currentIndex
-                }
-
                 ColumnLayout {
-                    width: detailSwipe.width
+                    width: tabStack.width
+                    height: tabStack.height
                     spacing: 10
 
                     DetailRow {
@@ -128,7 +124,8 @@ Item {
                 }
 
                 ColumnLayout {
-                    width: detailSwipe.width
+                    width: tabStack.width
+                    height: tabStack.height
                     spacing: 8
 
                     Label {
@@ -137,25 +134,26 @@ Item {
                             : qsTr("Waiting for torrent metadata…")
                         color: Theme.textMuted
                         font.pixelSize: 12
+                        Layout.fillWidth: true
                     }
 
                     ListView {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true
+                        boundsBehavior: Flickable.StopAtBounds
                         model: detailFilePaths
                         spacing: 2
 
                         delegate: ItemDelegate {
                             width: ListView.view.width
                             text: modelData
-                            onClicked: {}
                         }
                     }
 
                     Label {
                         visible: detailFilePaths.length > 0
-                        text: qsTr("Priorities and sequential download are planned for a later release.")
+                        text: qsTr("File priorities and sequential mode are planned for a later release.")
                         color: Theme.textMuted
                         font.pixelSize: 11
                         wrapMode: Text.WordWrap
@@ -174,14 +172,6 @@ Item {
             text: qsTr("Choose a torrent from the list to see details.")
             color: Theme.textMuted
             wrapMode: Text.WordWrap
-        }
-    }
-
-    Connections {
-        target: detailTabs
-        function onCurrentIndexChanged() {
-            if (detailSwipe.currentIndex !== detailTabs.currentIndex)
-                detailSwipe.currentIndex = detailTabs.currentIndex
         }
     }
 
