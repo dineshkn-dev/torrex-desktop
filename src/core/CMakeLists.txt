@@ -13,7 +13,7 @@ target_include_directories(torrex_core
 
 target_link_libraries(torrex_core
     PUBLIC
-        Libtorrent::torrent-rasterbar
+        LibtorrentRasterbar::torrent-rasterbar
 )
 
 target_compile_features(torrex_core PUBLIC cxx_std_20)
