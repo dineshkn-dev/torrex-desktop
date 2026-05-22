@@ -1,18 +1,23 @@
 qt_standard_project_setup()
 
+if(POLICY QTP0004)
+    qt_policy(SET QTP0004 NEW)
+endif()
+
 qt_add_executable(torrex
     main.cpp
     app_controller.cpp
 )
 
-set_source_files_properties(../ui/qml/theme/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(torrex
     URI Torrex
     VERSION 1.0
+    RESOURCE_PREFIX /qt/qml
     QML_FILES
-        ../ui/qml/Main.qml
-        ../ui/qml/theme/Theme.qml
+        qml/Main.qml
+        qml/Theme.qml
 )
 
 target_link_libraries(torrex

@@ -1,11 +1,11 @@
 ---
 description: QML presentation-only patterns for Torrex UI
-globs: "src/ui/qml/**"
+globs: "src/app/qml/**"
 alwaysApply: false
 ---
 
 # QML UI patterns
 
 - No torrent business logic in QML; call `appController` methods.
-- Use `Theme.qml` tokens for colors; support system dark/light via `Application.styleHints` when extended.
+- Use `src/app/qml/Theme.qml` tokens for colors; support system dark/light via `Application.styleHints` when extended.
 - Bind lists to Qt models (`appController.torrents`), not raw C++ pointers.
