@@ -22,5 +22,5 @@ Rust and Tauri were considered; rejected for v1 due to Qt6 integration maturity 
 ## Consequences
 
 - Positive: Fast path to feature parity with proven stack (qBittorrent model).
-- Negative: Manual memory safety discipline; mitigated by sanitizers, CodeQL, clang-tidy.
+- Negative: Manual memory safety discipline; mitigated by sanitizers and local/static checks.
 - vcpkg build times are long; CI caches `vcpkg_installed`.

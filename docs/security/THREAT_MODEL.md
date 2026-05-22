@@ -14,7 +14,7 @@
 | T2 | Path traversal in torrent names | Sanitize paths; reject `..` |
 | T3 | Tracker MITM | HTTPS trackers where available; user warnings |
 | T4 | Malicious peers | libtorrent protocol handling; no custom peer parser in v1 |
-| T5 | Supply-chain compromise | vcpkg pin, SBOM, signed releases, OSV-Scanner |
+| T5 | Supply-chain compromise | vcpkg pin, SBOM, signed releases |
 | T6 | Secret leakage in repo | gitleaks, pre-commit, no keys in client |
 
 ## Out of scope (v0.1)

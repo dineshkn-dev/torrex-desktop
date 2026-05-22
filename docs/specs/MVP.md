@@ -10,9 +10,8 @@
 
 ## CI {#ci}
 
-- [x] GitHub Actions: **macOS arm64** build (Windows/Ubuntu matrix deferred for v0.1)
-- [x] Lint workflow (clang-format, cmake-format)
-- [x] CodeQL and OpenSSF Scorecard workflows present
+- [x] GitHub Actions: **CI** (macOS build + tests) and **Release** (tag `v*` only)
+- [x] Local format checks via `scripts/verify.sh` / pre-commit (not separate workflows)
 
 ## Skeleton {#skeleton}
 
