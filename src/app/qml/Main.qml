@@ -14,23 +14,19 @@ ApplicationWindow {
     title: qsTr("Torrex %1").arg(appController.version)
     color: Theme.windowBackground
 
-    // Keep Qt Quick Controls in sync with Theme (avoids dark Fusion buttons on a light window).
-    palette.window: Theme.windowBackground
-    palette.windowText: Theme.textPrimary
-    palette.base: Theme.surface
-    palette.text: Theme.textPrimary
-    palette.button: Theme.accent
-    palette.buttonText: "#ffffff"
-    palette.mid: Theme.border
-    palette.dark: Theme.border
-
     property bool hasTorrents: appController.torrents.count > 0
+
+    Connections {
+        target: Application.styleHints
+        function onColorSchemeChanged() {
+            // Re-apply window chrome when user toggles macOS Appearance (or Auto switches).
+            window.color = Theme.windowBackground
+        }
+    }
 
     Component.onCompleted: appController.refreshTorrents()
 
     header: ToolBar {
-        background: Rectangle { color: Theme.surface }
-
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 12
@@ -41,7 +37,6 @@ ApplicationWindow {
                 text: qsTr("Torrex")
                 font.bold: true
                 font.pixelSize: 18
-                color: Theme.textPrimary
             }
 
             Item { Layout.fillWidth: true }
@@ -63,8 +58,6 @@ ApplicationWindow {
     }
 
     footer: ToolBar {
-        background: Rectangle { color: Theme.surface }
-
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 12
@@ -72,14 +65,13 @@ ApplicationWindow {
 
             Label {
                 text: appController.statusMessage
-                color: Theme.textMuted
                 font.pixelSize: 12
+                opacity: 0.75
                 elide: Text.ElideRight
                 Layout.fillWidth: true
             }
             Label {
                 text: qsTr("%1 torrents").arg(appController.torrents.count)
-                color: Theme.textPrimary
                 font.pixelSize: 12
             }
         }

@@ -23,7 +23,7 @@ See [docs/specs/MVP.md](docs/specs/MVP.md) and [docs/tracker/ROADMAP.yaml](docs/
 ./scripts/verify.sh      # docs check + build + tests
 ./build/dev/bin/torrex   # run app
 
-**Appearance:** Torrex follows **System Settings → Appearance** (light or dark). If the window looks white, macOS is in Light Mode; switch to Dark or Auto to get the dark theme.
+**Appearance:** Torrex **defaults to your system theme** (macOS **Settings → Appearance**: Light, Dark, or Auto). On macOS it uses the native **macOS** Qt style so toolbars and controls track the OS; the main window background updates when the system scheme changes.
 ```
 
 Set `VCPKG_ROOT` if vcpkg lives outside the repo:
