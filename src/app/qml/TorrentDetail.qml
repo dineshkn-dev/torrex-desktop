@@ -113,7 +113,7 @@ Item {
                         wrap: true
                     }
 
-                    ProgressBar {
+                    ThemedProgressBar {
                         Layout.fillWidth: true
                         from: 0
                         to: 100

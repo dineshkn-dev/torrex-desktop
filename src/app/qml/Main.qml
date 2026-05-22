@@ -49,21 +49,25 @@ ApplicationWindow {
 
     Dialog {
         id: removeConfirmDialog
-        title: removeConfirmDialog.deleteFiles
-            ? qsTr("Remove and delete data?")
-            : qsTr("Remove torrent?")
-        anchors.centerIn: parent
         modal: true
+        anchors.centerIn: Overlay.overlay
+        width: 440
         standardButtons: Dialog.Cancel | Dialog.Ok
         property string infoHash: ""
         property bool deleteFiles: false
         property string torrentName: ""
 
+        onAboutToShow: {
+            title = deleteFiles
+                ? qsTr("Remove and delete data?")
+                : qsTr("Remove torrent?")
+        }
+
         onAccepted: appController.removeTorrent(infoHash, deleteFiles)
 
         contentItem: Label {
+            width: parent.width
             wrapMode: Text.WordWrap
-            width: Math.min(window.width * 0.6, 420)
             text: removeConfirmDialog.deleteFiles
                 ? qsTr("Delete all downloaded files for \"%1\"? This cannot be undone.")
                       .arg(removeConfirmDialog.torrentName)
@@ -167,8 +171,9 @@ ApplicationWindow {
     Dialog {
         id: magnetDialog
         title: qsTr("Add magnet link")
-        anchors.centerIn: parent
         modal: true
+        anchors.centerIn: Overlay.overlay
+        width: 520
         standardButtons: Dialog.Cancel | Dialog.Ok
         onAboutToShow: downloadPathField.text = appController.defaultDownloadFolder
         onAccepted: {
@@ -178,7 +183,7 @@ ApplicationWindow {
 
         contentItem: ColumnLayout {
             spacing: 12
-            width: Math.min(window.width * 0.7, 520)
+            width: parent.width
 
             Label {
                 text: qsTr("Paste a magnet URI (magnet:?xt=urn:btih:…)")
@@ -232,8 +237,9 @@ ApplicationWindow {
     Dialog {
         id: torrentAddDialog
         title: qsTr("Add torrent")
-        anchors.centerIn: parent
         modal: true
+        anchors.centerIn: Overlay.overlay
+        width: 520
         standardButtons: Dialog.Cancel | Dialog.Ok
         property url torrentFile
 
@@ -243,7 +249,7 @@ ApplicationWindow {
 
         contentItem: ColumnLayout {
             spacing: 12
-            width: Math.min(window.width * 0.7, 520)
+            width: parent.width
 
             Label {
                 text: qsTr("Torrent file")
