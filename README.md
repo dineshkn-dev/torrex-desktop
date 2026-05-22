@@ -1,48 +1,51 @@
 # Torrex
 
-Open-source BitTorrent client for **macOS** (v0.1 focus), built with **C++20**, **libtorrent 2.x**, and **Qt 6 Quick (QML)**. Windows/Linux support is planned later; CI currently builds **macOS only** to keep feedback loops fast.
+Open-source BitTorrent client for **macOS** (v0.1), built with **C++20**, **libtorrent 2.x**, and **Qt 6 Quick**.
 
-## Features (roadmap)
+## Features (v0.1)
 
-- Magnet and `.torrent` add, pause/resume, file priorities
-- Modern QML UI with dark/light theme
-- Fast-resume, bandwidth limits, cross-platform releases
+- Magnet and `.torrent` add, pause, resume, remove
+- File priorities and sequential download
+- Bandwidth limits, port, DHT/UPnP, and proxy settings
+- Master–detail UI, filters, system light/dark theme
+- Drag-and-drop, fast-resume, completion notifications
+- Signed release `.dmg` with SBOM (see [Releases](https://github.com/dineshkn-dev/torrex-desktop/releases))
 
-See [docs/specs/MVP.md](docs/specs/MVP.md) and [docs/tracker/ROADMAP.yaml](docs/tracker/ROADMAP.yaml).
+Full list: [docs/specs/PRODUCT.md](docs/specs/PRODUCT.md).
 
-## Quick start
+## What's next
 
-**Requirements:** CMake 3.24+, Ninja, C++20 compiler, Git.
+Planned milestones (notarized macOS distribution, Windows/Linux, advanced torrent features): [docs/planning/FUTURE.md](docs/planning/FUTURE.md).
 
-**macOS (Homebrew):** `brew install cmake ninja pkg-config autoconf autoconf-archive automake libtool`
+## Install and run
 
-**macOS (Qt via vcpkg):** Full **Xcode** from the App Store is required (Command Line Tools alone are not enough). After install: `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+Download the latest `.dmg` from **Releases**, or build from source:
 
-```bash
-./scripts/bootstrap.sh   # clones vcpkg, installs deps (first run: 30–60 min)
-./scripts/verify.sh      # docs check + build + tests
-./build/dev/bin/torrex   # run app
-
-**Appearance:** Torrex **defaults to your system theme** (macOS **Settings → Appearance**: Light, Dark, or Auto). On macOS it uses the native **macOS** Qt style so toolbars and controls track the OS; the main window background updates when the system scheme changes.
-```
-
-Set `VCPKG_ROOT` if vcpkg lives outside the repo:
+**Requirements:** CMake 3.24+, Ninja, C++20, Git, full **Xcode** on macOS (for Qt via vcpkg).
 
 ```bash
-export VCPKG_ROOT=~/vcpkg
+brew install cmake ninja pkg-config autoconf autoconf-archive automake libtool
+./scripts/bootstrap.sh   # first run may take 30–60 min (vcpkg + Qt)
+cmake --preset dev
+cmake --build --preset dev
+open build/dev/bin/Torrex.app
 ```
 
-## For AI agents
+Torrex follows your macOS **Appearance** (Light / Dark / Auto).
 
-Read [AGENTS.md](AGENTS.md) first.
+Optional: `export VCPKG_ROOT=~/vcpkg` if vcpkg is outside the repo.
 
 ## Architecture
 
 - `torrex_core` — libtorrent session (no Qt)
-- `torrex_models` — Qt models for QML
-- `torrex` — Qt Quick application
+- `torrex_models` — Qt models
+- `torrex` — Qt Quick app
 
-ADRs: [docs/architecture/](docs/architecture/).
+Details: [docs/architecture/](docs/architecture/).
+
+## Contributing
+
+See [AGENTS.md](AGENTS.md) and [docs/CONVENTIONS.md](docs/CONVENTIONS.md).
 
 ## License
 

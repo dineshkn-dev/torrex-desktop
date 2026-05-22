@@ -6,14 +6,14 @@ Accepted
 
 ## Decision
 
-Four-layer doc system:
+Documentation layers:
 
-1. `AGENTS.md` — agent/human entry
-2. `docs/specs/` — requirements and acceptance criteria
-3. `docs/tracker/ROADMAP.yaml` — structured progress (CI-validated)
-4. GitHub Issues/Projects — live work status
+1. `docs/specs/PRODUCT.md` — what the shipped product does
+2. `docs/planning/FUTURE.md` — next major themes (human-readable)
+3. `docs/tracker/ROADMAP.yaml` — planned milestones (CI-validated)
+4. `AGENTS.md` — contributor build and layout guide
 
-Avoid freeform-only `TODO.md` files as source of truth.
+Avoid freeform-only `TODO.md` files as source of truth for scope.
 
 ## Enforcement
 

@@ -1,106 +1,68 @@
-# Machine-readable roadmap. CI validates via scripts/validate-docs.sh
-version: 1
+# Forward-looking roadmap. Shipped work is documented in docs/specs/PRODUCT.md and CHANGELOG.md.
+version: 2
 project: torrex
-phases:
-  - id: phase-0-governance
-    name: Governance and automation foundation
-    status: done
-    items:
-      - id: F-000-agents-docs
-        spec: docs/specs/MVP.md#phase-0
-        tests: []
-        done_when: docs_present
-      - id: F-001-ci-matrix
-        spec: docs/specs/MVP.md#ci
-        tests: [tests/core/version_test.cpp]
-        done_when: ci_green_all_platforms
-      - id: F-002-compile-skeleton
-        spec: docs/specs/MVP.md#skeleton
-        tests: [tests/core/session_manager_test.cpp]
-        done_when: ci_green_all_platforms
+released_version: "0.1.0"
 
-  - id: phase-1-engine
-    name: Engine torrent add and live snapshots
-    status: done
+milestones:
+  - id: v1-0-production-macos
+    name: v1.0 — Production macOS distribution
+    status: planned
+    spec: docs/planning/FUTURE.md#production-macos
     items:
-      - id: F-010-session-add
-        spec: docs/specs/engine-session.md
-        tests: [tests/core/session_manager_test.cpp, tests/core/add_torrent_test.cpp]
-        done_when: tests_pass
-      - id: F-011-ui-bind
-        spec: docs/specs/MVP.md#torrent-lifecycle
-        tests: []
-        done_when: manual_magnet_add
+      - id: M-100-developer-id-signing
+        summary: Sign app and DMG with Developer ID Application certificate
+        priority: high
+      - id: M-101-notarization
+        summary: Notarize and staple release DMG for Gatekeeper
+        priority: high
+      - id: M-102-auto-update
+        summary: Evaluate Sparkle or equivalent update channel
+        priority: medium
 
-  - id: phase-2-torrent-ops
-    name: Torrent operations (pause, resume, remove)
-    status: done
+  - id: v1-1-cross-platform
+    name: v1.1 — Windows and Linux releases
+    status: planned
+    spec: docs/planning/FUTURE.md#cross-platform
     items:
-      - id: F-020-pause-resume
-        spec: docs/specs/MVP.md#torrent-lifecycle
-        tests: [tests/core/torrent_ops_test.cpp]
-        done_when: tests_pass
+      - id: M-200-windows-ci-package
+        summary: Windows CI build and windeployqt packaging
+        priority: high
+      - id: M-201-linux-ci-package
+        summary: Linux CI build and AppImage or deb package
+        priority: high
+      - id: M-202-ci-matrix
+        summary: Restore multi-OS CI matrix from macOS-only v0.1 scope
+        priority: medium
 
-  - id: phase-3-ui
-    name: Master-detail UI
-    status: done
+  - id: v1-2-torrent-advanced
+    name: v1.2 — Advanced torrent features
+    status: planned
+    spec: docs/planning/FUTURE.md#torrent-advanced
     items:
-      - id: F-030-master-detail
-        spec: docs/specs/MVP.md#ui
-        tests: []
-        done_when: manual_ui_smoke
+      - id: M-300-per-file-progress
+        summary: Per-file download progress in Files tab
+        priority: medium
+      - id: M-301-selective-download
+        summary: Choose files before starting download
+        priority: high
+      - id: M-302-tracker-editor
+        summary: View and edit trackers on active torrents
+        priority: low
+      - id: M-303-watch-folder
+        summary: Auto-add torrents from a watched directory
+        priority: medium
 
-  - id: phase-4-settings
-    name: Settings and polish
-    status: done
+  - id: v1-x-ui-polish
+    name: UI polish and native integration
+    status: planned
+    spec: docs/planning/FUTURE.md#ui-polish
     items:
-      - id: F-040-settings-ui
-        spec: docs/specs/MVP.md#session-network
-        tests: [tests/core/session_settings_test.cpp]
-        done_when: tests_pass
-      - id: F-041-fast-resume
-        spec: docs/specs/MVP.md#torrent-lifecycle
-        tests: [tests/core/session_settings_test.cpp]
-        done_when: tests_pass
-
-  - id: phase-5-release
-    name: Signed release
-    status: done
-    items:
-      - id: F-050-macos-bundle
-        spec: docs/runbooks/release.md
-        tests: []
-        done_when: ci_green_all_platforms
-      - id: F-051-release-workflow
-        spec: docs/runbooks/release.md
-        tests: []
-        done_when: tag_triggers_release
-      - id: F-052-sbom-cosign
-        spec: docs/specs/MVP.md#acceptance-v0-1-release
-        tests: []
-        done_when: tag_triggers_release
-
-  - id: phase-6-mvp-complete
-    name: MVP completion
-    status: done
-    items:
-      - id: F-060-file-priorities-sequential
-        spec: docs/specs/MVP.md#torrent-lifecycle
-        tests: [tests/core/torrent_controls_test.cpp]
-        done_when: tests_pass
-      - id: F-061-proxy-settings
-        spec: docs/specs/MVP.md#session-network
-        tests: [tests/core/session_settings_test.cpp]
-        done_when: tests_pass
-      - id: F-062-dnd-notifications
-        spec: docs/specs/MVP.md#ui
-        tests: []
-        done_when: manual_ui_smoke
-      - id: F-063-acceptance-runbook
-        spec: docs/runbooks/acceptance-test.md
-        tests: []
-        done_when: docs_present
-      - id: F-064-ci-dev-preset
-        spec: docs/specs/MVP.md#ci
-        tests: []
-        done_when: ci_green_all_platforms
+      - id: M-400-native-notifications
+        summary: macOS notification center for completed downloads
+        priority: medium
+      - id: M-401-tray-menubar
+        summary: Menu bar icon and background controls
+        priority: low
+      - id: M-402-list-search-sort
+        summary: Search and sort torrent list
+        priority: medium

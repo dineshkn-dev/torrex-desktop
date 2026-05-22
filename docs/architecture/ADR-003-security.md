@@ -11,7 +11,7 @@ Accepted
 - No telemetry by default in v0.1.
 - CI: macOS build + tests (`ci.yml`); release pipeline on version tags (`release.yml`).
 - Local: gitleaks via pre-commit; format via `scripts/verify.sh`.
-- Releases: SPDX SBOM + cosign signing (Phase 5).
+- Releases: SPDX SBOM + cosign signing (v0.1+).
 - macOS v1: App Sandbox disabled; document entitlements in `packaging/macos/`.
 
 ## Supply chain

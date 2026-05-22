@@ -7,7 +7,7 @@ alwaysApply: true
 
 When changing user-visible behavior or architecture:
 
-1. Update the relevant file in `docs/specs/`.
-2. Update `docs/tracker/ROADMAP.yaml` item status or links.
+1. Update [docs/specs/PRODUCT.md](docs/specs/PRODUCT.md) if shipped behavior changes.
+2. Update [docs/planning/FUTURE.md](docs/planning/FUTURE.md) and [docs/tracker/ROADMAP.yaml](docs/tracker/ROADMAP.yaml) for planned work.
 3. Add an ADR under `docs/architecture/` for non-trivial decisions.
 4. Ensure `scripts/validate-docs.sh` passes.

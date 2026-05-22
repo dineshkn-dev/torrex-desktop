@@ -3,8 +3,8 @@
 ## Preconditions
 
 - `main` green on CI (macOS build + tests)
-- `docs/tracker/ROADMAP.yaml` reflects shipped features
 - `CHANGELOG.md` updated for the version
+- [release-qa.md](release-qa.md) checklist completed for the candidate build
 
 ## Cut a release
 

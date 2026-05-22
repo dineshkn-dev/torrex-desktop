@@ -14,7 +14,7 @@ Torrex is a cross-platform desktop BitTorrent client built from a greenfield rep
 - **Torrent engine:** libtorrent-rasterbar 2.0.x
 - **UI:** Qt 6 Quick (QML) + Qt Quick Controls
 - **Build:** CMake 3.24+ with vcpkg manifest mode
-- **Persistence:** SQLite via Qt SQL (Phase 2+)
+- **Persistence:** SQLite via Qt SQL (planned; see docs/planning/FUTURE.md)
 - **License:** GPL-3.0 for the application
 
 Rust and Tauri were considered; rejected for v1 due to Qt6 integration maturity and libtorrent ecosystem fit (see plan: Language choice).
