@@ -26,6 +26,8 @@ QVariant TorrentListModel::data(const QModelIndex& index, int role) const
     switch (role) {
     case NameRole:
         return QString::fromStdString(item.name);
+    case InfoHashRole:
+        return QString::fromStdString(item.info_hash.v1_hex);
     case StateRole:
         return static_cast<int>(item.state);
     case ProgressRole:
@@ -43,6 +45,7 @@ QHash<int, QByteArray> TorrentListModel::roleNames() const
 {
     return {
         {NameRole, "name"},
+        {InfoHashRole, "infoHash"},
         {StateRole, "state"},
         {ProgressRole, "progress"},
         {DownloadRateRole, "downloadRate"},
@@ -52,10 +55,45 @@ QHash<int, QByteArray> TorrentListModel::roleNames() const
 
 void TorrentListModel::refresh()
 {
+    const std::vector<TorrentSnapshot> next = session_.snapshots();
+    if (next.size() == items_.size()) {
+        items_ = next;
+        if (!items_.empty()) {
+            emit dataChanged(index(0), index(static_cast<int>(items_.size()) - 1));
+        }
+        emit snapshotsUpdated();
+        return;
+    }
+
     beginResetModel();
-    items_ = session_.snapshots();
+    items_ = next;
     endResetModel();
     emit countChanged();
+    emit snapshotsUpdated();
+}
+
+QString TorrentListModel::nameAt(const int row) const
+{
+    if (row < 0 || row >= static_cast<int>(items_.size())) {
+        return {};
+    }
+    return QString::fromStdString(items_[static_cast<std::size_t>(row)].name);
+}
+
+QString TorrentListModel::infoHashAt(const int row) const
+{
+    if (row < 0 || row >= static_cast<int>(items_.size())) {
+        return {};
+    }
+    return QString::fromStdString(items_[static_cast<std::size_t>(row)].info_hash.v1_hex);
+}
+
+int TorrentListModel::stateAt(const int row) const
+{
+    if (row < 0 || row >= static_cast<int>(items_.size())) {
+        return -1;
+    }
+    return static_cast<int>(items_[static_cast<std::size_t>(row)].state);
 }
 
 } // namespace torrex::models

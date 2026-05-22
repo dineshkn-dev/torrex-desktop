@@ -14,6 +14,7 @@ class TorrentListModel : public QAbstractListModel {
 public:
     enum Roles {
         NameRole = Qt::UserRole + 1,
+        InfoHashRole,
         StateRole,
         ProgressRole,
         DownloadRateRole,
@@ -28,9 +29,13 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE QString infoHashAt(int row) const;
+    Q_INVOKABLE int stateAt(int row) const;
+    Q_INVOKABLE QString nameAt(int row) const;
 
 signals:
     void countChanged();
+    void snapshotsUpdated();
 
 private:
     SessionManager& session_;

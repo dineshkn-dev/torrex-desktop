@@ -15,6 +15,10 @@ ApplicationWindow {
     color: Theme.windowBackground
 
     property bool hasTorrents: appController.torrents.count > 0
+    property string selectedInfoHash: ""
+    // TorrentState::Paused === 4 (see include/torrex/types.hpp)
+    readonly property bool selectionPaused: selectedState === 4
+    property int selectedState: -1
 
     Connections {
         target: Application.styleHints
@@ -25,6 +29,38 @@ ApplicationWindow {
     }
 
     Component.onCompleted: appController.refreshTorrents()
+
+    function confirmRemove(infoHash, deleteFiles, torrentName) {
+        removeConfirmDialog.infoHash = infoHash
+        removeConfirmDialog.deleteFiles = deleteFiles
+        removeConfirmDialog.torrentName = torrentName
+        removeConfirmDialog.open()
+    }
+
+    Dialog {
+        id: removeConfirmDialog
+        title: removeConfirmDialog.deleteFiles
+            ? qsTr("Remove and delete data?")
+            : qsTr("Remove torrent?")
+        anchors.centerIn: parent
+        modal: true
+        standardButtons: Dialog.Cancel | Dialog.Ok
+        property string infoHash: ""
+        property bool deleteFiles: false
+        property string torrentName: ""
+
+        onAccepted: appController.removeTorrent(infoHash, deleteFiles)
+
+        contentItem: Label {
+            wrapMode: Text.WordWrap
+            width: Math.min(window.width * 0.6, 420)
+            text: deleteFiles
+                ? qsTr("Delete all downloaded files for “%1”? This cannot be undone.")
+                      .arg(torrentName)
+                : qsTr("Remove “%1” from Torrex? Downloaded files will stay on disk.")
+                      .arg(torrentName)
+        }
+    }
 
     header: ToolBar {
         RowLayout {
@@ -40,6 +76,28 @@ ApplicationWindow {
             }
 
             Item { Layout.fillWidth: true }
+
+            Button {
+                text: qsTr("Pause")
+                enabled: selectedInfoHash !== "" && !selectionPaused
+                onClicked: appController.pauseTorrent(selectedInfoHash)
+            }
+            Button {
+                text: qsTr("Resume")
+                enabled: selectedInfoHash !== "" && selectionPaused
+                onClicked: appController.resumeTorrent(selectedInfoHash)
+            }
+            Button {
+                text: qsTr("Remove")
+                enabled: selectedInfoHash !== ""
+                onClicked: {
+                    const row = torrentList.currentIndex
+                    window.confirmRemove(
+                        selectedInfoHash,
+                        false,
+                        row >= 0 ? appController.torrents.nameAt(row) : "")
+                }
+            }
 
             Button {
                 text: qsTr("Add magnet")
@@ -77,19 +135,41 @@ ApplicationWindow {
         }
     }
 
+    property var folderPathTarget: null
+
+    function pathToFolderUrl(path) {
+        if (!path)
+            return ""
+        if (path.indexOf("file://") === 0)
+            return path
+        return "file://" + path
+    }
+
+    FolderDialog {
+        id: downloadFolderDialog
+        title: qsTr("Choose download folder")
+        onAccepted: {
+            if (folderPathTarget)
+                folderPathTarget.text = selectedFolder.toLocalFile()
+        }
+    }
+
     Dialog {
         id: magnetDialog
         title: qsTr("Add magnet link")
         anchors.centerIn: parent
         modal: true
         standardButtons: Dialog.Cancel | Dialog.Ok
+        onAboutToShow: downloadPathField.text = appController.defaultDownloadFolder
         onAccepted: {
-            appController.addMagnetUri(magnetField.text.trim())
+            appController.addMagnetUri(magnetField.text.trim(), downloadPathField.text)
             magnetField.text = ""
         }
 
         contentItem: ColumnLayout {
             spacing: 12
+            width: Math.min(window.width * 0.7, 520)
+
             Label {
                 text: qsTr("Paste a magnet URI (magnet:?xt=urn:btih:…)")
                 color: Theme.textMuted
@@ -102,6 +182,30 @@ ApplicationWindow {
                 Layout.fillWidth: true
                 selectByMouse: true
             }
+
+            Label {
+                text: qsTr("Download folder")
+                color: Theme.textMuted
+                Layout.fillWidth: true
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                TextField {
+                    id: downloadPathField
+                    Layout.fillWidth: true
+                    selectByMouse: true
+                    placeholderText: qsTr("Folder path…")
+                }
+                Button {
+                    text: qsTr("Browse…")
+                    onClicked: {
+                        folderPathTarget = downloadPathField
+                        downloadFolderDialog.currentFolder = pathToFolderUrl(downloadPathField.text)
+                        downloadFolderDialog.open()
+                    }
+                }
+            }
         }
     }
 
@@ -109,7 +213,66 @@ ApplicationWindow {
         id: torrentFileDialog
         title: qsTr("Open torrent file")
         nameFilters: [qsTr("Torrent files (*.torrent)")]
-        onAccepted: appController.addTorrentFile(selectedFile)
+        onAccepted: {
+            torrentAddDialog.torrentFile = selectedFile
+            torrentAddDialog.open()
+        }
+    }
+
+    Dialog {
+        id: torrentAddDialog
+        title: qsTr("Add torrent")
+        anchors.centerIn: parent
+        modal: true
+        standardButtons: Dialog.Cancel | Dialog.Ok
+        property url torrentFile
+
+        onAboutToShow: downloadPathFieldTorrent.text = appController.defaultDownloadFolder
+
+        onAccepted: {
+            appController.addTorrentFile(torrentFile, downloadPathFieldTorrent.text)
+            torrentFile = ""
+        }
+
+        contentItem: ColumnLayout {
+            spacing: 12
+            width: Math.min(window.width * 0.7, 520)
+
+            Label {
+                text: qsTr("Torrent file")
+                color: Theme.textMuted
+            }
+            Label {
+                text: torrentAddDialog.torrentFile.toLocalFile()
+                wrapMode: Text.WrapAnywhere
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: qsTr("Download folder")
+                color: Theme.textMuted
+                Layout.fillWidth: true
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                TextField {
+                    id: downloadPathFieldTorrent
+                    Layout.fillWidth: true
+                    selectByMouse: true
+                    placeholderText: qsTr("Folder path…")
+                }
+                Button {
+                    text: qsTr("Browse…")
+                    onClicked: {
+                        folderPathTarget = downloadPathFieldTorrent
+                        downloadFolderDialog.currentFolder =
+                            pathToFolderUrl(downloadPathFieldTorrent.text)
+                        downloadFolderDialog.open()
+                    }
+                }
+            }
+        }
     }
 
     Item {
@@ -173,9 +336,88 @@ ApplicationWindow {
                 spacing: 4
                 clip: true
 
+                Connections {
+                    target: appController.torrents
+                    function onSnapshotsUpdated() {
+                        torrentList.syncSelection()
+                    }
+                }
+
+                function syncSelection() {
+                    if (currentIndex < 0 || currentIndex >= count) {
+                        window.selectedInfoHash = ""
+                        window.selectedState = -1
+                        return
+                    }
+                    window.selectedInfoHash = appController.torrents.infoHashAt(currentIndex)
+                    window.selectedState = appController.torrents.stateAt(currentIndex)
+                }
+
+                onCountChanged: {
+                    if (count === 0) {
+                        currentIndex = -1
+                        syncSelection()
+                    } else if (currentIndex < 0 || currentIndex >= count) {
+                        currentIndex = 0
+                    } else {
+                        syncSelection()
+                    }
+                }
+
+                onCurrentIndexChanged: syncSelection()
+
+                Component.onCompleted: {
+                    if (count > 0 && currentIndex < 0)
+                        currentIndex = 0
+                }
+
                 delegate: ItemDelegate {
+                    id: row
                     width: torrentList.width
-                    text: name + " — " + progress + "%"
+                    highlighted: torrentList.currentIndex === index
+                    text: {
+                        var line = name + " — " + progress + "%"
+                        if (downloadRate > 0) {
+                            line += "  ↓ " + formatBytes(downloadRate) + "/s"
+                        }
+                        return line
+                    }
+
+                    function formatBytes(bytes) {
+                        if (bytes < 1024) return bytes + " B"
+                        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
+                        return (bytes / (1024 * 1024)).toFixed(1) + " MB"
+                    }
+
+                    onClicked: torrentList.currentIndex = index
+
+                    TapHandler {
+                        acceptedButtons: Qt.RightButton
+                        onTapped: rowMenu.open()
+                    }
+
+                    Menu {
+                        id: rowMenu
+                        MenuItem {
+                            text: qsTr("Pause")
+                            enabled: state !== 4
+                            onTriggered: appController.pauseTorrent(infoHash)
+                        }
+                        MenuItem {
+                            text: qsTr("Resume")
+                            enabled: state === 4
+                            onTriggered: appController.resumeTorrent(infoHash)
+                        }
+                        MenuSeparator {}
+                        MenuItem {
+                            text: qsTr("Remove")
+                            onTriggered: window.confirmRemove(infoHash, false, name)
+                        }
+                        MenuItem {
+                            text: qsTr("Remove and delete data")
+                            onTriggered: window.confirmRemove(infoHash, true, name)
+                        }
+                    }
                 }
             }
         }

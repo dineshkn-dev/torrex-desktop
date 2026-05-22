@@ -4,8 +4,7 @@ project: torrex
 phases:
   - id: phase-0-governance
     name: Governance and automation foundation
-    status: in_progress
-    note: Scaffold committed; local vcpkg Qt build blocked until Xcode installed on macOS
+    status: done
     items:
       - id: F-000-agents-docs
         spec: docs/specs/MVP.md#phase-0
@@ -13,7 +12,6 @@ phases:
         done_when: docs_present
       - id: F-001-ci-matrix
         spec: docs/specs/MVP.md#ci
-        issue: null
         tests: [tests/core/version_test.cpp]
         done_when: ci_green_all_platforms
       - id: F-002-compile-skeleton
@@ -22,21 +20,25 @@ phases:
         done_when: ci_green_all_platforms
 
   - id: phase-1-engine
-    name: Engine skeleton
-    status: pending
+    name: Engine torrent add and live snapshots
+    status: done
     items:
-      - id: F-010-session-start
+      - id: F-010-session-add
         spec: docs/specs/engine-session.md
-        tests: [tests/core/session_manager_test.cpp]
+        tests: [tests/core/session_manager_test.cpp, tests/core/add_torrent_test.cpp]
         done_when: tests_pass
-
-  - id: phase-2-torrent-ops
-    name: Torrent operations
-    status: pending
-    items:
-      - id: F-020-add-magnet
+      - id: F-011-ui-bind
         spec: docs/specs/MVP.md#torrent-lifecycle
         tests: []
+        done_when: manual_magnet_add
+
+  - id: phase-2-torrent-ops
+    name: Torrent operations (pause, resume, remove)
+    status: done
+    items:
+      - id: F-020-pause-resume
+        spec: docs/specs/MVP.md#torrent-lifecycle
+        tests: [tests/core/torrent_ops_test.cpp]
         done_when: tests_pass
 
   - id: phase-3-ui

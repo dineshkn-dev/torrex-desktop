@@ -7,9 +7,11 @@
 ## Acceptance criteria
 
 1. `start()` creates a session on a dedicated worker thread; idempotent.
-2. `shutdown()` drains alerts, saves resume data, joins thread.
-3. `snapshots()` returns immutable `TorrentSnapshot` vector for UI (throttled externally).
-4. No Qt types in `src/core/` or `include/torrex/`.
+2. `shutdown()` joins worker thread.
+3. `snapshots()` returns `TorrentSnapshot` vector updated from libtorrent alerts.
+4. `add_magnet()` / `add_torrent_file()` enqueue adds with validation; saves to configurable path.
+5. `pause_torrent()` / `resume_torrent()` / `remove_torrent()` enqueue by info-hash key; optional delete data on remove.
+6. No Qt types in `src/core/` or `include/torrex/`.
 
 ## Tests
 
