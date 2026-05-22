@@ -21,8 +21,13 @@ void add_vcpkg_qt_plugin_paths()
         bin_dir.absoluteFilePath(QStringLiteral("../../vcpkg_installed/arm64-osx/plugins")),
     };
     for (const QString& path : candidates) {
-        if (QDir(path).exists()) {
-            QCoreApplication::addLibraryPath(path);
+        if (!QDir(path).exists()) {
+            continue;
+        }
+        QCoreApplication::addLibraryPath(path);
+        const QString imageformats = path + QStringLiteral("/imageformats");
+        if (QDir(imageformats).exists()) {
+            QCoreApplication::addLibraryPath(imageformats);
         }
     }
 }
@@ -31,6 +36,10 @@ void add_vcpkg_qt_plugin_paths()
 
 int main(int argc, char* argv[])
 {
+    // Before QGuiApplication / QML: Fusion style PNG assets fail on some macOS/Qt builds.
+    qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
+    QQuickStyle::setStyle(QStringLiteral("Basic"));
+
     QGuiApplication app(argc, argv);
     QGuiApplication::setApplicationName("Torrex");
     QGuiApplication::setOrganizationName("Torrex");
@@ -40,9 +49,6 @@ int main(int argc, char* argv[])
 
     // Default: match OS appearance (Light / Dark / Auto). Do not force a scheme here.
     QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Unknown);
-
-    // Basic: vector-friendly controls without Fusion PNG assets (broken on some macOS/Qt builds).
-    QQuickStyle::setStyle(QStringLiteral("Basic"));
 
     torrex::app::AppController controller;
 

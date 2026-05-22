@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import Torrex
@@ -40,40 +40,29 @@ ApplicationWindow {
         return path
     }
 
-    function confirmRemove(infoHash, deleteFiles, torrentName) {
-        removeConfirmDialog.infoHash = infoHash
-        removeConfirmDialog.deleteFiles = deleteFiles
-        removeConfirmDialog.torrentName = torrentName
-        removeConfirmDialog.open()
+    property string _removeInfoHash: ""
+    property bool _removeDeleteFiles: false
+
+    ConfirmPopup {
+        id: removeConfirmPopup
+        parent: window.contentItem
+        anchors.centerIn: parent
+
+        onAccepted: appController.removeTorrent(window._removeInfoHash, window._removeDeleteFiles)
     }
 
-    Dialog {
-        id: removeConfirmDialog
-        modal: true
-        anchors.centerIn: Overlay.overlay
-        width: 440
-        standardButtons: Dialog.Cancel | Dialog.Ok
-        property string infoHash: ""
-        property bool deleteFiles: false
-        property string torrentName: ""
-
-        onAboutToShow: {
-            title = deleteFiles
-                ? qsTr("Remove and delete data?")
-                : qsTr("Remove torrent?")
-        }
-
-        onAccepted: appController.removeTorrent(infoHash, deleteFiles)
-
-        contentItem: Label {
-            width: parent.width
-            wrapMode: Text.WordWrap
-            text: removeConfirmDialog.deleteFiles
-                ? qsTr("Delete all downloaded files for \"%1\"? This cannot be undone.")
-                      .arg(removeConfirmDialog.torrentName)
-                : qsTr("Remove \"%1\" from Torrex? Downloaded files will stay on disk.")
-                      .arg(removeConfirmDialog.torrentName)
-        }
+    function confirmRemove(infoHash, deleteFiles, torrentName) {
+        window._removeInfoHash = infoHash
+        window._removeDeleteFiles = deleteFiles
+        removeConfirmPopup.heading = deleteFiles
+            ? qsTr("Remove and delete data?")
+            : qsTr("Remove torrent?")
+        removeConfirmPopup.message = deleteFiles
+            ? qsTr("Delete all downloaded files for \"%1\"? This cannot be undone.")
+                  .arg(torrentName)
+            : qsTr("Remove \"%1\" from Torrex? Downloaded files will stay on disk.")
+                  .arg(torrentName)
+        removeConfirmPopup.open()
     }
 
     header: ToolBar {
@@ -170,9 +159,10 @@ ApplicationWindow {
 
     Dialog {
         id: magnetDialog
+        parent: window.contentItem
         title: qsTr("Add magnet link")
         modal: true
-        anchors.centerIn: Overlay.overlay
+        anchors.centerIn: parent
         width: 520
         standardButtons: Dialog.Cancel | Dialog.Ok
         onAboutToShow: downloadPathField.text = appController.defaultDownloadFolder
@@ -183,7 +173,6 @@ ApplicationWindow {
 
         contentItem: ColumnLayout {
             spacing: 12
-            width: parent.width
 
             Label {
                 text: qsTr("Paste a magnet URI (magnet:?xt=urn:btih:…)")
@@ -236,9 +225,10 @@ ApplicationWindow {
 
     Dialog {
         id: torrentAddDialog
+        parent: window.contentItem
         title: qsTr("Add torrent")
         modal: true
-        anchors.centerIn: Overlay.overlay
+        anchors.centerIn: parent
         width: 520
         standardButtons: Dialog.Cancel | Dialog.Ok
         property url torrentFile
@@ -249,7 +239,6 @@ ApplicationWindow {
 
         contentItem: ColumnLayout {
             spacing: 12
-            width: parent.width
 
             Label {
                 text: qsTr("Torrent file")
