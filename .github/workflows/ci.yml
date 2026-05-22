@@ -17,21 +17,13 @@ jobs:
       - uses: actions/checkout@v4
       - run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
 
-  build:
-    name: ${{ matrix.os }}
+  # macOS-only while v0.1 targets the Mac app (Qt via vcpkg is slow to build).
+  # Re-enable windows/ubuntu matrix when cross-platform release is in scope.
+  build-macos:
+    name: macos-14
     needs: validate-docs
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-14
     timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-14
-            preset: ci-release
-          - os: windows-2022
-            preset: ci-release
-          - os: ubuntu-24.04
-            preset: ci-release
 
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
@@ -40,27 +32,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            ninja-build \
-            autoconf \
-            autoconf-archive \
-            automake \
-            libtool \
-            pkg-config
-
       - name: Install macOS build dependencies
-        if: runner.os == 'macOS'
-        run: |
-          brew install ninja autoconf autoconf-archive automake libtool pkg-config
-
-      - name: Install Windows build dependencies
-        if: runner.os == 'Windows'
-        run: |
-          choco install ninja autoconf automake libtool -y
+        run: brew install ninja autoconf autoconf-archive automake libtool pkg-config
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
@@ -74,19 +47,18 @@ jobs:
             ${{ github.workspace }}/vcpkg/bincache
             ${{ github.workspace }}/vcpkg/downloads
             ${{ github.workspace }}/build/ci-release/vcpkg_installed
-          key: vcpkg-${{ matrix.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          key: vcpkg-macos14-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
           restore-keys: |
-            vcpkg-${{ matrix.os }}-
+            vcpkg-macos14-
 
       - name: Configure
-        run: cmake --preset ${{ matrix.preset }}
+        run: cmake --preset ci-release
 
       - name: Build
-        run: cmake --build --preset ${{ matrix.preset }}
+        run: cmake --build --preset ci-release
 
       - name: Test
-        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+        run: ctest --preset ci-release --output-on-failure
 
       - name: Check core has no Qt
-        if: runner.os != 'Windows'
         run: chmod +x scripts/check-core-no-qt.sh && ./scripts/check-core-no-qt.sh

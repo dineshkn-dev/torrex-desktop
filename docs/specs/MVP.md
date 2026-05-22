@@ -6,11 +6,11 @@
 - [ ] `docs/tracker/ROADMAP.yaml` present and valid
 - [ ] `scripts/bootstrap.sh` and `scripts/verify.sh` runnable
 - [ ] `scripts/validate-docs.sh` passes in CI
-- [ ] Empty `torrex_core` + `torrex` compile on macOS, Windows, Linux
+- [ ] Empty `torrex_core` + `torrex` compile on **macOS** (Windows/Linux deferred)
 
 ## CI {#ci}
 
-- [ ] GitHub Actions: build matrix (macOS arm64, Windows, Ubuntu)
+- [ ] GitHub Actions: **macOS arm64** build (Windows/Ubuntu matrix deferred for v0.1)
 - [ ] Lint workflow (clang-format, cmake-format)
 - [ ] CodeQL and OpenSSF Scorecard workflows present
 

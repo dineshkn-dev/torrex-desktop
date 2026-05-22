@@ -1,6 +1,6 @@
 # Torrex
 
-Cross-platform open-source BitTorrent client built with **C++20**, **libtorrent 2.x**, and **Qt 6 Quick (QML)**.
+Open-source BitTorrent client for **macOS** (v0.1 focus), built with **C++20**, **libtorrent 2.x**, and **Qt 6 Quick (QML)**. Windows/Linux support is planned later; CI currently builds **macOS only** to keep feedback loops fast.
 
 ## Features (roadmap)
 
