@@ -4,24 +4,12 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import Torrex
 
-Popup {
+TgSheet {
     id: root
-    modal: true
-    focus: true
-    dim: true
-    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-    padding: 0
-    width: 480
-    anchors.centerIn: Overlay.overlay ? Overlay.overlay : parent
+    sheetMinHeight: 560
+    sheetMaxHeight: 820
 
     property url torrentFile
-
-    background: Rectangle {
-        radius: Theme.radiusLarge
-        color: Theme.sidebarBackground
-        border.color: Theme.border
-        border.width: 1
-    }
 
     function pathToFolderUrl(path) {
         if (!path)
@@ -31,74 +19,44 @@ Popup {
         return "file://" + path
     }
 
-    function localFilePath(fileUrl) {
-        if (!fileUrl)
-            return ""
-        const path = fileUrl.toString()
-        if (path.startsWith("file://"))
-            return fileUrl.toLocalFile()
-        return path
-    }
-
     function submit() {
         if (!torrentFile)
             return
-        appController.addTorrentFile(torrentFile, downloadPathField.text)
+        if (appController.addPreviewStatus !== "ready")
+            return
+        const wantedCount = filePicker.fileRows.filter(function(row) { return row.wanted }).length
+        if (wantedCount === 0)
+            return
+        appController.addTorrentFileWithSelection(
+            torrentFile, downloadPathField.text, filePicker.selectionPayload())
         root.close()
     }
 
-    onOpened: downloadPathField.text = appController.defaultDownloadFolder
+    onOpened: {
+        downloadPathField.text = appController.defaultDownloadFolder
+        appController.loadTorrentFilePreview(torrentFile)
+        filePicker.syncFromController()
+    }
+
+    onClosed: appController.cancelAddPreview()
 
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
-
-            Label {
-                text: qsTr("Add torrent")
-                font.pixelSize: Theme.fontTitle
-                font.weight: Font.DemiBold
-                color: Theme.textPrimary
-            }
-
-            Item { Layout.fillWidth: true }
-
-            TgIconButton {
-                text: "✕"
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("Close")
-                onClicked: root.close()
-            }
+        TgSheetHeader {
+            title: qsTr("Add torrent")
+            onCloseRequested: root.close()
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
+        TgSheetDivider {}
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
+        TgFormScroll {
+            Layout.leftMargin: Theme.spacingLg
+            Layout.rightMargin: Theme.spacingLg
+            Layout.topMargin: Theme.spacingLg
+            Layout.bottomMargin: Theme.spacingLg
 
-            Label {
-                text: qsTr("Torrent file")
-                color: Theme.textSecondary
-                font.pixelSize: Theme.fontCaption
-                Layout.fillWidth: true
-            }
-            Label {
-                text: root.localFilePath(root.torrentFile)
-                wrapMode: Text.WrapAnywhere
-                color: Theme.textPrimary
-                font.pixelSize: Theme.fontBody
-                Layout.fillWidth: true
-            }
             Label {
                 text: qsTr("Download folder")
                 color: Theme.textSecondary
@@ -122,30 +80,23 @@ Popup {
                     }
                 }
             }
+
+            AddTorrentFilePicker {
+                id: filePicker
+                Layout.fillWidth: true
+                status: appController.addPreviewStatus
+                title: appController.addPreviewTitle
+            }
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
+        TgSheetDivider {}
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
-
-            Item { Layout.fillWidth: true }
-
-            TgButton {
-                text: qsTr("Cancel")
-                onClicked: root.close()
-            }
-            TgButton {
-                text: qsTr("Add")
-                primary: true
-                onClicked: root.submit()
-            }
+        TgSheetFooter {
+            primaryText: qsTr("Add")
+            primaryEnabled: appController.addPreviewStatus === "ready"
+                && filePicker.fileRows.some(function(row) { return row.wanted })
+            onCancelClicked: root.close()
+            onPrimaryClicked: root.submit()
         }
     }
 

@@ -4,28 +4,11 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import Torrex
 
-// Modal settings sheet (Popup — avoids native Dialog chrome and layout bleed-through).
-Popup {
+// Modal settings sheet (avoids native Dialog chrome and layout bleed-through).
+TgSheet {
     id: root
-    modal: true
-    focus: true
-    dim: true
-    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-    padding: 0
-
-    readonly property int sheetWidth: 480
-    readonly property int sheetHeight: parent ? Math.min(580, parent.height - 64) : 580
-
-    width: sheetWidth
-    height: sheetHeight
-    anchors.centerIn: Overlay.overlay ? Overlay.overlay : parent
-
-    background: Rectangle {
-        radius: Theme.radiusLarge
-        color: Theme.sidebarBackground
-        border.color: Theme.border
-        border.width: 1
-    }
+    sheetMinHeight: 720
+    sheetMaxHeight: 900
 
     onOpened: appController.loadSessionSettingsFromStore()
 
@@ -41,56 +24,26 @@ Popup {
         anchors.fill: parent
         spacing: 0
 
-        // Header
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
-
-            Label {
-                text: qsTr("Settings")
-                font.pixelSize: Theme.fontTitle
-                font.weight: Font.DemiBold
-                color: Theme.textPrimary
-            }
-
-            Item { Layout.fillWidth: true }
-
-            TgIconButton {
-                text: "✕"
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("Close")
-                onClicked: root.close()
-            }
+        TgSheetHeader {
+            title: qsTr("Settings")
+            onCloseRequested: root.close()
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
+        TgSheetDivider {}
 
-        // Scrollable body
-        ScrollView {
-            id: settingsScroll
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
-            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        TgFormScroll {
+            Layout.leftMargin: Theme.spacingLg
+            Layout.rightMargin: Theme.spacingLg
+            Layout.topMargin: Theme.spacingLg
+            Layout.bottomMargin: Theme.spacingLg
 
-            ColumnLayout {
-                id: settingsBody
-                width: settingsScroll.availableWidth > 0
-                    ? settingsScroll.availableWidth
-                    : settingsScroll.width
-                spacing: Theme.spacingLg
+            DetailCard {
+                title: qsTr("Appearance")
 
-                Layout.leftMargin: Theme.spacingLg
-                Layout.rightMargin: Theme.spacingLg
-                Layout.topMargin: Theme.spacingLg
-                Layout.bottomMargin: Theme.spacingLg
+                AppearanceSettingsSection {}
+            }
 
-                DetailCard {
+            DetailCard {
                     title: qsTr("Downloads")
 
                     Label {
@@ -290,31 +243,14 @@ Popup {
                         }
                     }
                 }
-            }
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
+        TgSheetDivider {}
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
-
-            Item { Layout.fillWidth: true }
-
-            TgButton {
-                text: qsTr("Cancel")
-                onClicked: root.close()
-            }
-            TgButton {
-                text: qsTr("Save")
-                primary: true
-                onClicked: root.saveAndClose()
-            }
+        TgSheetFooter {
+            primaryText: qsTr("Save")
+            onCancelClicked: root.close()
+            onPrimaryClicked: root.saveAndClose()
         }
     }
 

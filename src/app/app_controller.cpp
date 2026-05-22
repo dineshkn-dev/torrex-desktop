@@ -1,15 +1,21 @@
 #include "app_controller.hpp"
 
 #include <torrex/session_settings.hpp>
+#include <torrex/torrent_preview.hpp>
 #include <torrex/types.hpp>
 #include <torrex/version.hpp>
 
 #include <QDir>
 #include <QFileInfo>
+#include <QGuiApplication>
+#include <QLoggingCategory>
 #include <QSettings>
+#include <QStyleHints>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QUrl>
+
+Q_LOGGING_CATEGORY(torrexPreview, "torrex.preview")
 
 namespace torrex::app {
 
@@ -46,6 +52,58 @@ int clampKbps(int kbps)
     return kbps < 0 ? 0 : kbps;
 }
 
+QString formatByteSize(const qint64 bytes)
+{
+    if (bytes < 1024) {
+        return QString::number(bytes) + QStringLiteral(" B");
+    }
+    if (bytes < 1024 * 1024) {
+        return QString::number(bytes / 1024.0, 'f', 1) + QStringLiteral(" KB");
+    }
+    if (bytes < 1024LL * 1024 * 1024) {
+        return QString::number(bytes / (1024.0 * 1024.0), 'f', 1) + QStringLiteral(" MB");
+    }
+    return QString::number(bytes / (1024.0 * 1024.0 * 1024.0), 'f', 1) + QStringLiteral(" GB");
+}
+
+constexpr int kAppearanceSystem = 0;
+constexpr int kAppearanceLight = 1;
+constexpr int kAppearanceDark = 2;
+constexpr int kAppearanceAmoled = 3;
+
+int clampAppearanceMode(int mode)
+{
+    if (mode < kAppearanceSystem || mode > kAppearanceAmoled) {
+        return kAppearanceSystem;
+    }
+    return mode;
+}
+
+QString normalizeAccentColorId(const QString& id)
+{
+    static const QStringList allowed{
+        QStringLiteral("blue"),
+        QStringLiteral("teal"),
+        QStringLiteral("violet"),
+        QStringLiteral("rose"),
+        QStringLiteral("orange"),
+        QStringLiteral("green"),
+    };
+    return allowed.contains(id) ? id : QStringLiteral("blue");
+}
+
+qint64 wantedBytesFromSelection(const QVariantList& files)
+{
+    qint64 total = 0;
+    for (const QVariant& row : files) {
+        const QVariantMap entry = row.toMap();
+        if (entry.value(QStringLiteral("wanted"), true).toBool()) {
+            total += entry.value(QStringLiteral("size")).toLongLong();
+        }
+    }
+    return total;
+}
+
 } // namespace
 
 AppController::AppController(QObject* parent)
@@ -70,6 +128,23 @@ AppController::AppController(QObject* parent)
     auto* timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &AppController::refreshTorrents);
     timer->start(500);
+
+    add_preview_poll_timer_ = new QTimer(this);
+    add_preview_poll_timer_->setInterval(200);
+    connect(add_preview_poll_timer_, &QTimer::timeout, this, &AppController::pollMagnetAddPreview);
+
+    add_preview_timeout_timer_ = new QTimer(this);
+    add_preview_timeout_timer_->setSingleShot(true);
+    add_preview_timeout_timer_->setInterval(90000);
+    connect(add_preview_timeout_timer_, &QTimer::timeout, this, [this] {
+        if (add_preview_status_ != QStringLiteral("loading")) {
+            return;
+        }
+        add_preview_status_ = QStringLiteral("error");
+        add_preview_poll_timer_->stop();
+        setStatusMessage(tr("Timed out loading torrent metadata. Check your network and try again."));
+        emit addPreviewChanged();
+    });
 }
 
 AppController::~AppController() { session_.shutdown(); }
@@ -92,7 +167,14 @@ void AppController::loadSessionSettingsFromStore()
     proxy_port_ = clampPort(store.value(QStringLiteral("proxyPort"), 1080).toInt());
     proxy_username_ = store.value(QStringLiteral("proxyUsername")).toString();
     proxy_password_ = store.value(QStringLiteral("proxyPassword")).toString();
+    appearance_mode_ =
+        clampAppearanceMode(store.value(QStringLiteral("appearanceMode"), kAppearanceSystem).toInt());
+    accent_color_id_ =
+        normalizeAccentColorId(store.value(QStringLiteral("accentColorId"), QStringLiteral("blue"))
+                                  .toString());
+    applyAppearanceColorScheme();
     emit sessionSettingsChanged();
+    emit appearanceChanged();
 }
 
 void AppController::persistSessionSettings()
@@ -111,6 +193,49 @@ void AppController::persistSessionSettings()
     store.setValue(QStringLiteral("proxyPort"), proxy_port_);
     store.setValue(QStringLiteral("proxyUsername"), proxy_username_);
     store.setValue(QStringLiteral("proxyPassword"), proxy_password_);
+    store.setValue(QStringLiteral("appearanceMode"), appearance_mode_);
+    store.setValue(QStringLiteral("accentColorId"), accent_color_id_);
+}
+
+void AppController::applyAppearanceColorScheme()
+{
+    auto* hints = QGuiApplication::styleHints();
+    if (!hints) {
+        return;
+    }
+    switch (appearance_mode_) {
+    case kAppearanceLight:
+        hints->setColorScheme(Qt::ColorScheme::Light);
+        break;
+    case kAppearanceDark:
+    case kAppearanceAmoled:
+        hints->setColorScheme(Qt::ColorScheme::Dark);
+        break;
+    default:
+        hints->setColorScheme(Qt::ColorScheme::Unknown);
+        break;
+    }
+}
+
+void AppController::setAppearanceMode(int mode)
+{
+    const int clamped = clampAppearanceMode(mode);
+    if (appearance_mode_ == clamped) {
+        return;
+    }
+    appearance_mode_ = clamped;
+    applyAppearanceColorScheme();
+    emit appearanceChanged();
+}
+
+void AppController::setAccentColorId(const QString& id)
+{
+    const QString normalized = normalizeAccentColorId(id);
+    if (accent_color_id_ == normalized) {
+        return;
+    }
+    accent_color_id_ = normalized;
+    emit appearanceChanged();
 }
 
 SessionSettings AppController::engineSettingsFromProperties() const
@@ -393,6 +518,268 @@ void AppController::handleDroppedUrls(const QList<QUrl>& urls)
     if (added == 0) {
         setStatusMessage(tr("Drop a .torrent file or magnet link."));
     }
+}
+
+void AppController::clearAddPreview()
+{
+    if (!add_preview_info_hash_.isEmpty()) {
+        (void)session_.cancel_magnet_preview(add_preview_info_hash_.toStdString());
+    }
+    add_preview_files_.clear();
+    add_preview_title_.clear();
+    add_preview_info_hash_.clear();
+    add_preview_size_text_.clear();
+    add_preview_status_ = QStringLiteral("idle");
+    add_preview_poll_timer_->stop();
+    add_preview_timeout_timer_->stop();
+    emit addPreviewChanged();
+}
+
+void AppController::applyAddPreview(const torrex::TorrentAddPreview& preview)
+{
+    add_preview_title_ = QString::fromStdString(preview.name);
+    add_preview_info_hash_ = QString::fromStdString(preview.info_hash_hex);
+
+    QVariantList rows;
+    rows.reserve(static_cast<int>(preview.files.size()));
+    for (const torrex::TorrentPreviewFile& file : preview.files) {
+        QVariantMap row;
+        row.insert(QStringLiteral("path"), QString::fromStdString(file.path));
+        row.insert(QStringLiteral("fileIndex"), file.index);
+        row.insert(QStringLiteral("size"), static_cast<qlonglong>(file.size));
+        row.insert(QStringLiteral("sizeText"), formatByteSize(static_cast<qint64>(file.size)));
+        row.insert(QStringLiteral("wanted"), true);
+        rows.push_back(row);
+    }
+    add_preview_files_ = rows;
+    add_preview_size_text_ = formatByteSize(static_cast<qint64>(preview.total_size));
+    add_preview_status_ = preview.files.empty() ? QStringLiteral("loading")
+                                                  : QStringLiteral("ready");
+    emit addPreviewChanged();
+}
+
+void AppController::pollMagnetAddPreview()
+{
+    if (add_preview_info_hash_.isEmpty()) {
+        add_preview_poll_timer_->stop();
+        return;
+    }
+
+    const std::optional<torrex::TorrentAddPreview> preview =
+        session_.magnet_preview(add_preview_info_hash_.toStdString());
+    if (!preview.has_value()) {
+        qCDebug(torrexPreview) << "poll: no staged preview yet for"
+                               << add_preview_info_hash_.left(8) << "…";
+        return;
+    }
+
+    const int file_count = static_cast<int>(preview->files.size());
+    qCInfo(torrexPreview) << "poll:" << QString::fromStdString(preview->name) << "files"
+                          << file_count;
+
+    applyAddPreview(*preview);
+    if (!preview->files.empty()) {
+        add_preview_poll_timer_->stop();
+        add_preview_timeout_timer_->stop();
+        qCInfo(torrexPreview) << "preview ready with" << file_count << "files";
+    }
+
+    const std::string err = session_.take_last_error();
+    if (!err.empty()) {
+        add_preview_status_ = QStringLiteral("error");
+        add_preview_poll_timer_->stop();
+        add_preview_timeout_timer_->stop();
+        qCWarning(torrexPreview) << "preview error:" << QString::fromStdString(err);
+        setStatusMessage(QString::fromStdString(err));
+        emit addPreviewChanged();
+    }
+}
+
+std::vector<std::pair<int, int>> AppController::filePrioritiesFromSelection(
+    const QVariantList& files)
+{
+    std::vector<std::pair<int, int>> priorities;
+    priorities.reserve(static_cast<std::size_t>(files.size()));
+    for (const QVariant& row : files) {
+        const QVariantMap entry = row.toMap();
+        const int index = entry.value(QStringLiteral("fileIndex")).toInt();
+        const bool wanted = entry.value(QStringLiteral("wanted"), true).toBool();
+        priorities.emplace_back(index, wanted ? 4 : 0);
+    }
+    return priorities;
+}
+
+bool AppController::loadTorrentFilePreview(const QUrl& file_url)
+{
+    clearAddPreview();
+    if (!file_url.isLocalFile()) {
+        add_preview_status_ = QStringLiteral("error");
+        emit addPreviewChanged();
+        setStatusMessage(tr("Could not open torrent file."));
+        return false;
+    }
+
+    torrex::TorrentAddPreview preview;
+    const std::string err =
+        torrex::preview_torrent_file(file_url.toLocalFile().toStdString(), preview);
+    if (!err.empty()) {
+        add_preview_status_ = QStringLiteral("error");
+        emit addPreviewChanged();
+        setStatusMessage(QString::fromStdString(err));
+        return false;
+    }
+
+    applyAddPreview(preview);
+    add_preview_status_ = QStringLiteral("ready");
+    emit addPreviewChanged();
+    return true;
+}
+
+bool AppController::loadMagnetPreview(const QString& uri, const QString& save_path)
+{
+    const QString trimmed = uri.trimmed();
+    if (!trimmed.startsWith(QStringLiteral("magnet:?"), Qt::CaseInsensitive)) {
+        add_preview_status_ = QStringLiteral("error");
+        emit addPreviewChanged();
+        setStatusMessage(tr("Invalid magnet link — must start with magnet:?"));
+        return false;
+    }
+
+    const QString folder = resolveSavePath(save_path);
+    if (folder.isEmpty()) {
+        add_preview_status_ = QStringLiteral("error");
+        emit addPreviewChanged();
+        setStatusMessage(tr("Choose a valid download folder."));
+        return false;
+    }
+
+    clearAddPreview();
+
+    torrex::TorrentAddPreview placeholder;
+    const std::string parse_err =
+        torrex::preview_magnet_uri(trimmed.toStdString(), placeholder);
+    if (!parse_err.empty()) {
+        add_preview_status_ = QStringLiteral("error");
+        emit addPreviewChanged();
+        setStatusMessage(QString::fromStdString(parse_err));
+        return false;
+    }
+
+    add_preview_title_ = QString::fromStdString(placeholder.name);
+    add_preview_status_ = QStringLiteral("loading");
+    emit addPreviewChanged();
+
+    qCInfo(torrexPreview) << "loadMagnetPreview start" << add_preview_title_;
+
+    std::string info_hash;
+    const std::string err = session_.begin_magnet_preview(trimmed.toStdString(),
+                                                          folder.toStdString(), info_hash);
+    if (!err.empty()) {
+        add_preview_status_ = QStringLiteral("error");
+        emit addPreviewChanged();
+        setStatusMessage(QString::fromStdString(err));
+        return false;
+    }
+
+    add_preview_info_hash_ = QString::fromStdString(info_hash);
+    qCInfo(torrexPreview) << "staged hash" << add_preview_info_hash_.left(8) << "…";
+    add_preview_poll_timer_->start();
+    add_preview_timeout_timer_->start();
+
+    QTimer::singleShot(100, this, [this] {
+        pollMagnetAddPreview();
+        const std::string async_err = session_.take_last_error();
+        if (!async_err.empty()) {
+            add_preview_status_ = QStringLiteral("error");
+            add_preview_poll_timer_->stop();
+            add_preview_timeout_timer_->stop();
+            setStatusMessage(QString::fromStdString(async_err));
+            emit addPreviewChanged();
+        }
+    });
+    return true;
+}
+
+void AppController::cancelAddPreview() { clearAddPreview(); }
+
+void AppController::addTorrentFileWithSelection(const QUrl& file_url,
+                                                const QString& save_path,
+                                                const QVariantList& files)
+{
+    if (!file_url.isLocalFile()) {
+        setStatusMessage(tr("Could not open torrent file."));
+        return;
+    }
+
+    const QString folder = resolveSavePath(save_path);
+    if (folder.isEmpty()) {
+        setStatusMessage(tr("Choose a valid download folder."));
+        return;
+    }
+    setDefaultDownloadFolder(folder);
+
+    const std::vector<std::pair<int, int>> priorities = filePrioritiesFromSelection(files);
+    const std::string err = session_.add_torrent_file(file_url.toLocalFile().toStdString(),
+                                                        folder.toStdString(), priorities);
+    if (!err.empty()) {
+        setStatusMessage(QString::fromStdString(err));
+        return;
+    }
+
+    clearAddPreview();
+    QTimer::singleShot(300, this, [this, folder] {
+        const std::string async_err = session_.take_last_error();
+        if (!async_err.empty()) {
+            setStatusMessage(QString::fromStdString(async_err));
+        } else {
+            refreshTorrents();
+            setStatusMessage(tr("Torrent added — downloading to %1").arg(folder));
+        }
+    });
+}
+
+void AppController::addMagnetWithSelection(const QString& uri,
+                                           const QString& save_path,
+                                           const QVariantList& files)
+{
+    const QString trimmed = uri.trimmed();
+    const QString folder = resolveSavePath(save_path);
+    if (folder.isEmpty()) {
+        setStatusMessage(tr("Choose a valid download folder."));
+        return;
+    }
+    setDefaultDownloadFolder(folder);
+
+    const std::vector<std::pair<int, int>> priorities = filePrioritiesFromSelection(files);
+
+    std::function<std::string()> op;
+    if (!add_preview_info_hash_.isEmpty()) {
+        const QString hash = add_preview_info_hash_;
+        op = [this, hash, priorities] {
+            return session_.finalize_magnet_preview(hash.toStdString(), priorities);
+        };
+    } else {
+        op = [this, trimmed, folder, priorities] {
+            return session_.add_magnet(trimmed.toStdString(), folder.toStdString(), priorities);
+        };
+    }
+
+    const std::string err = op();
+    if (!err.empty()) {
+        setStatusMessage(QString::fromStdString(err));
+        return;
+    }
+
+    clearAddPreview();
+    QTimer::singleShot(300, this, [this, folder] {
+        const std::string async_err = session_.take_last_error();
+        if (!async_err.empty()) {
+            setStatusMessage(QString::fromStdString(async_err));
+        } else {
+            refreshTorrents();
+            setStatusMessage(tr("Magnet added — downloading to %1").arg(folder));
+        }
+    });
 }
 
 void AppController::addMagnetUri(const QString& uri, const QString& save_path)

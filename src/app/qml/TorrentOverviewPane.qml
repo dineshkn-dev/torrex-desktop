@@ -11,41 +11,32 @@ Item {
     required property string uploadRateText
     required property string savePath
 
-    ScrollView {
-        id: scroll
+    TgFormScroll {
         anchors.fill: parent
-        clip: true
-        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-        ColumnLayout {
-            id: content
-            width: scroll.availableWidth > 0 ? scroll.availableWidth : scroll.width
-            spacing: Theme.spacingLg
+        DetailCard {
+            title: qsTr("Transfer")
 
-            DetailCard {
-                title: qsTr("Transfer")
-
-                DetailStatRow {
-                    label: qsTr("Download")
-                    value: root.downloadRateText
-                }
-                DetailStatRow {
-                    label: qsTr("Upload")
-                    value: root.uploadRateText
-                }
+            DetailStatRow {
+                label: qsTr("Download")
+                value: root.downloadRateText
             }
-
-            DetailCard {
-                title: qsTr("Storage")
-
-                DetailStatRow {
-                    label: qsTr("Save folder")
-                    value: root.savePath.length > 0 ? root.savePath : qsTr("—")
-                    wrapValue: true
-                }
+            DetailStatRow {
+                label: qsTr("Upload")
+                value: root.uploadRateText
             }
-
-            Item { Layout.fillHeight: true }
         }
+
+        DetailCard {
+            title: qsTr("Storage")
+
+            DetailStatRow {
+                label: qsTr("Save folder")
+                value: root.savePath.length > 0 ? root.savePath : qsTr("—")
+                wrapValue: true
+            }
+        }
+
+        Item { Layout.fillHeight: true }
     }
 }

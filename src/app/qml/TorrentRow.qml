@@ -23,6 +23,13 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: root.selected ? Theme.selectedMuted : (root.hovered ? Theme.hover : "transparent")
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.animNormal
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
     Rectangle {
@@ -67,6 +74,8 @@ Item {
                 visible: root.speedText.length > 0
                 font.pixelSize: Theme.fontCaption
                 color: Theme.textSecondary
+                elide: Text.ElideLeft
+                Layout.maximumWidth: Math.min(96, root.width * 0.38)
             }
         }
 

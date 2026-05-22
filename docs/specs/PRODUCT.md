@@ -6,7 +6,7 @@ Torrex v0.1 is a **macOS** BitTorrent client. This document describes what the s
 
 ### Torrents
 
-- Add downloads via **magnet link** or **`.torrent` file**
+- Add downloads via **magnet link** or **`.torrent` file**, with a **file checklist** before starting (select which files to download)
 - **Pause**, **resume**, and **remove** (optionally delete data on disk)
 - **Per-torrent save folder** when adding; **default folder** in Settings
 - **File priorities** (skip / low / normal / high) and **sequential download** per torrent
@@ -22,7 +22,7 @@ Torrex v0.1 is a **macOS** BitTorrent client. This document describes what the s
 
 - Sidebar **filters** (All, Downloading, Seeding, Paused)
 - **Master–detail** layout with Overview and Files tabs
-- **System light/dark** appearance
+- **Appearance** settings: system / light / dark / **AMOLED** (pure black) themes and **accent color** (blue, teal, violet, rose, orange, green)
 - **Drag-and-drop** magnets and `.torrent` files onto the window
 - **In-app notification** when a download completes
 

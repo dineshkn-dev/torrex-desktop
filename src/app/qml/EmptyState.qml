@@ -6,6 +6,7 @@ import Torrex
 ColumnLayout {
     id: root
     spacing: Theme.spacingLg
+    width: parent ? Math.min(420, parent.width - Theme.spacingLg * 4) : implicitWidth
 
     property string title: qsTr("No torrents yet")
     property string subtitle: ""

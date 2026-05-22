@@ -77,6 +77,7 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
+                        Layout.minimumWidth: 120
                         spacing: Theme.spacingXs
 
                         Label {
@@ -117,6 +118,8 @@ Item {
                     }
 
                     RowLayout {
+                        Layout.alignment: Qt.AlignTop | Qt.AlignRight
+                        Layout.minimumWidth: 132
                         spacing: Theme.spacingXs
                         TgIconButton {
                             text: "❚❚"

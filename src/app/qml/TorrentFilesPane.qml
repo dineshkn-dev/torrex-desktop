@@ -55,11 +55,20 @@ Item {
             Layout.fillHeight: true
             clip: true
             boundsBehavior: Flickable.StopAtBounds
+            flickDeceleration: Theme.flickDeceleration
+            maximumFlickVelocity: Theme.maxFlickVelocity
+            pixelAligned: false
             spacing: Theme.spacingSm
             model: root.fileEntries
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
+                implicitWidth: 6
+                contentItem: Rectangle {
+                    implicitWidth: 6
+                    radius: 3
+                    color: Theme.scrollBar
+                }
             }
 
             delegate: Rectangle {
@@ -85,7 +94,7 @@ Item {
                         spacing: Theme.spacingXs
 
                         Label {
-                            text: fileDelegate.modelData.path
+                            text: fileDelegate.modelData["path"] ?? ""
                             color: Theme.textPrimary
                             font.pixelSize: Theme.fontBody
                             elide: Text.ElideMiddle
@@ -101,7 +110,9 @@ Item {
 
                     TgMenuPicker {
                         id: priorityPicker
+                        Layout.minimumWidth: 88
                         Layout.preferredWidth: 100
+                        Layout.maximumWidth: 120
                         model: priorityPicker.priorityModel
                         property var priorityModel: [
                             { label: qsTr("Skip"), value: 0 },

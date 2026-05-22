@@ -21,11 +21,14 @@ qt_add_qml_module(torrex
         qml/ThemedPanel.qml
         qml/ThemedProgressBar.qml
         qml/ConfirmPopup.qml
+        qml/AddTorrentFilePicker.qml
         qml/MagnetAddDialog.qml
         qml/TorrentAddDialog.qml
         qml/NotificationBanner.qml
         qml/SettingsDialog.qml
         qml/SettingsNumberRow.qml
+        qml/AppearanceSettingsSection.qml
+        qml/AccentColorSwatch.qml
         qml/TgToggleRow.qml
         qml/TorrentDetail.qml
         qml/TorrentListPane.qml
@@ -44,6 +47,12 @@ qt_add_qml_module(torrex
         qml/TgSwitch.qml
         qml/TgMenu.qml
         qml/TgMenuSeparator.qml
+        qml/TgScrollView.qml
+        qml/TgFormScroll.qml
+        qml/TgSheet.qml
+        qml/TgSheetHeader.qml
+        qml/TgSheetFooter.qml
+        qml/TgSheetDivider.qml
         qml/TgMenuPicker.qml
 )
 

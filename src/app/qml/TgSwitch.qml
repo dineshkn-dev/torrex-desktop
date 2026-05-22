@@ -17,6 +17,13 @@ Item {
         radius: height / 2
         color: root.checked ? Theme.accent : Theme.border
 
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutCubic
+            }
+        }
+
         Rectangle {
             width: 22
             height: 22
@@ -25,7 +32,10 @@ Item {
             x: root.checked ? parent.width - width - 3 : 3
             color: Theme.textOnAccent
             Behavior on x {
-                NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
+                NumberAnimation {
+                    duration: Theme.animNormal
+                    easing.type: Easing.OutCubic
+                }
             }
         }
     }

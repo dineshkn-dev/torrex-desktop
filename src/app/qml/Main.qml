@@ -16,14 +16,31 @@ ApplicationWindow {
         : qsTr("Torrex %1 (legacy UI)").arg(appController.version)
     color: Theme.windowBackground
 
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.animSlow
+            easing.type: Easing.OutCubic
+        }
+    }
+
     property bool hasTorrents: appController.torrents.totalCount > 0
     property bool filterHidesAllTorrents: hasTorrents && appController.torrents.count === 0
+
+    readonly property int listPaneWidth: Math.round(
+        Math.min(Theme.listMaxWidth, Math.max(Theme.listMinWidth, width * 0.32)))
 
     property string _removeInfoHash: ""
     property bool _removeDeleteFiles: false
     Connections {
         target: Application.styleHints
         function onColorSchemeChanged() {
+            window.color = Theme.windowBackground
+        }
+    }
+
+    Connections {
+        target: appController
+        function onAppearanceChanged() {
             window.color = Theme.windowBackground
         }
     }
@@ -114,7 +131,9 @@ ApplicationWindow {
 
             TorrentListPane {
                 id: listPane
-                Layout.preferredWidth: Theme.listWidth
+                Layout.preferredWidth: window.listPaneWidth
+                Layout.minimumWidth: Theme.listMinWidth
+                Layout.maximumWidth: Theme.listMaxWidth
                 Layout.fillHeight: true
                 filterHidesAll: window.filterHidesAllTorrents
                 onConfirmRemove: function(infoHash, deleteFiles, name) {

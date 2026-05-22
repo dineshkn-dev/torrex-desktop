@@ -31,5 +31,18 @@ Button {
         }
         border.color: root.primary ? "transparent" : Theme.accent
         border.width: root.primary ? 0 : 1
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutCubic
+            }
+        }
+        Behavior on border.color {
+            ColorAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 }

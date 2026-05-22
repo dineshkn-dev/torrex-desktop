@@ -1,11 +1,14 @@
 #pragma once
 
 #include <torrex/session_settings.hpp>
+#include <torrex/torrent_preview.hpp>
 #include <torrex/types.hpp>
 
 #include <atomic>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace torrex {
@@ -34,9 +37,23 @@ public:
     [[nodiscard]] std::vector<TorrentSnapshot> snapshots() const;
 
     /// Enqueues add; returns empty string on success, otherwise an error message.
-    [[nodiscard]] std::string add_magnet(const std::string& uri, const std::string& save_path);
-    [[nodiscard]] std::string add_torrent_file(const std::string& path,
-                                               const std::string& save_path);
+    [[nodiscard]] std::string add_magnet(
+        const std::string& uri, const std::string& save_path,
+        const std::vector<std::pair<int, int>>& file_priorities = {});
+    [[nodiscard]] std::string add_torrent_file(
+        const std::string& path, const std::string& save_path,
+        const std::vector<std::pair<int, int>>& file_priorities = {});
+
+    /// Stage a magnet for metadata + file list (hidden from snapshots() until finalized).
+    [[nodiscard]] std::string begin_magnet_preview(const std::string& uri,
+                                                   const std::string& save_path,
+                                                   std::string& out_info_hash_hex);
+    [[nodiscard]] std::optional<TorrentAddPreview> magnet_preview(
+        const std::string& info_hash_hex) const;
+    [[nodiscard]] std::string finalize_magnet_preview(
+        const std::string& info_hash_hex,
+        const std::vector<std::pair<int, int>>& file_priorities);
+    [[nodiscard]] std::string cancel_magnet_preview(const std::string& info_hash_hex);
 
     /// Last engine error (e.g. failed add); cleared when read.
     [[nodiscard]] std::string take_last_error();

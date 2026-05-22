@@ -4,22 +4,10 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import Torrex
 
-Popup {
+TgSheet {
     id: root
-    modal: true
-    focus: true
-    dim: true
-    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-    padding: 0
-    width: 480
-    anchors.centerIn: Overlay.overlay ? Overlay.overlay : parent
-
-    background: Rectangle {
-        radius: Theme.radiusLarge
-        color: Theme.sidebarBackground
-        border.color: Theme.border
-        border.width: 1
-    }
+    sheetMinHeight: 560
+    sheetMaxHeight: 820
 
     function pathToFolderUrl(path) {
         if (!path)
@@ -33,49 +21,53 @@ Popup {
         const uri = magnetField.text.trim()
         if (uri === "")
             return
-        appController.addMagnetUri(uri, downloadPathField.text)
+        if (appController.addPreviewStatus !== "ready")
+            return
+        const wantedCount = filePicker.fileRows.filter(function(row) { return row.wanted }).length
+        if (wantedCount === 0)
+            return
+        appController.addMagnetWithSelection(uri, downloadPathField.text, filePicker.selectionPayload())
         magnetField.text = ""
         root.close()
     }
 
-    onOpened: downloadPathField.text = appController.defaultDownloadFolder
+    function requestPreview() {
+        const uri = magnetField.text.trim()
+        if (!uri.startsWith("magnet:"))
+            return
+        appController.loadMagnetPreview(uri, downloadPathField.text)
+    }
+
+    Timer {
+        id: previewDebounce
+        interval: 600
+        onTriggered: root.requestPreview()
+    }
+
+    onOpened: {
+        downloadPathField.text = appController.defaultDownloadFolder
+        if (magnetField.text.trim().startsWith("magnet:"))
+            root.requestPreview()
+    }
+
+    onClosed: appController.cancelAddPreview()
 
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
-
-            Label {
-                text: qsTr("Add magnet link")
-                font.pixelSize: Theme.fontTitle
-                font.weight: Font.DemiBold
-                color: Theme.textPrimary
-            }
-
-            Item { Layout.fillWidth: true }
-
-            TgIconButton {
-                text: "✕"
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("Close")
-                onClicked: root.close()
-            }
+        TgSheetHeader {
+            title: qsTr("Add magnet link")
+            onCloseRequested: root.close()
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
+        TgSheetDivider {}
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
+        TgFormScroll {
+            Layout.leftMargin: Theme.spacingLg
+            Layout.rightMargin: Theme.spacingLg
+            Layout.topMargin: Theme.spacingLg
+            Layout.bottomMargin: Theme.spacingLg
 
             Label {
                 text: qsTr("Paste a magnet URI")
@@ -89,6 +81,7 @@ Popup {
                 placeholderText: qsTr("magnet:?xt=urn:btih:…")
                 Layout.fillWidth: true
                 selectByMouse: true
+                onTextChanged: previewDebounce.restart()
             }
             Label {
                 text: qsTr("Download folder")
@@ -104,6 +97,10 @@ Popup {
                     Layout.fillWidth: true
                     selectByMouse: true
                     placeholderText: qsTr("Folder path…")
+                    onTextChanged: {
+                        if (magnetField.text.trim().startsWith("magnet:"))
+                            previewDebounce.restart()
+                    }
                 }
                 TgButton {
                     text: qsTr("Browse")
@@ -113,30 +110,23 @@ Popup {
                     }
                 }
             }
+
+            AddTorrentFilePicker {
+                id: filePicker
+                Layout.fillWidth: true
+                status: appController.addPreviewStatus
+                title: appController.addPreviewTitle
+            }
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
+        TgSheetDivider {}
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.margins: Theme.spacingLg
-            spacing: Theme.spacingMd
-
-            Item { Layout.fillWidth: true }
-
-            TgButton {
-                text: qsTr("Cancel")
-                onClicked: root.close()
-            }
-            TgButton {
-                text: qsTr("Add")
-                primary: true
-                onClicked: root.submit()
-            }
+        TgSheetFooter {
+            primaryText: qsTr("Add")
+            primaryEnabled: appController.addPreviewStatus === "ready"
+                && filePicker.fileRows.some(function(row) { return row.wanted })
+            onCancelClicked: root.close()
+            onPrimaryClicked: root.submit()
         }
     }
 

@@ -28,6 +28,19 @@ Item {
             width: Math.max(thick ? 4 : 2, parent.width * root.ratio)
             radius: height / 2
             color: root.value >= 100 ? Theme.success : Theme.accent
+
+            Behavior on width {
+                NumberAnimation {
+                    duration: Theme.animNormal
+                    easing.type: Easing.OutCubic
+                }
+            }
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.animNormal
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
     }
 }

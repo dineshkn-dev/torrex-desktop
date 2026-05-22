@@ -22,6 +22,13 @@ ToolButton {
                 return root.filled ? Theme.accent : Theme.hover
             return root.filled ? Theme.accent : "transparent"
         }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutCubic
+            }
+        }
     }
 
     contentItem: Text {
@@ -32,6 +39,13 @@ ToolButton {
             if (!root.enabled)
                 return Theme.textMuted
             return root.filled ? Theme.textOnAccent : Theme.textPrimary
+        }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.animFast
+                easing.type: Easing.OutCubic
+            }
         }
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter

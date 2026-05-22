@@ -16,7 +16,10 @@ RowLayout {
         text: root.label
         font.pixelSize: Theme.fontBody
         color: Theme.textSecondary
+        wrapMode: Text.WordWrap
+        Layout.minimumWidth: 72
         Layout.preferredWidth: 120
+        Layout.maximumWidth: 160
         Layout.alignment: Qt.AlignTop
     }
 

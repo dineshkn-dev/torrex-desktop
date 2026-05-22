@@ -1,14 +1,19 @@
 #pragma once
 
 #include <torrex/session_manager.hpp>
+#include <torrex/torrent_preview.hpp>
 
 #include "torrent_list_model.hpp"
 
 #include <QHash>
 #include <QObject>
+#include <QTimer>
 #include <QUrl>
+#include <QVariantList>
 
 #include <functional>
+#include <utility>
+#include <vector>
 
 namespace torrex::app {
 
@@ -40,6 +45,15 @@ class AppController : public QObject {
                    sessionSettingsChanged)
     Q_PROPERTY(QString proxyPassword READ proxyPassword WRITE setProxyPassword NOTIFY
                    sessionSettingsChanged)
+    Q_PROPERTY(int appearanceMode READ appearanceMode WRITE setAppearanceMode NOTIFY
+                   appearanceChanged)
+    Q_PROPERTY(QString accentColorId READ accentColorId WRITE setAccentColorId NOTIFY
+                   appearanceChanged)
+    Q_PROPERTY(QVariantList addPreviewFiles READ addPreviewFiles NOTIFY addPreviewChanged)
+    Q_PROPERTY(QString addPreviewTitle READ addPreviewTitle NOTIFY addPreviewChanged)
+    Q_PROPERTY(QString addPreviewStatus READ addPreviewStatus NOTIFY addPreviewChanged)
+    Q_PROPERTY(QString addPreviewInfoHash READ addPreviewInfoHash NOTIFY addPreviewChanged)
+    Q_PROPERTY(QString addPreviewSizeText READ addPreviewSizeText NOTIFY addPreviewChanged)
 
 public:
     explicit AppController(QObject* parent = nullptr);
@@ -51,6 +65,15 @@ public:
     Q_INVOKABLE void refreshTorrents();
     Q_INVOKABLE void addMagnetUri(const QString& uri, const QString& save_path = {});
     Q_INVOKABLE void addTorrentFile(const QUrl& file_url, const QString& save_path = {});
+    Q_INVOKABLE bool loadTorrentFilePreview(const QUrl& file_url);
+    Q_INVOKABLE bool loadMagnetPreview(const QString& uri, const QString& save_path = {});
+    Q_INVOKABLE void cancelAddPreview();
+    Q_INVOKABLE void addTorrentFileWithSelection(const QUrl& file_url,
+                                                 const QString& save_path,
+                                                 const QVariantList& files);
+    Q_INVOKABLE void addMagnetWithSelection(const QString& uri,
+                                            const QString& save_path,
+                                            const QVariantList& files);
     Q_INVOKABLE void handleDroppedUrls(const QList<QUrl>& urls);
 
     [[nodiscard]] QString defaultDownloadFolder() const { return download_folder_; }
@@ -95,6 +118,12 @@ public:
     [[nodiscard]] QString proxyPassword() const { return proxy_password_; }
     void setProxyPassword(const QString& password);
 
+    [[nodiscard]] int appearanceMode() const { return appearance_mode_; }
+    void setAppearanceMode(int mode);
+
+    [[nodiscard]] QString accentColorId() const { return accent_color_id_; }
+    void setAccentColorId(const QString& id);
+
     Q_INVOKABLE void applySessionSettings();
     Q_INVOKABLE void loadSessionSettingsFromStore();
     Q_INVOKABLE void clearNotification();
@@ -115,8 +144,21 @@ signals:
     void notificationMessageChanged();
     void defaultDownloadFolderChanged();
     void sessionSettingsChanged();
+    void appearanceChanged();
+    void addPreviewChanged();
 
 private:
+    [[nodiscard]] QVariantList addPreviewFiles() const { return add_preview_files_; }
+    [[nodiscard]] QString addPreviewTitle() const { return add_preview_title_; }
+    [[nodiscard]] QString addPreviewStatus() const { return add_preview_status_; }
+    [[nodiscard]] QString addPreviewInfoHash() const { return add_preview_info_hash_; }
+    [[nodiscard]] QString addPreviewSizeText() const { return add_preview_size_text_; }
+
+    void clearAddPreview();
+    void applyAddPreview(const torrex::TorrentAddPreview& preview);
+    void pollMagnetAddPreview();
+    [[nodiscard]] static std::vector<std::pair<int, int>> filePrioritiesFromSelection(
+        const QVariantList& files);
     [[nodiscard]] QString resolveSavePath(const QString& save_path) const;
     void setStatusMessage(const QString& message);
     void postNotification(const QString& message);
@@ -125,6 +167,7 @@ private:
                       const QString& success_message);
     void persistSessionSettings();
     void pushSettingsToEngine();
+    void applyAppearanceColorScheme();
     [[nodiscard]] SessionSettings engineSettingsFromProperties() const;
 
     QString status_message_ = QStringLiteral("Ready");
@@ -143,7 +186,16 @@ private:
     int proxy_port_ = 1080;
     QString proxy_username_;
     QString proxy_password_;
+    int appearance_mode_ = 0;
+    QString accent_color_id_{QStringLiteral("blue")};
     QHash<QString, int> torrent_state_cache_;
+    QVariantList add_preview_files_;
+    QString add_preview_title_;
+    QString add_preview_status_{QStringLiteral("idle")};
+    QString add_preview_info_hash_;
+    QString add_preview_size_text_;
+    QTimer* add_preview_poll_timer_ = nullptr;
+    QTimer* add_preview_timeout_timer_ = nullptr;
     SessionManager session_;
     models::TorrentListModel torrent_model_;
 };

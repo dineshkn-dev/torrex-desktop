@@ -83,18 +83,21 @@ Item {
             }
         }
 
-        // Filter chips
-        ScrollView {
+        // Filter chips (horizontal scroll when narrow)
+        TgScrollView {
+            id: filterScroll
             Layout.fillWidth: true
             Layout.preferredHeight: 44
             Layout.bottomMargin: Theme.spacingXs
-            clip: true
+            horizontalPolicy: ScrollBar.AsNeeded
             ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-            RowLayout {
+            Row {
+                id: chipRow
+                height: filterScroll.height
                 spacing: Theme.spacingSm
-
-                Item { Layout.preferredWidth: Theme.spacingMd }
+                leftPadding: Theme.spacingMd
+                rightPadding: Theme.spacingMd
 
                 Repeater {
                     model: ListModel {
@@ -104,6 +107,9 @@ Item {
                         ListElement { filterId: "paused"; title: qsTr("Paused") }
                     }
                     delegate: FilterChip {
+                        required property string filterId
+                        required property string title
+                        anchors.verticalCenter: parent.verticalCenter
                         text: title
                         checked: appController.torrents.activeFilter === filterId
                         onClicked: {
@@ -119,8 +125,6 @@ Item {
                         }
                     }
                 }
-
-                Item { Layout.preferredWidth: Theme.spacingMd }
             }
         }
 
@@ -153,6 +157,39 @@ Item {
                 clip: true
                 visible: !root.filterHidesAll
                 boundsBehavior: Flickable.StopAtBounds
+                flickDeceleration: Theme.flickDeceleration
+                maximumFlickVelocity: Theme.maxFlickVelocity
+                pixelAligned: false
+                spacing: Theme.spacingXs
+                cacheBuffer: Theme.rowHeight * 4
+                reuseItems: true
+
+                displaced: Transition {
+                    NumberAnimation {
+                        properties: "x,y"
+                        duration: Theme.animNormal
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                add: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: Theme.animFast
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                remove: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        to: 0
+                        duration: Theme.animFast
+                        easing.type: Easing.InCubic
+                    }
+                }
 
                 Connections {
                     target: appController.torrents

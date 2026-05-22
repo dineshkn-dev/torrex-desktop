@@ -10,6 +10,7 @@ Popup {
     dim: true
     padding: Theme.spacingLg
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+    transformOrigin: Item.Center
     property string heading: ""
     property string message: ""
     property string okText: qsTr("OK")
@@ -18,8 +19,53 @@ Popup {
     signal accepted()
     signal rejected()
 
-    width: 400
+    width: {
+        const host = parent
+        if (!host)
+            return 420
+        return Math.min(420, Math.max(280, host.width - Theme.sheetMargin * 2))
+    }
     implicitHeight: contentLayout.implicitHeight + 2 * padding
+
+    enter: Transition {
+        ParallelAnimation {
+            NumberAnimation {
+                target: root
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Theme.animFast
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: root
+                property: "scale"
+                from: Theme.sheetEnterScale
+                to: 1
+                duration: Theme.animNormal
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
+
+    exit: Transition {
+        ParallelAnimation {
+            NumberAnimation {
+                target: root
+                property: "opacity"
+                to: 0
+                duration: Theme.animFast
+                easing.type: Easing.InCubic
+            }
+            NumberAnimation {
+                target: root
+                property: "scale"
+                to: Theme.sheetEnterScale
+                duration: Theme.animNormal
+                easing.type: Easing.InCubic
+            }
+        }
+    }
 
     background: Rectangle {
         color: Theme.surface
@@ -53,8 +99,10 @@ Popup {
         }
 
         RowLayout {
-            Layout.alignment: Qt.AlignRight
+            Layout.fillWidth: true
             spacing: Theme.spacingSm
+
+            Item { Layout.fillWidth: true }
 
             TgButton {
                 text: root.cancelText
