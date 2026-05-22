@@ -13,6 +13,7 @@ class TorrentListModel : public QAbstractListModel {
     Q_OBJECT
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
     Q_PROPERTY(QString activeFilter READ activeFilter NOTIFY activeFilterChanged)
+    Q_PROPERTY(int dataRevision READ dataRevision NOTIFY dataRevisionChanged)
 
 public:
     enum Roles {
@@ -35,6 +36,7 @@ public:
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void setFilter(const QString& filter_id);
     [[nodiscard]] QString activeFilter() const { return active_filter_; }
+    [[nodiscard]] int dataRevision() const { return data_revision_; }
 
     Q_INVOKABLE QString infoHashAt(int row) const;
     Q_INVOKABLE QString nameAt(int row) const;
@@ -48,6 +50,7 @@ signals:
     void countChanged();
     void snapshotsUpdated();
     void activeFilterChanged();
+    void dataRevisionChanged();
 
 private:
     void rebuildFilteredRows();
@@ -57,6 +60,7 @@ private:
     std::vector<TorrentSnapshot> items_;
     std::vector<int> filtered_rows_;
     QString active_filter_ = QStringLiteral("all");
+    int data_revision_ = 0;
 };
 
 } // namespace torrex::models

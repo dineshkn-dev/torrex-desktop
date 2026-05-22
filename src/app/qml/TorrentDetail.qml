@@ -10,6 +10,32 @@ ScrollView {
 
     readonly property var model: appController.torrents
     readonly property bool hasSelection: torrentRow >= 0 && torrentRow < model.count
+    readonly property int dataRevision: model.dataRevision
+
+    readonly property string detailName: {
+        dataRevision
+        return hasSelection ? model.nameAt(torrentRow) : ""
+    }
+    readonly property int detailState: {
+        dataRevision
+        return hasSelection ? model.stateAt(torrentRow) : -1
+    }
+    readonly property int detailProgress: {
+        dataRevision
+        return hasSelection ? model.progressAt(torrentRow) : 0
+    }
+    readonly property string detailSavePath: {
+        dataRevision
+        return hasSelection ? model.savePathAt(torrentRow) : ""
+    }
+    readonly property real detailDownloadRate: {
+        dataRevision
+        return hasSelection ? model.downloadRateAt(torrentRow) : 0
+    }
+    readonly property real detailUploadRate: {
+        dataRevision
+        return hasSelection ? model.uploadRateAt(torrentRow) : 0
+    }
 
     ColumnLayout {
         width: root.availableWidth > 0 ? root.availableWidth : implicitWidth
@@ -17,7 +43,7 @@ ScrollView {
         anchors.margins: 16
 
         Label {
-            text: hasSelection ? model.nameAt(torrentRow) : qsTr("Select a torrent")
+            text: hasSelection ? detailName : qsTr("Select a torrent")
             font.pixelSize: 20
             font.bold: true
             color: Theme.textPrimary
@@ -32,52 +58,10 @@ ScrollView {
             TabButton { text: qsTr("Files") }
         }
 
-        StackLayout {
+        Loader {
             Layout.fillWidth: true
-            currentIndex: detailTabs.currentIndex
-
-            // Overview
-            ColumnLayout {
-                spacing: 10
-                visible: hasSelection
-
-                DetailRow {
-                    label: qsTr("State")
-                    value: hasSelection ? root.stateText(model.stateAt(torrentRow)) : ""
-                }
-                DetailRow {
-                    label: qsTr("Progress")
-                    value: hasSelection ? model.progressAt(torrentRow) + "%" : ""
-                }
-                DetailRow {
-                    label: qsTr("Download")
-                    value: hasSelection ? root.formatRate(model.downloadRateAt(torrentRow)) : ""
-                }
-                DetailRow {
-                    label: qsTr("Upload")
-                    value: hasSelection ? root.formatRate(model.uploadRateAt(torrentRow)) : ""
-                }
-                DetailRow {
-                    label: qsTr("Save folder")
-                    value: hasSelection ? model.savePathAt(torrentRow) : ""
-                    wrap: true
-                }
-
-                ProgressBar {
-                    Layout.fillWidth: true
-                    from: 0
-                    to: 100
-                    value: hasSelection ? model.progressAt(torrentRow) : 0
-                }
-            }
-
-            // Files (phase 3 placeholder)
-            Label {
-                text: qsTr("Per-file priorities and sequential download are planned for a later release.")
-                color: Theme.textMuted
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-            }
+            Layout.preferredHeight: contentItem ? contentItem.implicitHeight : 120
+            sourceComponent: detailTabs.currentIndex === 0 ? overviewPane : filesPane
         }
 
         Label {
@@ -86,6 +70,53 @@ ScrollView {
             color: Theme.textMuted
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
+        }
+    }
+
+    Component {
+        id: overviewPane
+        ColumnLayout {
+            spacing: 10
+            width: root.availableWidth > 0 ? root.availableWidth : implicitWidth
+
+            DetailRow {
+                label: qsTr("State")
+                value: root.stateText(detailState)
+            }
+            DetailRow {
+                label: qsTr("Progress")
+                value: detailProgress + "%"
+            }
+            DetailRow {
+                label: qsTr("Download")
+                value: root.formatRate(detailDownloadRate)
+            }
+            DetailRow {
+                label: qsTr("Upload")
+                value: root.formatRate(detailUploadRate)
+            }
+            DetailRow {
+                label: qsTr("Save folder")
+                value: detailSavePath
+                wrap: true
+            }
+
+            ProgressBar {
+                Layout.fillWidth: true
+                from: 0
+                to: 100
+                value: detailProgress
+            }
+        }
+    }
+
+    Component {
+        id: filesPane
+        Label {
+            width: root.availableWidth > 0 ? root.availableWidth : implicitWidth
+            text: qsTr("Per-file priorities and sequential download are planned for a later release.")
+            color: Theme.textMuted
+            wrapMode: Text.WordWrap
         }
     }
 

@@ -97,6 +97,8 @@ void TorrentListModel::refresh()
 
     if (!count_changed && !filtered_rows_.empty()) {
         emit dataChanged(index(0), index(static_cast<int>(filtered_rows_.size()) - 1));
+        ++data_revision_;
+        emit dataRevisionChanged();
         emit snapshotsUpdated();
         return;
     }
@@ -104,6 +106,8 @@ void TorrentListModel::refresh()
     beginResetModel();
     endResetModel();
     emit countChanged();
+    ++data_revision_;
+    emit dataRevisionChanged();
     emit snapshotsUpdated();
 }
 
@@ -123,6 +127,8 @@ void TorrentListModel::setFilter(const QString& filter_id)
     beginResetModel();
     endResetModel();
     emit countChanged();
+    ++data_revision_;
+    emit dataRevisionChanged();
     emit activeFilterChanged();
     emit snapshotsUpdated();
 }

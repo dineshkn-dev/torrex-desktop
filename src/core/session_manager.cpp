@@ -65,8 +65,11 @@ TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
     snap.state = map_state(st.state);
     snap.downloaded = st.total_done;
     snap.total = st.total_wanted > 0 ? st.total_wanted : st.total_wanted_done;
-    snap.progress_percent =
-        st.progress > 0.F ? static_cast<int>(st.progress * 100.F) : 0;
+    snap.progress_percent = static_cast<int>(st.progress * 100.F + 0.5F);
+    if (snap.progress_percent == 0 && snap.total > 0 && snap.downloaded > 0) {
+        snap.progress_percent =
+            static_cast<int>((snap.downloaded * 100) / snap.total);
+    }
     snap.download_rate = st.download_rate;
     snap.upload_rate = st.upload_rate;
     snap.save_path = st.save_path;
