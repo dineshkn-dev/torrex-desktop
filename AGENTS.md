@@ -62,10 +62,14 @@ Fixtures: `tests/fixtures/` (legal redistributable samples only).
 4. [docs/tracker/ROADMAP.yaml](docs/tracker/ROADMAP.yaml) for progress
 5. Relevant ADR under `docs/architecture/`
 
+## Release
+
+Tag `v*` on `main` triggers [.github/workflows/release.yml](.github/workflows/release.yml) (macOS `.dmg`, SBOM, cosign). See [docs/runbooks/release.md](docs/runbooks/release.md).
+
 ## Do not touch without ADR
 
-- `cmake/DeployQt.cmake` — packaging paths
-- `.github/workflows/release.yml` — signing / SBOM
+- `cmake/DeployQt.cmake` — packaging paths (coordinate with release runbook)
+- `.github/workflows/release.yml` — signing / SBOM (coordinate with ADR-003)
 - `vcpkg-configuration.json` baseline pin
 
 ## License

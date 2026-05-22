@@ -46,6 +46,17 @@ set_target_properties(torrex PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
+if(APPLE)
+    set_target_properties(torrex PROPERTIES
+        MACOSX_BUNDLE ON
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.torrex.desktop
+        MACOSX_BUNDLE_BUNDLE_NAME Torrex
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in"
+    )
+endif()
+
 if(WIN32)
     set_target_properties(torrex PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()

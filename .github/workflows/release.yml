@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  macos:
+    name: macos-14
+    runs-on: macos-14
+    timeout-minutes: 120
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg/bincache,read;files,${{ github.workspace }}/vcpkg/bincache,write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install macOS build dependencies
+        run: brew install ninja autoconf autoconf-archive automake libtool pkg-config
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg/bincache
+            ${{ github.workspace }}/vcpkg/downloads
+            ${{ github.workspace }}/build/ci-release/vcpkg_installed
+          key: vcpkg-macos14-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: |
+            vcpkg-macos14-
+
+      - name: Configure
+        run: cmake --preset ci-release
+
+      - name: Build
+        run: cmake --build --preset ci-release
+
+      - name: Test
+        run: ctest --preset ci-release --output-on-failure
+
+      - name: Package .dmg
+        run: chmod +x scripts/package-macos.sh && ./scripts/package-macos.sh build/ci-release
+
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: build/ci-release/bin/Torrex.app
+          format: spdx-json
+          output-file: build/ci-release/staging/torrex.spdx.json
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Sign release artifacts
+        working-directory: build/ci-release/staging
+        run: |
+          for artifact in *.dmg torrex.spdx.json SHA256SUMS.txt; do
+            [[ -f "$artifact" ]] || continue
+            cosign sign-blob --yes "$artifact" \
+              --output-signature "${artifact}.sig" \
+              --output-certificate "${artifact}.crt"
+          done
+
+      - name: Upload release assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/ci-release/staging/*.dmg
+            build/ci-release/staging/SHA256SUMS.txt
+            build/ci-release/staging/torrex.spdx.json
+            build/ci-release/staging/*.sig
+            build/ci-release/staging/*.crt
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

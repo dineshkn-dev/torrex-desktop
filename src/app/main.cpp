@@ -11,8 +11,23 @@
 
 namespace {
 
+void add_bundle_plugin_paths()
+{
+    const QDir macos_dir(QCoreApplication::applicationDirPath());
+    const QString plugins_dir = macos_dir.absoluteFilePath(QStringLiteral("../PlugIns"));
+    if (QDir(plugins_dir).exists()) {
+        QCoreApplication::addLibraryPath(plugins_dir);
+        const QString imageformats = plugins_dir + QStringLiteral("/imageformats");
+        if (QDir(imageformats).exists()) {
+            QCoreApplication::addLibraryPath(imageformats);
+        }
+    }
+}
+
 void add_vcpkg_qt_plugin_paths()
 {
+    add_bundle_plugin_paths();
+
     const QFileInfo exe(QCoreApplication::applicationFilePath());
     const QDir bin_dir = exe.absoluteDir();
     const QStringList candidates = {

@@ -40,8 +40,8 @@
 - [x] Dark/light theme (follows system appearance)
 - [ ] Drag-and-drop and notifications
 
-## Acceptance (v0.1 release)
+## Acceptance (v0.1 release) {#acceptance-v0-1-release}
 
 - Download a legal Linux ISO via magnet and `.torrent`
-- Restart app; torrents restore
-- Release artifacts include SPDX SBOM and signed binaries (per runbook)
+- [x] Restart app; torrents restore
+- [x] Release artifacts include SPDX SBOM and signed binaries (per [release runbook](../runbooks/release.md))

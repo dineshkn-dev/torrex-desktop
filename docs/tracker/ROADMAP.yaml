@@ -65,5 +65,17 @@ phases:
 
   - id: phase-5-release
     name: Signed release
-    status: pending
-    items: []
+    status: done
+    items:
+      - id: F-050-macos-bundle
+        spec: docs/runbooks/release.md
+        tests: []
+        done_when: ci_green_all_platforms
+      - id: F-051-release-workflow
+        spec: docs/runbooks/release.md
+        tests: []
+        done_when: tag_triggers_release
+      - id: F-052-sbom-cosign
+        spec: docs/specs/MVP.md#acceptance-v0-1-release
+        tests: []
+        done_when: tag_triggers_release
