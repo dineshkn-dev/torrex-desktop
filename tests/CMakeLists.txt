@@ -5,6 +5,7 @@ add_executable(torrex_tests
     core/session_manager_test.cpp
     core/add_torrent_test.cpp
     core/torrent_ops_test.cpp
+    core/torrent_filter_test.cpp
 )
 
 target_link_libraries(torrex_tests

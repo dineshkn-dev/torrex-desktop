@@ -12,6 +12,7 @@ namespace torrex::models {
 class TorrentListModel : public QAbstractListModel {
     Q_OBJECT
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
+    Q_PROPERTY(int totalCount READ totalCount NOTIFY countChanged)
     Q_PROPERTY(QString activeFilter READ activeFilter NOTIFY activeFilterChanged)
     Q_PROPERTY(int dataRevision READ dataRevision NOTIFY dataRevisionChanged)
 
@@ -35,7 +36,9 @@ public:
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void setFilter(const QString& filter_id);
+    [[nodiscard]] int totalCount() const { return static_cast<int>(items_.size()); }
     [[nodiscard]] QString activeFilter() const { return active_filter_; }
+    Q_INVOKABLE int rowForInfoHash(const QString& info_hash_hex) const;
     [[nodiscard]] int dataRevision() const { return data_revision_; }
 
     Q_INVOKABLE QString infoHashAt(int row) const;

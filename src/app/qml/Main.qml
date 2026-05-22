@@ -14,7 +14,8 @@ ApplicationWindow {
     title: qsTr("Torrex %1").arg(appController.version)
     color: Theme.windowBackground
 
-    property bool hasTorrents: appController.torrents.count > 0
+    property bool hasTorrents: appController.torrents.totalCount > 0
+    property bool filterHidesAllTorrents: hasTorrents && appController.torrents.count === 0
     property string selectedInfoHash: ""
     // TorrentState::Paused === 4 (see include/torrex/types.hpp)
     readonly property bool selectionPaused: selectedState === 4
@@ -357,11 +358,16 @@ ApplicationWindow {
                             text: title
                             highlighted: appController.torrents.activeFilter === filterId
                             onClicked: {
+                                const savedHash = window.selectedInfoHash
                                 appController.torrents.setFilter(filterId)
-                                if (torrentList.count > 0)
+                                const row = appController.torrents.rowForInfoHash(savedHash)
+                                if (row >= 0) {
+                                    torrentList.currentIndex = row
+                                } else if (torrentList.count > 0) {
                                     torrentList.currentIndex = 0
-                                else
+                                } else {
                                     torrentList.currentIndex = -1
+                                }
                             }
                         }
                     }
@@ -380,12 +386,23 @@ ApplicationWindow {
                     SplitView.minimumWidth: 220
                     SplitView.preferredWidth: 300
 
+                    Label {
+                        anchors.centerIn: parent
+                        width: parent.width - 16
+                        horizontalAlignment: Text.AlignHCenter
+                        visible: window.filterHidesAllTorrents
+                        wrapMode: Text.WordWrap
+                        color: Theme.textMuted
+                        text: qsTr("No torrents match this filter. Try All.")
+                    }
+
                     ListView {
                         id: torrentList
                         anchors.fill: parent
                         model: appController.torrents
                         spacing: 4
                         clip: true
+                        visible: !window.filterHidesAllTorrents
 
                         Connections {
                             target: appController.torrents

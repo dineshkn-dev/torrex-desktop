@@ -1,30 +1,10 @@
 #include "torrent_list_model.hpp"
 
+#include <torrex/torrent_filter.hpp>
+
 #include <QStringList>
 
 namespace torrex::models {
-
-namespace {
-
-bool matches_filter(const TorrentSnapshot& item, const QString& filter_id)
-{
-    if (filter_id == QStringLiteral("all")) {
-        return true;
-    }
-    if (filter_id == QStringLiteral("downloading")) {
-        return item.state == TorrentState::Downloading || item.state == TorrentState::Checking
-            || item.state == TorrentState::Idle;
-    }
-    if (filter_id == QStringLiteral("seeding")) {
-        return item.state == TorrentState::Seeding;
-    }
-    if (filter_id == QStringLiteral("paused")) {
-        return item.state == TorrentState::Paused;
-    }
-    return true;
-}
-
-} // namespace
 
 TorrentListModel::TorrentListModel(SessionManager& session, QObject* parent)
     : QAbstractListModel(parent), session_(session)
@@ -84,7 +64,8 @@ void TorrentListModel::rebuildFilteredRows()
     filtered_rows_.clear();
     filtered_rows_.reserve(items_.size());
     for (int i = 0; i < static_cast<int>(items_.size()); ++i) {
-        if (matches_filter(items_[static_cast<std::size_t>(i)], active_filter_)) {
+        if (torrent_matches_filter(items_[static_cast<std::size_t>(i)],
+                                   active_filter_.toUtf8().constData())) {
             filtered_rows_.push_back(i);
         }
     }
@@ -184,6 +165,20 @@ qint64 TorrentListModel::uploadRateAt(const int row) const
 {
     const TorrentSnapshot* item = snapshotAt(row);
     return item == nullptr ? 0 : item->upload_rate;
+}
+
+int TorrentListModel::rowForInfoHash(const QString& info_hash_hex) const
+{
+    const QString id = info_hash_hex.trimmed();
+    if (id.isEmpty()) {
+        return -1;
+    }
+    for (int row = 0; row < static_cast<int>(filtered_rows_.size()); ++row) {
+        if (infoHashAt(row).compare(id, Qt::CaseInsensitive) == 0) {
+            return row;
+        }
+    }
+    return -1;
 }
 
 QStringList TorrentListModel::filePathsAt(const int row) const

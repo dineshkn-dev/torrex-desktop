@@ -250,8 +250,23 @@ struct SessionManager::Impl {
 
             params.save_path = cmd.save_path;
             params.flags |= lt::torrent_flags::auto_managed;
+
+            const std::string key = hash_key(params.info_hashes);
+            if (!key.empty()) {
+                lt::torrent_handle existing = find_handle_by_id(key);
+                if (existing.is_valid()) {
+                    update_entry(existing);
+                    continue;
+                }
+            }
+
             lt::torrent_handle handle = session.add_torrent(params, ec);
             if (ec) {
+                lt::torrent_handle existing = find_handle_by_id(key);
+                if (!key.empty() && existing.is_valid()) {
+                    update_entry(existing);
+                    continue;
+                }
                 set_error(ec.message());
                 continue;
             }
