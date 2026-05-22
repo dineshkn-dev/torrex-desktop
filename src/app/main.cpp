@@ -4,6 +4,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QStyleHints>
 
 int main(int argc, char* argv[])
 {
@@ -13,6 +14,10 @@ int main(int argc, char* argv[])
     QGuiApplication::setApplicationVersion("0.1.0");
 
     QQuickStyle::setStyle("Fusion");
+
+    // Follow macOS Settings → Appearance (Light / Dark / Auto).
+    // Theme.qml reads Qt.application.colorScheme for window colors.
+    QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Unknown);
 
     torrex::app::AppController controller;
 

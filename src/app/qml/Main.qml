@@ -14,6 +14,16 @@ ApplicationWindow {
     title: qsTr("Torrex %1").arg(appController.version)
     color: Theme.windowBackground
 
+    // Keep Qt Quick Controls in sync with Theme (avoids dark Fusion buttons on a light window).
+    palette.window: Theme.windowBackground
+    palette.windowText: Theme.textPrimary
+    palette.base: Theme.surface
+    palette.text: Theme.textPrimary
+    palette.button: Theme.accent
+    palette.buttonText: "#ffffff"
+    palette.mid: Theme.border
+    palette.dark: Theme.border
+
     property bool hasTorrents: appController.torrents.count > 0
 
     Component.onCompleted: appController.refreshTorrents()
