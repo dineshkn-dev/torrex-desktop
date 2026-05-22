@@ -43,8 +43,12 @@ phases:
 
   - id: phase-3-ui
     name: Master-detail UI
-    status: pending
-    items: []
+    status: done
+    items:
+      - id: F-030-master-detail
+        spec: docs/specs/MVP.md#ui
+        tests: []
+        done_when: manual_ui_smoke
 
   - id: phase-4-settings
     name: Settings and polish

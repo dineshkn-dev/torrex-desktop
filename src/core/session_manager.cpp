@@ -69,6 +69,7 @@ TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
         st.progress > 0.F ? static_cast<int>(st.progress * 100.F) : 0;
     snap.download_rate = st.download_rate;
     snap.upload_rate = st.upload_rate;
+    snap.save_path = st.save_path;
     if (st.errc) {
         snap.state = TorrentState::Error;
     }

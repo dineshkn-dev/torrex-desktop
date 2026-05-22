@@ -28,6 +28,7 @@ struct TorrentSnapshot {
     int progress_percent = 0;
     std::int64_t download_rate = 0;
     std::int64_t upload_rate = 0;
+    std::string save_path;
 };
 
 } // namespace torrex

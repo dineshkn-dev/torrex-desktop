@@ -18,6 +18,7 @@ qt_add_qml_module(torrex
     QML_FILES
         qml/Main.qml
         qml/Theme.qml
+        qml/TorrentDetail.qml
 )
 
 target_link_libraries(torrex

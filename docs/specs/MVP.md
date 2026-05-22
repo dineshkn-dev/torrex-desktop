@@ -24,7 +24,7 @@
 
 - [x] Add magnet URI and `.torrent` file
 - [x] Pause, resume, remove (optional delete data)
-- [ ] Global and per-torrent save path
+- [x] Per-torrent save path on add (folder picker); global default remembered
 - [ ] File priorities and sequential download
 - [ ] Fast-resume across restarts
 
@@ -35,8 +35,8 @@
 
 ## UI
 
-- [ ] Sidebar filters, torrent list, detail tabs
-- [ ] Dark/light theme
+- [x] Sidebar filters, torrent list, detail tabs (overview; files tab placeholder)
+- [x] Dark/light theme (follows system appearance)
 - [ ] Drag-and-drop and notifications
 
 ## Acceptance (v0.1 release)

@@ -319,104 +319,186 @@ ApplicationWindow {
             }
         }
 
-        Frame {
+        RowLayout {
             anchors.fill: parent
             visible: window.hasTorrents
-            padding: 8
-            background: Rectangle {
-                color: Theme.surface
-                border.color: Theme.border
-                radius: 8
+            spacing: 12
+
+            Frame {
+                Layout.preferredWidth: 132
+                Layout.fillHeight: true
+                padding: 8
+                background: Rectangle {
+                    color: Theme.surface
+                    border.color: Theme.border
+                    radius: 8
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: 4
+
+                    Label {
+                        text: qsTr("Filter")
+                        font.bold: true
+                        color: Theme.textMuted
+                        font.pixelSize: 11
+                    }
+
+                    Repeater {
+                        model: ListModel {
+                            ListElement { filterId: "all"; title: qsTr("All") }
+                            ListElement { filterId: "downloading"; title: qsTr("Downloading") }
+                            ListElement { filterId: "seeding"; title: qsTr("Seeding") }
+                            ListElement { filterId: "paused"; title: qsTr("Paused") }
+                        }
+                        delegate: ItemDelegate {
+                            Layout.fillWidth: true
+                            text: title
+                            highlighted: appController.torrents.activeFilter === filterId
+                            onClicked: {
+                                appController.torrents.setFilter(filterId)
+                                if (torrentList.count > 0)
+                                    torrentList.currentIndex = 0
+                                else
+                                    torrentList.currentIndex = -1
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillHeight: true }
+                }
             }
 
-            ListView {
-                id: torrentList
-                anchors.fill: parent
-                model: appController.torrents
-                spacing: 4
-                clip: true
+            SplitView {
+                id: mainSplit
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                orientation: Qt.Horizontal
 
-                Connections {
-                    target: appController.torrents
-                    function onSnapshotsUpdated() {
-                        torrentList.syncSelection()
+                Frame {
+                    SplitView.minimumWidth: 220
+                    SplitView.preferredWidth: 300
+                    padding: 8
+                    background: Rectangle {
+                        color: Theme.surface
+                        border.color: Theme.border
+                        radius: 8
+                    }
+
+                    ListView {
+                        id: torrentList
+                        anchors.fill: parent
+                        model: appController.torrents
+                        spacing: 4
+                        clip: true
+
+                        Connections {
+                            target: appController.torrents
+                            function onSnapshotsUpdated() {
+                                torrentList.syncSelection()
+                            }
+                            function onActiveFilterChanged() {
+                                if (torrentList.count > 0 && torrentList.currentIndex < 0)
+                                    torrentList.currentIndex = 0
+                            }
+                        }
+
+                        function syncSelection() {
+                            if (currentIndex < 0 || currentIndex >= count) {
+                                window.selectedInfoHash = ""
+                                window.selectedState = -1
+                                return
+                            }
+                            window.selectedInfoHash =
+                                appController.torrents.infoHashAt(currentIndex)
+                            window.selectedState =
+                                appController.torrents.stateAt(currentIndex)
+                        }
+
+                        onCountChanged: {
+                            if (count === 0) {
+                                currentIndex = -1
+                                syncSelection()
+                            } else if (currentIndex < 0 || currentIndex >= count) {
+                                currentIndex = 0
+                            } else {
+                                syncSelection()
+                            }
+                        }
+
+                        onCurrentIndexChanged: syncSelection()
+
+                        Component.onCompleted: {
+                            if (count > 0 && currentIndex < 0)
+                                currentIndex = 0
+                        }
+
+                        delegate: ItemDelegate {
+                            id: row
+                            width: torrentList.width
+                            highlighted: torrentList.currentIndex === index
+                            text: {
+                                var line = name + " — " + progress + "%"
+                                if (downloadRate > 0) {
+                                    line += "  ↓ " + formatBytes(downloadRate) + "/s"
+                                }
+                                return line
+                            }
+
+                            function formatBytes(bytes) {
+                                if (bytes < 1024) return bytes + " B"
+                                if (bytes < 1024 * 1024)
+                                    return (bytes / 1024).toFixed(1) + " KB"
+                                return (bytes / (1024 * 1024)).toFixed(1) + " MB"
+                            }
+
+                            onClicked: torrentList.currentIndex = index
+
+                            TapHandler {
+                                acceptedButtons: Qt.RightButton
+                                onTapped: rowMenu.open()
+                            }
+
+                            Menu {
+                                id: rowMenu
+                                MenuItem {
+                                    text: qsTr("Pause")
+                                    enabled: state !== 4
+                                    onTriggered: appController.pauseTorrent(infoHash)
+                                }
+                                MenuItem {
+                                    text: qsTr("Resume")
+                                    enabled: state === 4
+                                    onTriggered: appController.resumeTorrent(infoHash)
+                                }
+                                MenuSeparator {}
+                                MenuItem {
+                                    text: qsTr("Remove")
+                                    onTriggered: window.confirmRemove(infoHash, false, name)
+                                }
+                                MenuItem {
+                                    text: qsTr("Remove and delete data")
+                                    onTriggered: window.confirmRemove(infoHash, true, name)
+                                }
+                            }
+                        }
                     }
                 }
 
-                function syncSelection() {
-                    if (currentIndex < 0 || currentIndex >= count) {
-                        window.selectedInfoHash = ""
-                        window.selectedState = -1
-                        return
-                    }
-                    window.selectedInfoHash = appController.torrents.infoHashAt(currentIndex)
-                    window.selectedState = appController.torrents.stateAt(currentIndex)
-                }
-
-                onCountChanged: {
-                    if (count === 0) {
-                        currentIndex = -1
-                        syncSelection()
-                    } else if (currentIndex < 0 || currentIndex >= count) {
-                        currentIndex = 0
-                    } else {
-                        syncSelection()
-                    }
-                }
-
-                onCurrentIndexChanged: syncSelection()
-
-                Component.onCompleted: {
-                    if (count > 0 && currentIndex < 0)
-                        currentIndex = 0
-                }
-
-                delegate: ItemDelegate {
-                    id: row
-                    width: torrentList.width
-                    highlighted: torrentList.currentIndex === index
-                    text: {
-                        var line = name + " — " + progress + "%"
-                        if (downloadRate > 0) {
-                            line += "  ↓ " + formatBytes(downloadRate) + "/s"
-                        }
-                        return line
+                Frame {
+                    SplitView.minimumWidth: 260
+                    SplitView.fillWidth: true
+                    padding: 0
+                    background: Rectangle {
+                        color: Theme.surface
+                        border.color: Theme.border
+                        radius: 8
                     }
 
-                    function formatBytes(bytes) {
-                        if (bytes < 1024) return bytes + " B"
-                        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
-                        return (bytes / (1024 * 1024)).toFixed(1) + " MB"
-                    }
-
-                    onClicked: torrentList.currentIndex = index
-
-                    TapHandler {
-                        acceptedButtons: Qt.RightButton
-                        onTapped: rowMenu.open()
-                    }
-
-                    Menu {
-                        id: rowMenu
-                        MenuItem {
-                            text: qsTr("Pause")
-                            enabled: state !== 4
-                            onTriggered: appController.pauseTorrent(infoHash)
-                        }
-                        MenuItem {
-                            text: qsTr("Resume")
-                            enabled: state === 4
-                            onTriggered: appController.resumeTorrent(infoHash)
-                        }
-                        MenuSeparator {}
-                        MenuItem {
-                            text: qsTr("Remove")
-                            onTriggered: window.confirmRemove(infoHash, false, name)
-                        }
-                        MenuItem {
-                            text: qsTr("Remove and delete data")
-                            onTriggered: window.confirmRemove(infoHash, true, name)
-                        }
+                    TorrentDetail {
+                        anchors.fill: parent
+                        torrentRow: torrentList.currentIndex
                     }
                 }
             }
