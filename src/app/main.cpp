@@ -16,12 +16,9 @@ int main(int argc, char* argv[])
     // Default: match OS appearance (Light / Dark / Auto). Do not force a scheme here.
     QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Unknown);
 
-#if defined(Q_OS_MACOS)
-    // Native controls and toolbars follow macOS Appearance automatically.
-    QQuickStyle::setStyle(QStringLiteral("macOS"));
-#else
+    // Fusion respects system light/dark via styleHints and allows themed panels/menus.
+    // (macOS native Quick style rejects custom control backgrounds and can break menus.)
     QQuickStyle::setStyle(QStringLiteral("Fusion"));
-#endif
 
     torrex::app::AppController controller;
 

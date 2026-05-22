@@ -30,6 +30,15 @@ ApplicationWindow {
 
     Component.onCompleted: appController.refreshTorrents()
 
+    function localFilePath(fileUrl) {
+        if (!fileUrl)
+            return ""
+        const path = fileUrl.toString()
+        if (path.startsWith("file://"))
+            return fileUrl.toLocalFile()
+        return path
+    }
+
     function confirmRemove(infoHash, deleteFiles, torrentName) {
         removeConfirmDialog.infoHash = infoHash
         removeConfirmDialog.deleteFiles = deleteFiles
@@ -54,11 +63,11 @@ ApplicationWindow {
         contentItem: Label {
             wrapMode: Text.WordWrap
             width: Math.min(window.width * 0.6, 420)
-            text: deleteFiles
-                ? qsTr("Delete all downloaded files for “%1”? This cannot be undone.")
-                      .arg(torrentName)
-                : qsTr("Remove “%1” from Torrex? Downloaded files will stay on disk.")
-                      .arg(torrentName)
+            text: removeConfirmDialog.deleteFiles
+                ? qsTr("Delete all downloaded files for \"%1\"? This cannot be undone.")
+                      .arg(removeConfirmDialog.torrentName)
+                : qsTr("Remove \"%1\" from Torrex? Downloaded files will stay on disk.")
+                      .arg(removeConfirmDialog.torrentName)
         }
     }
 
@@ -229,10 +238,7 @@ ApplicationWindow {
 
         onAboutToShow: downloadPathFieldTorrent.text = appController.defaultDownloadFolder
 
-        onAccepted: {
-            appController.addTorrentFile(torrentFile, downloadPathFieldTorrent.text)
-            torrentFile = ""
-        }
+        onAccepted: appController.addTorrentFile(torrentFile, downloadPathFieldTorrent.text)
 
         contentItem: ColumnLayout {
             spacing: 12
@@ -243,7 +249,7 @@ ApplicationWindow {
                 color: Theme.textMuted
             }
             Label {
-                text: torrentAddDialog.torrentFile.toLocalFile()
+                text: window.localFilePath(torrentAddDialog.torrentFile)
                 wrapMode: Text.WrapAnywhere
                 Layout.fillWidth: true
             }
@@ -324,15 +330,9 @@ ApplicationWindow {
             visible: window.hasTorrents
             spacing: 12
 
-            Frame {
+            ThemedPanel {
                 Layout.preferredWidth: 132
                 Layout.fillHeight: true
-                padding: 8
-                background: Rectangle {
-                    color: Theme.surface
-                    border.color: Theme.border
-                    radius: 8
-                }
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -376,15 +376,9 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 orientation: Qt.Horizontal
 
-                Frame {
+                ThemedPanel {
                     SplitView.minimumWidth: 220
                     SplitView.preferredWidth: 300
-                    padding: 8
-                    background: Rectangle {
-                        color: Theme.surface
-                        border.color: Theme.border
-                        radius: 8
-                    }
 
                     ListView {
                         id: torrentList
@@ -486,15 +480,10 @@ ApplicationWindow {
                     }
                 }
 
-                Frame {
+                ThemedPanel {
                     SplitView.minimumWidth: 260
                     SplitView.fillWidth: true
-                    padding: 0
-                    background: Rectangle {
-                        color: Theme.surface
-                        border.color: Theme.border
-                        radius: 8
-                    }
+                    pad: 0
 
                     TorrentDetail {
                         anchors.fill: parent
