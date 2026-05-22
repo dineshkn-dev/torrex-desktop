@@ -25,6 +25,7 @@ target_link_libraries(torrex
         torrex_models
         Qt6::Quick
         Qt6::QuickControls2
+        Qt6::QuickDialogs2
 )
 
 target_include_directories(torrex

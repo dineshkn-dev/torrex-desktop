@@ -1,5 +1,5 @@
 find_package(LibtorrentRasterbar CONFIG REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 QuickDialogs2)
 
 add_subdirectory(core)
 add_subdirectory(models)

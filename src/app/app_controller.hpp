@@ -13,6 +13,7 @@ class AppController : public QObject {
     Q_OBJECT
     Q_PROPERTY(models::TorrentListModel* torrents READ torrents CONSTANT)
     Q_PROPERTY(QString version READ version CONSTANT)
+    Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
 
 public:
     explicit AppController(QObject* parent = nullptr);
@@ -22,8 +23,18 @@ public:
     QString version() const;
 
     Q_INVOKABLE void refreshTorrents();
+    Q_INVOKABLE void addMagnetUri(const QString& uri);
+    Q_INVOKABLE void addTorrentFile(const QUrl& file_url);
+
+    [[nodiscard]] QString statusMessage() const { return status_message_; }
+
+signals:
+    void statusMessageChanged();
 
 private:
+    void setStatusMessage(const QString& message);
+
+    QString status_message_ = QStringLiteral("Ready");
     SessionManager session_;
     models::TorrentListModel torrent_model_;
 };
