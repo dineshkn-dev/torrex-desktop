@@ -21,7 +21,7 @@ See [docs/specs/MVP.md](docs/specs/MVP.md) and [docs/tracker/ROADMAP.yaml](docs/
 ```bash
 ./scripts/bootstrap.sh   # clones vcpkg, installs deps (first run: 30–60 min)
 ./scripts/verify.sh      # docs check + build + tests
-./build/dev/torrex       # run app (path may vary)
+./build/dev/bin/torrex   # run app
 ```
 
 Set `VCPKG_ROOT` if vcpkg lives outside the repo:

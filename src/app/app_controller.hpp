@@ -2,7 +2,7 @@
 
 #include <torrex/session_manager.hpp>
 
-#include <models/torrent_list_model.hpp>
+#include "torrent_list_model.hpp"
 
 #include <QObject>
 #include <memory>
