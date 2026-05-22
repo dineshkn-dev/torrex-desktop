@@ -2,6 +2,7 @@
 
 #include <torrex/torrent_filter.hpp>
 
+#include <QVariantMap>
 #include <QStringList>
 
 namespace torrex::models {
@@ -188,11 +189,36 @@ QStringList TorrentListModel::filePathsAt(const int row) const
         return {};
     }
     QStringList paths;
-    paths.reserve(static_cast<int>(item->file_paths.size()));
-    for (const std::string& path : item->file_paths) {
-        paths.push_back(QString::fromStdString(path));
+    paths.reserve(static_cast<int>(item->files.size()));
+    for (const TorrentFileSnapshot& file : item->files) {
+        paths.push_back(QString::fromStdString(file.path));
     }
     return paths;
+}
+
+QVariantList TorrentListModel::fileEntriesAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    if (item == nullptr) {
+        return {};
+    }
+    QVariantList entries;
+    entries.reserve(static_cast<int>(item->files.size()));
+    for (const TorrentFileSnapshot& file : item->files) {
+        QVariantMap entry;
+        entry.insert(QStringLiteral("path"), QString::fromStdString(file.path));
+        entry.insert(QStringLiteral("fileIndex"), file.index);
+        entry.insert(QStringLiteral("priority"), file.priority);
+        entry.insert(QStringLiteral("progress"), file.progress_percent);
+        entries.push_back(entry);
+    }
+    return entries;
+}
+
+bool TorrentListModel::sequentialDownloadAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item != nullptr && item->sequential_download;
 }
 
 } // namespace torrex::models

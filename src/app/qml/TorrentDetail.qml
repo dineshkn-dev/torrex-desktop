@@ -13,6 +13,10 @@ Item {
     readonly property var model: appController.torrents
     readonly property bool hasSelection: torrentRow >= 0 && torrentRow < model.count
     readonly property int dataRevision: model.dataRevision
+    readonly property string detailInfoHash: {
+        dataRevision
+        return hasSelection ? model.infoHashAt(torrentRow) : ""
+    }
 
     readonly property string detailName: {
         dataRevision
@@ -38,9 +42,13 @@ Item {
         dataRevision
         return hasSelection ? model.uploadRateAt(torrentRow) : 0
     }
-    readonly property var detailFilePaths: {
+    readonly property var detailFileEntries: {
         dataRevision
-        return hasSelection ? model.filePathsAt(torrentRow) : []
+        return hasSelection ? model.fileEntriesAt(torrentRow) : []
+    }
+    readonly property bool detailSequential: {
+        dataRevision
+        return hasSelection && model.sequentialDownloadAt(torrentRow)
     }
 
     ColumnLayout {
@@ -128,9 +136,17 @@ Item {
                     height: tabStack.height
                     spacing: 8
 
+                    CheckBox {
+                        text: qsTr("Download files in order (sequential)")
+                        checked: root.detailSequential
+                        enabled: root.hasSelection
+                        onToggled: appController.setTorrentSequentialDownload(
+                            root.detailInfoHash, checked)
+                    }
+
                     Label {
-                        text: detailFilePaths.length > 0
-                            ? qsTr("%1 file(s)").arg(detailFilePaths.length)
+                        text: detailFileEntries.length > 0
+                            ? qsTr("%1 file(s)").arg(detailFileEntries.length)
                             : qsTr("Waiting for torrent metadata…")
                         color: Theme.textMuted
                         font.pixelSize: 12
@@ -142,22 +158,65 @@ Item {
                         Layout.fillHeight: true
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
-                        model: detailFilePaths
+                        model: detailFileEntries
                         spacing: 2
 
-                        delegate: ItemDelegate {
+                        delegate: RowLayout {
                             width: ListView.view.width
-                            text: modelData
-                        }
-                    }
+                            spacing: 8
 
-                    Label {
-                        visible: detailFilePaths.length > 0
-                        text: qsTr("File priorities and sequential mode are planned for a later release.")
-                        color: Theme.textMuted
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                        Layout.fillWidth: true
+                            Label {
+                                text: modelData.path
+                                color: Theme.textPrimary
+                                elide: Text.ElideMiddle
+                                Layout.fillWidth: true
+                            }
+                            Label {
+                                text: modelData.progress + "%"
+                                color: Theme.textMuted
+                                font.pixelSize: 11
+                            }
+                            ComboBox {
+                                id: priorityBox
+                                Layout.preferredWidth: 100
+                                textRole: "label"
+                                model: [
+                                    { label: qsTr("Skip"), value: 0 },
+                                    { label: qsTr("Low"), value: 1 },
+                                    { label: qsTr("Normal"), value: 4 },
+                                    { label: qsTr("High"), value: 7 }
+                                ]
+                                property int lastPriority: modelData.priority
+
+                                Component.onCompleted: syncFromModel()
+                                onActivated: {
+                                    const entry = model[currentIndex]
+                                    if (entry.value === lastPriority)
+                                        return
+                                    appController.setTorrentFilePriority(
+                                        root.detailInfoHash, modelData.fileIndex, entry.value)
+                                    lastPriority = entry.value
+                                }
+
+                                function syncFromModel() {
+                                    const p = modelData.priority
+                                    for (let i = 0; i < model.length; ++i) {
+                                        if (model[i].value === p) {
+                                            currentIndex = i
+                                            lastPriority = p
+                                            return
+                                        }
+                                    }
+                                }
+
+                                Connections {
+                                    target: root
+                                    function onDataRevisionChanged() {
+                                        priorityBox.syncFromModel()
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

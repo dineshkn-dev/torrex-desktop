@@ -47,6 +47,12 @@ public:
     [[nodiscard]] std::string remove_torrent(const std::string& info_hash_hex,
                                              bool delete_files = false);
 
+    [[nodiscard]] std::string set_file_priority(const std::string& info_hash_hex,
+                                                int file_index,
+                                                int priority);
+    [[nodiscard]] std::string set_sequential_download(const std::string& info_hash_hex,
+                                                      bool enabled);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

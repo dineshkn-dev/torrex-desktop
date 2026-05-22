@@ -1,5 +1,7 @@
 #include "app_controller.hpp"
 
+#include <torrex/session_settings.hpp>
+#include <torrex/types.hpp>
 #include <torrex/version.hpp>
 
 #include <QDir>
@@ -84,6 +86,12 @@ void AppController::loadSessionSettingsFromStore()
     enable_natpmp_ = store.value(QStringLiteral("enableNatPmp"), true).toBool();
     enable_dht_ = store.value(QStringLiteral("enableDht"), true).toBool();
     enable_lsd_ = store.value(QStringLiteral("enableLsd"), true).toBool();
+    proxy_enabled_ = store.value(QStringLiteral("proxyEnabled"), false).toBool();
+    proxy_type_ = store.value(QStringLiteral("proxyType"), 0).toInt();
+    proxy_host_ = store.value(QStringLiteral("proxyHost")).toString();
+    proxy_port_ = clampPort(store.value(QStringLiteral("proxyPort"), 1080).toInt());
+    proxy_username_ = store.value(QStringLiteral("proxyUsername")).toString();
+    proxy_password_ = store.value(QStringLiteral("proxyPassword")).toString();
     emit sessionSettingsChanged();
 }
 
@@ -97,6 +105,12 @@ void AppController::persistSessionSettings()
     store.setValue(QStringLiteral("enableNatPmp"), enable_natpmp_);
     store.setValue(QStringLiteral("enableDht"), enable_dht_);
     store.setValue(QStringLiteral("enableLsd"), enable_lsd_);
+    store.setValue(QStringLiteral("proxyEnabled"), proxy_enabled_);
+    store.setValue(QStringLiteral("proxyType"), proxy_type_);
+    store.setValue(QStringLiteral("proxyHost"), proxy_host_);
+    store.setValue(QStringLiteral("proxyPort"), proxy_port_);
+    store.setValue(QStringLiteral("proxyUsername"), proxy_username_);
+    store.setValue(QStringLiteral("proxyPassword"), proxy_password_);
 }
 
 SessionSettings AppController::engineSettingsFromProperties() const
@@ -110,6 +124,15 @@ SessionSettings AppController::engineSettingsFromProperties() const
     settings.enable_natpmp = enable_natpmp_;
     settings.enable_dht = enable_dht_;
     settings.enable_lsd = enable_lsd_;
+    if (proxy_enabled_ && !proxy_host_.trimmed().isEmpty()) {
+        settings.proxy_type = proxy_type_;
+        settings.proxy_host = proxy_host_.trimmed().toStdString();
+        settings.proxy_port = proxy_port_;
+        settings.proxy_username = proxy_username_.toStdString();
+        settings.proxy_password = proxy_password_.toStdString();
+    } else {
+        settings.proxy_type = kProxyTypeNone;
+    }
     return settings;
 }
 
@@ -195,6 +218,116 @@ void AppController::setEnableLsd(const bool enabled)
     emit sessionSettingsChanged();
 }
 
+void AppController::setProxyEnabled(const bool enabled)
+{
+    if (proxy_enabled_ == enabled) {
+        return;
+    }
+    proxy_enabled_ = enabled;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setProxyType(const int type)
+{
+    const int value = type < kProxyTypeNone || type > kProxyTypeHttp ? kProxyTypeNone : type;
+    if (proxy_type_ == value) {
+        return;
+    }
+    proxy_type_ = value;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setProxyHost(const QString& host)
+{
+    if (proxy_host_ == host) {
+        return;
+    }
+    proxy_host_ = host;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setProxyPort(const int port)
+{
+    const int value = clampPort(port);
+    if (proxy_port_ == value) {
+        return;
+    }
+    proxy_port_ = value;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setProxyUsername(const QString& user)
+{
+    if (proxy_username_ == user) {
+        return;
+    }
+    proxy_username_ = user;
+    emit sessionSettingsChanged();
+}
+
+void AppController::setProxyPassword(const QString& password)
+{
+    if (proxy_password_ == password) {
+        return;
+    }
+    proxy_password_ = password;
+    emit sessionSettingsChanged();
+}
+
+void AppController::clearNotification()
+{
+    if (notification_message_.isEmpty()) {
+        return;
+    }
+    notification_message_.clear();
+    emit notificationMessageChanged();
+}
+
+void AppController::postNotification(const QString& message)
+{
+    if (message.isEmpty()) {
+        return;
+    }
+    notification_message_ = message;
+    emit notificationMessageChanged();
+}
+
+void AppController::detectCompletionNotifications()
+{
+    const std::vector<TorrentSnapshot> snaps = session_.snapshots();
+    QHash<QString, int> still_active;
+
+    for (const TorrentSnapshot& snap : snaps) {
+        const QString id = QString::fromStdString(snap.info_hash.v1_hex);
+        if (id.isEmpty()) {
+            continue;
+        }
+        const int state = static_cast<int>(snap.state);
+        still_active.insert(id, state);
+
+        const int previous = torrent_state_cache_.value(id, -1);
+        const bool was_active =
+            previous == static_cast<int>(TorrentState::Downloading)
+            || previous == static_cast<int>(TorrentState::Checking);
+        const bool now_complete = state == static_cast<int>(TorrentState::Seeding)
+                                  || snap.progress_percent >= 100;
+
+        if (was_active && now_complete) {
+            postNotification(tr("Download complete: %1")
+                                 .arg(QString::fromStdString(snap.name)));
+        }
+        torrent_state_cache_[id] = state;
+    }
+
+    for (auto it = torrent_state_cache_.begin(); it != torrent_state_cache_.end();) {
+        if (!still_active.contains(it.key())) {
+            it = torrent_state_cache_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 void AppController::setDefaultDownloadFolder(const QString& path)
 {
     const QString trimmed = path.trimmed();
@@ -228,8 +361,38 @@ QString AppController::resolveSavePath(const QString& save_path) const
 void AppController::refreshTorrents()
 {
     torrent_model_.refresh();
+    detectCompletionNotifications();
     const int count = torrent_model_.rowCount();
     setStatusMessage(tr("%1 torrent(s) — saving to %2").arg(count).arg(download_folder_));
+}
+
+void AppController::handleDroppedUrls(const QList<QUrl>& urls)
+{
+    if (urls.isEmpty()) {
+        return;
+    }
+
+    int added = 0;
+    for (const QUrl& url : urls) {
+        if (url.isLocalFile()) {
+            const QString path = url.toLocalFile();
+            if (path.endsWith(QStringLiteral(".torrent"), Qt::CaseInsensitive)) {
+                addTorrentFile(url);
+                ++added;
+            }
+            continue;
+        }
+
+        const QString text = url.toString().trimmed();
+        if (text.startsWith(QStringLiteral("magnet:?"), Qt::CaseInsensitive)) {
+            addMagnetUri(text);
+            ++added;
+        }
+    }
+
+    if (added == 0) {
+        setStatusMessage(tr("Drop a .torrent file or magnet link."));
+    }
 }
 
 void AppController::addMagnetUri(const QString& uri, const QString& save_path)
@@ -363,6 +526,36 @@ void AppController::removeTorrent(const QString& info_hash, const bool delete_fi
         },
         delete_files ? tr("Torrent removed and data deleted.")
                      : tr("Torrent removed."));
+}
+
+void AppController::setTorrentFilePriority(const QString& info_hash,
+                                           const int file_index,
+                                           const int priority)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    runTorrentOp(
+        [this, id, file_index, priority] {
+            return session_.set_file_priority(id.toStdString(), file_index, priority);
+        },
+        tr("File priority updated."));
+}
+
+void AppController::setTorrentSequentialDownload(const QString& info_hash, const bool enabled)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    runTorrentOp(
+        [this, id, enabled] {
+            return session_.set_sequential_download(id.toStdString(), enabled);
+        },
+        enabled ? tr("Sequential download enabled.") : tr("Sequential download disabled."));
 }
 
 void AppController::setStatusMessage(const QString& message)

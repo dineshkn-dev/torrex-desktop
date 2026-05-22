@@ -95,17 +95,29 @@ TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
     return snap;
 }
 
-void fill_file_paths(const lt::torrent_handle& handle, TorrentSnapshot& snap)
+int priority_to_int(const lt::download_priority_t priority)
 {
-    snap.file_paths.clear();
+    return static_cast<int>(static_cast<std::uint8_t>(priority));
+}
+
+void fill_files(const lt::torrent_handle& handle, TorrentSnapshot& snap)
+{
+    snap.files.clear();
+    snap.sequential_download = false;
     const std::shared_ptr<const lt::torrent_info> info = handle.torrent_file();
     if (!info) {
         return;
     }
-    const lt::file_storage& files = info->files();
-    snap.file_paths.reserve(static_cast<std::size_t>(files.num_files()));
-    for (lt::file_index_t i : files.file_range()) {
-        snap.file_paths.push_back(files.file_path(i));
+    snap.sequential_download =
+        (handle.flags() & lt::torrent_flags::sequential_download) != lt::torrent_flags_t{};
+    const lt::file_storage& storage = info->files();
+    snap.files.reserve(static_cast<std::size_t>(storage.num_files()));
+    for (lt::file_index_t i : storage.file_range()) {
+        TorrentFileSnapshot file;
+        file.index = static_cast<int>(i);
+        file.path = storage.file_path(i);
+        file.priority = priority_to_int(handle.file_priority(i));
+        snap.files.push_back(std::move(file));
     }
 }
 
@@ -115,7 +127,28 @@ void apply_snapshot_from_handle(const lt::torrent_handle& handle, TorrentSnapsho
     if ((handle.flags() & lt::torrent_flags::paused) != lt::torrent_flags_t{}) {
         snap.state = TorrentState::Paused;
     }
-    fill_file_paths(handle, snap);
+    fill_files(handle, snap);
+}
+
+void apply_proxy_settings(lt::settings_pack& pack, const SessionSettings& settings)
+{
+    if (settings.proxy_type == kProxyTypeNone || settings.proxy_host.empty()) {
+        pack.set_int(lt::settings_pack::proxy_type, lt::settings_pack::none);
+        return;
+    }
+
+    const int port = settings.proxy_port > 0 ? settings.proxy_port : 1080;
+    if (settings.proxy_type == kProxyTypeHttp) {
+        pack.set_int(lt::settings_pack::proxy_type, lt::settings_pack::http);
+    } else {
+        pack.set_int(lt::settings_pack::proxy_type, lt::settings_pack::socks5);
+    }
+    pack.set_str(lt::settings_pack::proxy_hostname, settings.proxy_host);
+    pack.set_int(lt::settings_pack::proxy_port, port);
+    pack.set_str(lt::settings_pack::proxy_username, settings.proxy_username);
+    pack.set_str(lt::settings_pack::proxy_password, settings.proxy_password);
+    pack.set_bool(lt::settings_pack::proxy_peer_connections, settings.proxy_peer_connections);
+    pack.set_bool(lt::settings_pack::proxy_tracker_connections, settings.proxy_tracker_connections);
 }
 
 std::string ensure_save_path(const std::string& save_path)
@@ -173,7 +206,24 @@ SessionSettings clamp_settings(SessionSettings settings)
     if (settings.upload_rate_limit < 0) {
         settings.upload_rate_limit = 0;
     }
+    if (settings.proxy_type < kProxyTypeNone || settings.proxy_type > kProxyTypeHttp) {
+        settings.proxy_type = kProxyTypeNone;
+    }
+    if (settings.proxy_port < 0 || settings.proxy_port > kMaxListenPort) {
+        settings.proxy_port = 1080;
+    }
     return settings;
+}
+
+int clamp_file_priority(const int priority)
+{
+    if (priority < 0) {
+        return 0;
+    }
+    if (priority > 7) {
+        return 7;
+    }
+    return priority;
 }
 
 } // namespace
@@ -194,12 +244,23 @@ struct SessionManager::Impl {
 
     std::unordered_map<std::string, TorrentEntry> torrents;
 
-    enum class CommandType { AddMagnet, AddFile, Pause, Resume, Remove };
+    enum class CommandType {
+        AddMagnet,
+        AddFile,
+        Pause,
+        Resume,
+        Remove,
+        SetFilePriority,
+        SetSequential,
+    };
     struct Command {
         CommandType type;
         std::string primary;
         std::string save_path;
         bool delete_files = false;
+        int file_index = -1;
+        int priority = 0;
+        bool sequential = false;
     };
 
     std::deque<Command> commands;
@@ -239,6 +300,7 @@ struct SessionManager::Impl {
         pack.set_bool(lt::settings_pack::enable_lsd, settings.enable_lsd);
         pack.set_bool(lt::settings_pack::enable_upnp, settings.enable_upnp);
         pack.set_bool(lt::settings_pack::enable_natpmp, settings.enable_natpmp);
+        apply_proxy_settings(pack, settings);
         session->apply_settings(pack);
     }
 
@@ -500,7 +562,8 @@ struct SessionManager::Impl {
 
         for (const Command& cmd : batch) {
             if (cmd.type != CommandType::Pause && cmd.type != CommandType::Resume
-                && cmd.type != CommandType::Remove) {
+                && cmd.type != CommandType::Remove && cmd.type != CommandType::SetFilePriority
+                && cmd.type != CommandType::SetSequential) {
                 continue;
             }
             if (cmd.primary.empty()) {
@@ -520,6 +583,20 @@ struct SessionManager::Impl {
             } else if (cmd.type == CommandType::Resume) {
                 handle.resume();
                 handle.set_flags(lt::torrent_flags::auto_managed);
+            } else if (cmd.type == CommandType::SetFilePriority) {
+                if (cmd.file_index < 0) {
+                    set_error("Invalid file index.");
+                    continue;
+                }
+                handle.file_priority(lt::file_index_t{cmd.file_index},
+                                     lt::download_priority_t{
+                                         static_cast<std::uint8_t>(clamp_file_priority(cmd.priority))});
+            } else if (cmd.type == CommandType::SetSequential) {
+                if (cmd.sequential) {
+                    handle.set_flags(lt::torrent_flags::sequential_download);
+                } else {
+                    handle.unset_flags(lt::torrent_flags::sequential_download);
+                }
             } else {
                 lt::remove_flags_t flags{};
                 if (cmd.delete_files) {
@@ -729,6 +806,42 @@ std::string SessionManager::remove_torrent(const std::string& info_hash_hex,
         return "Torrent id is empty.";
     }
     impl_->enqueue_torrent_op(Impl::CommandType::Remove, info_hash_hex, delete_files);
+    return {};
+}
+
+std::string SessionManager::set_file_priority(const std::string& info_hash_hex,
+                                              const int file_index,
+                                              const int priority)
+{
+    if (!running_.load()) {
+        return "Session is not running.";
+    }
+    if (info_hash_hex.empty()) {
+        return "Torrent id is empty.";
+    }
+    Impl::Command cmd;
+    cmd.type = Impl::CommandType::SetFilePriority;
+    cmd.primary = info_hash_hex;
+    cmd.file_index = file_index;
+    cmd.priority = priority;
+    impl_->enqueue(std::move(cmd));
+    return {};
+}
+
+std::string SessionManager::set_sequential_download(const std::string& info_hash_hex,
+                                                    const bool enabled)
+{
+    if (!running_.load()) {
+        return "Session is not running.";
+    }
+    if (info_hash_hex.empty()) {
+        return "Torrent id is empty.";
+    }
+    Impl::Command cmd;
+    cmd.type = Impl::CommandType::SetSequential;
+    cmd.primary = info_hash_hex;
+    cmd.sequential = enabled;
+    impl_->enqueue(std::move(cmd));
     return {};
 }
 

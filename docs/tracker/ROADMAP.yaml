@@ -79,3 +79,28 @@ phases:
         spec: docs/specs/MVP.md#acceptance-v0-1-release
         tests: []
         done_when: tag_triggers_release
+
+  - id: phase-6-mvp-complete
+    name: MVP completion
+    status: done
+    items:
+      - id: F-060-file-priorities-sequential
+        spec: docs/specs/MVP.md#torrent-lifecycle
+        tests: [tests/core/torrent_controls_test.cpp]
+        done_when: tests_pass
+      - id: F-061-proxy-settings
+        spec: docs/specs/MVP.md#session-network
+        tests: [tests/core/session_settings_test.cpp]
+        done_when: tests_pass
+      - id: F-062-dnd-notifications
+        spec: docs/specs/MVP.md#ui
+        tests: []
+        done_when: manual_ui_smoke
+      - id: F-063-acceptance-runbook
+        spec: docs/runbooks/acceptance-test.md
+        tests: []
+        done_when: docs_present
+      - id: F-064-ci-dev-preset
+        spec: docs/specs/MVP.md#ci
+        tests: []
+        done_when: ci_green_all_platforms

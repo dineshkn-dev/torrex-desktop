@@ -49,6 +49,8 @@ public:
     Q_INVOKABLE qint64 downloadRateAt(int row) const;
     Q_INVOKABLE qint64 uploadRateAt(int row) const;
     Q_INVOKABLE QStringList filePathsAt(int row) const;
+    Q_INVOKABLE QVariantList fileEntriesAt(int row) const;
+    Q_INVOKABLE bool sequentialDownloadAt(int row) const;
 
 signals:
     void countChanged();

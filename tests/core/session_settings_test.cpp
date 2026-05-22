@@ -42,6 +42,20 @@ TEST(SessionSettings, ApplyAndReadBack) {
     EXPECT_FALSE(stored.enable_upnp);
 }
 
+TEST(SessionSettings, ProxySettingsRoundTrip) {
+    torrex::SessionManager session;
+    torrex::SessionSettings settings;
+    settings.proxy_type = torrex::kProxyTypeSocks5;
+    settings.proxy_host = "127.0.0.1";
+    settings.proxy_port = 9050;
+    session.set_session_settings(settings);
+
+    const torrex::SessionSettings stored = session.session_settings();
+    EXPECT_EQ(stored.proxy_type, torrex::kProxyTypeSocks5);
+    EXPECT_EQ(stored.proxy_host, "127.0.0.1");
+    EXPECT_EQ(stored.proxy_port, 9050);
+}
+
 TEST(SessionSettings, PersistSessionStateFile) {
     const std::filesystem::path dir = temp_session_dir();
     {

@@ -9,7 +9,8 @@ Dialog {
     title: qsTr("Settings")
     modal: true
     anchors.centerIn: parent
-    width: 520
+    width: 540
+    height: Math.min(640, parent ? parent.height - 80 : 640)
     standardButtons: Dialog.Cancel | Dialog.Ok
 
     onAboutToShow: appController.loadSessionSettingsFromStore()
@@ -140,6 +141,84 @@ Dialog {
             text: qsTr("Local peer discovery (LSD)")
             checked: appController.enableLsd
             onToggled: appController.enableLsd = checked
+        }
+
+        Label {
+            text: qsTr("Proxy")
+            color: Theme.textMuted
+            font.bold: true
+            Layout.topMargin: 8
+            Layout.fillWidth: true
+        }
+        CheckBox {
+            text: qsTr("Use proxy")
+            checked: appController.proxyEnabled
+            onToggled: appController.proxyEnabled = checked
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            enabled: appController.proxyEnabled
+            Label {
+                text: qsTr("Type")
+                Layout.preferredWidth: 100
+            }
+            ComboBox {
+                Layout.fillWidth: true
+                model: [
+                    { label: qsTr("SOCKS5"), value: 1 },
+                    { label: qsTr("HTTP"), value: 2 }
+                ]
+                textRole: "label"
+                currentIndex: appController.proxyType === 2 ? 1 : 0
+                onActivated: appController.proxyType = model[currentIndex].value
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            enabled: appController.proxyEnabled
+            Label {
+                text: qsTr("Host")
+                Layout.preferredWidth: 100
+            }
+            TextField {
+                Layout.fillWidth: true
+                text: appController.proxyHost
+                placeholderText: qsTr("127.0.0.1")
+                onTextEdited: appController.proxyHost = text
+            }
+            SpinBox {
+                from: 1
+                to: 65535
+                value: appController.proxyPort
+                onValueModified: appController.proxyPort = value
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            enabled: appController.proxyEnabled
+            Label {
+                text: qsTr("User")
+                Layout.preferredWidth: 100
+            }
+            TextField {
+                Layout.fillWidth: true
+                text: appController.proxyUsername
+                onTextEdited: appController.proxyUsername = text
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            enabled: appController.proxyEnabled
+            Label {
+                text: qsTr("Password")
+                Layout.preferredWidth: 100
+            }
+            TextField {
+                Layout.fillWidth: true
+                echoMode: TextInput.Password
+                text: appController.proxyPassword
+                onTextEdited: appController.proxyPassword = text
+            }
         }
 
         Label {

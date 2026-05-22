@@ -19,6 +19,13 @@ enum class TorrentState {
     Error,
 };
 
+struct TorrentFileSnapshot {
+    int index = 0;
+    std::string path;
+    int priority = 4; // libtorrent download_priority_t (0 = do not download)
+    int progress_percent = 0;
+};
+
 struct TorrentSnapshot {
     InfoHash info_hash;
     std::string name;
@@ -29,7 +36,8 @@ struct TorrentSnapshot {
     std::int64_t download_rate = 0;
     std::int64_t upload_rate = 0;
     std::string save_path;
-    std::vector<std::string> file_paths;
+    bool sequential_download = false;
+    std::vector<TorrentFileSnapshot> files;
 };
 
 } // namespace torrex

@@ -14,7 +14,8 @@ Read [AGENTS.md](../AGENTS.md) first.
 | [architecture/ADR-005-macos-first-ci.md](architecture/ADR-005-macos-first-ci.md) | macOS-first CI scope | Accepted |
 | [security/THREAT_MODEL.md](security/THREAT_MODEL.md) | Threat model | Draft |
 | [automation/CURSOR.md](automation/CURSOR.md) | Cursor automation recipes | Draft |
-| [runbooks/release.md](runbooks/release.md) | Release process | Draft |
+| [runbooks/release.md](runbooks/release.md) | Release process | Active |
+| [runbooks/acceptance-test.md](runbooks/acceptance-test.md) | v0.1 manual acceptance | Active |
 
 ## Validation
 

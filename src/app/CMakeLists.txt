@@ -21,6 +21,7 @@ qt_add_qml_module(torrex
         qml/ThemedPanel.qml
         qml/ThemedProgressBar.qml
         qml/ConfirmPopup.qml
+        qml/NotificationBanner.qml
         qml/SettingsDialog.qml
         qml/TorrentDetail.qml
 )

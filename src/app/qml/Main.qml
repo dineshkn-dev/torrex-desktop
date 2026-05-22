@@ -129,6 +129,25 @@ ApplicationWindow {
         anchors.centerIn: parent
     }
 
+    NotificationBanner {
+        parent: window.contentItem
+    }
+
+    DropArea {
+        anchors.fill: parent
+        keys: ["text/uri-list", "text/plain"]
+        onDropped: function(drop) {
+            if (drop.hasUrls) {
+                appController.handleDroppedUrls(drop.urls)
+                drop.acceptProposedAction()
+            } else if (drop.hasText) {
+                const text = drop.text.trim()
+                if (text.startsWith("magnet:"))
+                    appController.addMagnetUri(text)
+            }
+        }
+    }
+
     footer: ToolBar {
         RowLayout {
             anchors.fill: parent
@@ -309,7 +328,7 @@ ApplicationWindow {
             }
 
             Label {
-                text: qsTr("Add a magnet link or open a .torrent file to start downloading.")
+                text: qsTr("Add a magnet link, open a .torrent file, or drag one onto the window.")
                 color: Theme.textMuted
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter

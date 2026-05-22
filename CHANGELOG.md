@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Phase 6: per-file priorities, sequential download, proxy settings, drag-and-drop, completion notifications
+- Acceptance test runbook; CI uses `dev` preset for faster feedback
+
 ## [0.1.0] - 2026-05-22
 
 ### Added

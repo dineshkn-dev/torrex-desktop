@@ -24,23 +24,23 @@
 - [x] Add magnet URI and `.torrent` file
 - [x] Pause, resume, remove (optional delete data)
 - [x] Per-torrent save path on add (folder picker); global default in Settings
-- [ ] File priorities and sequential download
+- [x] File priorities and sequential download
 - [x] Fast-resume across restarts
 
 ## Session / network
 
 - [x] Global download/upload limits
 - [x] Port, UPnP (NAT-PMP, DHT, LSD) settings
-- [ ] Proxy settings
+- [x] Proxy settings
 
 ## UI
 
-- [x] Sidebar filters, torrent list, detail tabs (overview; files tab placeholder)
+- [x] Sidebar filters, torrent list, detail tabs (overview + files with priorities)
 - [x] Dark/light theme (follows system appearance)
-- [ ] Drag-and-drop and notifications
+- [x] Drag-and-drop and in-app completion notifications
 
 ## Acceptance (v0.1 release) {#acceptance-v0-1-release}
 
-- Download a legal Linux ISO via magnet and `.torrent`
+- Manual acceptance per [acceptance-test.md](../runbooks/acceptance-test.md) (legal Linux ISO via magnet and `.torrent`)
 - [x] Restart app; torrents restore
 - [x] Release artifacts include SPDX SBOM and signed binaries (per [release runbook](../runbooks/release.md))
