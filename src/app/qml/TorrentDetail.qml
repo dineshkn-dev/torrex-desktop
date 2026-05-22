@@ -3,10 +3,12 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Torrex
 
-ScrollView {
+// Detail pane for the selected torrent (Overview / Files tabs).
+Item {
     id: root
+    anchors.fill: parent
+
     required property int torrentRow
-    clip: true
 
     readonly property var model: appController.torrents
     readonly property bool hasSelection: torrentRow >= 0 && torrentRow < model.count
@@ -38,9 +40,9 @@ ScrollView {
     }
 
     ColumnLayout {
-        width: root.availableWidth > 0 ? root.availableWidth : implicitWidth
-        spacing: 16
+        anchors.fill: parent
         anchors.margins: 16
+        spacing: 12
 
         Label {
             text: hasSelection ? detailName : qsTr("Select a torrent")
@@ -58,65 +60,66 @@ ScrollView {
             TabButton { text: qsTr("Files") }
         }
 
-        Loader {
+        Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: contentItem ? contentItem.implicitHeight : 120
-            sourceComponent: detailTabs.currentIndex === 0 ? overviewPane : filesPane
-        }
+            Layout.fillHeight: true
+            Layout.minimumHeight: 160
 
-        Label {
-            visible: !hasSelection
-            text: qsTr("Choose a torrent from the list to see details.")
-            color: Theme.textMuted
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-        }
-    }
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 10
+                visible: hasSelection && detailTabs.currentIndex === 0
 
-    Component {
-        id: overviewPane
-        ColumnLayout {
-            spacing: 10
-            width: root.availableWidth > 0 ? root.availableWidth : implicitWidth
+                DetailRow {
+                    label: qsTr("State")
+                    value: root.stateText(detailState)
+                }
+                DetailRow {
+                    label: qsTr("Progress")
+                    value: detailProgress + "%"
+                }
+                DetailRow {
+                    label: qsTr("Download")
+                    value: root.formatRate(detailDownloadRate)
+                }
+                DetailRow {
+                    label: qsTr("Upload")
+                    value: root.formatRate(detailUploadRate)
+                }
+                DetailRow {
+                    label: qsTr("Save folder")
+                    value: detailSavePath
+                    wrap: true
+                }
 
-            DetailRow {
-                label: qsTr("State")
-                value: root.stateText(detailState)
-            }
-            DetailRow {
-                label: qsTr("Progress")
-                value: detailProgress + "%"
-            }
-            DetailRow {
-                label: qsTr("Download")
-                value: root.formatRate(detailDownloadRate)
-            }
-            DetailRow {
-                label: qsTr("Upload")
-                value: root.formatRate(detailUploadRate)
-            }
-            DetailRow {
-                label: qsTr("Save folder")
-                value: detailSavePath
-                wrap: true
+                ProgressBar {
+                    Layout.fillWidth: true
+                    from: 0
+                    to: 100
+                    value: detailProgress
+                }
+
+                Item { Layout.fillHeight: true }
             }
 
-            ProgressBar {
-                Layout.fillWidth: true
-                from: 0
-                to: 100
-                value: detailProgress
+            Label {
+                anchors.fill: parent
+                visible: hasSelection && detailTabs.currentIndex === 1
+                text: qsTr("Per-file priorities and sequential download are planned for a later release.")
+                color: Theme.textMuted
+                wrapMode: Text.WordWrap
+                verticalAlignment: Text.AlignTop
             }
-        }
-    }
 
-    Component {
-        id: filesPane
-        Label {
-            width: root.availableWidth > 0 ? root.availableWidth : implicitWidth
-            text: qsTr("Per-file priorities and sequential download are planned for a later release.")
-            color: Theme.textMuted
-            wrapMode: Text.WordWrap
+            Label {
+                anchors.centerIn: parent
+                width: parent.width
+                visible: !hasSelection
+                horizontalAlignment: Text.AlignHCenter
+                text: qsTr("Choose a torrent from the list to see details.")
+                color: Theme.textMuted
+                wrapMode: Text.WordWrap
+            }
         }
     }
 
@@ -155,7 +158,7 @@ ScrollView {
             Layout.preferredWidth: 100
         }
         Label {
-            text: value
+            text: value.length > 0 ? value : qsTr("—")
             color: Theme.textPrimary
             wrapMode: wrap ? Text.Wrap : Text.NoWrap
             elide: wrap ? Text.ElideNone : Text.ElideRight
