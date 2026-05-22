@@ -3,13 +3,12 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Torrex
 
-// Modal confirm sheet (avoids Dialog implicitWidth binding loops).
 Popup {
     id: root
     modal: true
     focus: true
     dim: true
-    padding: 20
+    padding: Theme.spacingLg
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     property string heading: ""
     property string message: ""
@@ -19,13 +18,13 @@ Popup {
     signal accepted()
     signal rejected()
 
-    width: 440
+    width: 400
     implicitHeight: contentLayout.implicitHeight + 2 * padding
 
     background: Rectangle {
         color: Theme.surface
         border.color: Theme.border
-        radius: 8
+        radius: Theme.radiusLarge
     }
 
     ColumnLayout {
@@ -34,12 +33,12 @@ Popup {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: root.padding
-        spacing: 16
+        spacing: Theme.spacingMd
 
         Label {
             text: root.heading
-            font.bold: true
-            font.pixelSize: 16
+            font.pixelSize: Theme.fontHeadline
+            font.weight: Font.DemiBold
             color: Theme.textPrimary
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
@@ -48,24 +47,25 @@ Popup {
         Label {
             text: root.message
             wrapMode: Text.WordWrap
-            color: Theme.textPrimary
+            color: Theme.textSecondary
+            font.pixelSize: Theme.fontBody
             Layout.fillWidth: true
         }
 
         RowLayout {
             Layout.alignment: Qt.AlignRight
-            spacing: 8
+            spacing: Theme.spacingSm
 
-            Button {
+            TgButton {
                 text: root.cancelText
                 onClicked: {
                     root.rejected()
                     root.close()
                 }
             }
-            Button {
+            TgButton {
                 text: root.okText
-                highlighted: true
+                primary: true
                 onClicked: {
                     root.accepted()
                     root.close()

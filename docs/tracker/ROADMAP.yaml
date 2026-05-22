@@ -54,9 +54,13 @@ milestones:
 
   - id: v1-x-ui-polish
     name: UI polish and native integration
-    status: planned
+    status: in_progress
     spec: docs/planning/FUTURE.md#ui-polish
     items:
+      - id: M-399-telegram-ui-revamp
+        summary: Telegram-inspired layout, design tokens, list/detail panes
+        priority: high
+        status: done
       - id: M-400-native-notifications
         summary: macOS notification center for completed downloads
         priority: medium

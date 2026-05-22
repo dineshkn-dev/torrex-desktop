@@ -2,27 +2,28 @@ import QtQuick
 import QtQuick.Controls.Basic
 import Torrex
 
-// Transient in-app notification (download complete, etc.).
 Rectangle {
     id: root
     visible: opacity > 0 && appController.notificationMessage.length > 0
     opacity: 0
-    radius: 8
-    color: Theme.accent
-    border.color: Theme.border
+    radius: Theme.radiusMedium
+    color: Theme.surfaceElevated
+    border.color: Theme.accent
+    border.width: 1
     anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
     anchors.top: parent ? parent.top : undefined
-    anchors.topMargin: 12
-    width: Math.min(420, parent ? parent.width - 32 : 420)
-    implicitHeight: messageLabel.implicitHeight + 24
+    anchors.topMargin: Theme.spacingLg
+    width: Math.min(400, parent ? parent.width - 48 : 400)
+    implicitHeight: messageLabel.implicitHeight + Theme.spacingLg * 2
     z: 1000
 
     Label {
         id: messageLabel
         anchors.fill: parent
-        anchors.margins: 12
+        anchors.margins: Theme.spacingMd
         text: appController.notificationMessage
-        color: Theme.windowBackground
+        color: Theme.textPrimary
+        font.pixelSize: Theme.fontBody
         wrapMode: Text.WordWrap
         horizontalAlignment: Text.AlignHCenter
     }
@@ -41,7 +42,7 @@ Rectangle {
 
     Timer {
         id: showTimer
-        interval: 6000
+        interval: 5000
         onTriggered: appController.clearNotification()
     }
 
@@ -49,7 +50,7 @@ Rectangle {
         id: fadeIn
         target: root
         property: "opacity"
-        to: 0.95
+        to: 1
         duration: 200
     }
 
@@ -58,7 +59,7 @@ Rectangle {
         target: root
         property: "opacity"
         to: 0
-        duration: 300
+        duration: 280
     }
 
     MouseArea {

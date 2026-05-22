@@ -6,25 +6,26 @@ import Torrex
 
 ApplicationWindow {
     id: window
-    width: 960
-    height: 640
-    minimumWidth: 720
-    minimumHeight: 480
+    width: 1024
+    height: 680
+    minimumWidth: 800
+    minimumHeight: 520
     visible: true
-    title: qsTr("Torrex %1").arg(appController.version)
+    title: torrexUiRev >= 2
+        ? qsTr("Torrex %1").arg(appController.version)
+        : qsTr("Torrex %1 (legacy UI)").arg(appController.version)
     color: Theme.windowBackground
 
     property bool hasTorrents: appController.torrents.totalCount > 0
     property bool filterHidesAllTorrents: hasTorrents && appController.torrents.count === 0
-    property string selectedInfoHash: ""
-    // TorrentState::Paused === 4 (see include/torrex/types.hpp)
-    readonly property bool selectionPaused: selectedState === 4
-    property int selectedState: -1
+
+    property string _removeInfoHash: ""
+    property bool _removeDeleteFiles: false
+    property var folderPathTarget: null
 
     Connections {
         target: Application.styleHints
         function onColorSchemeChanged() {
-            // Re-apply window chrome when user toggles macOS Appearance (or Auto switches).
             window.color = Theme.windowBackground
         }
     }
@@ -40,15 +41,12 @@ ApplicationWindow {
         return path
     }
 
-    property string _removeInfoHash: ""
-    property bool _removeDeleteFiles: false
-
-    ConfirmPopup {
-        id: removeConfirmPopup
-        parent: window.contentItem
-        anchors.centerIn: parent
-
-        onAccepted: appController.removeTorrent(window._removeInfoHash, window._removeDeleteFiles)
+    function pathToFolderUrl(path) {
+        if (!path)
+            return ""
+        if (path.indexOf("file://") === 0)
+            return path
+        return "file://" + path
     }
 
     function confirmRemove(infoHash, deleteFiles, torrentName) {
@@ -65,62 +63,12 @@ ApplicationWindow {
         removeConfirmPopup.open()
     }
 
-    header: ToolBar {
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-            spacing: 8
-
-            Label {
-                text: qsTr("Torrex")
-                font.bold: true
-                font.pixelSize: 18
-            }
-
-            Item { Layout.fillWidth: true }
-
-            Button {
-                text: qsTr("Pause")
-                enabled: selectedInfoHash !== "" && !selectionPaused
-                onClicked: appController.pauseTorrent(selectedInfoHash)
-            }
-            Button {
-                text: qsTr("Resume")
-                enabled: selectedInfoHash !== "" && selectionPaused
-                onClicked: appController.resumeTorrent(selectedInfoHash)
-            }
-            Button {
-                text: qsTr("Remove")
-                enabled: selectedInfoHash !== ""
-                onClicked: {
-                    const row = torrentList.currentIndex
-                    window.confirmRemove(
-                        selectedInfoHash,
-                        false,
-                        row >= 0 ? appController.torrents.nameAt(row) : "")
-                }
-            }
-
-            Button {
-                text: qsTr("Add magnet")
-                onClicked: magnetDialog.open()
-            }
-            Button {
-                text: qsTr("Add .torrent")
-                onClicked: torrentFileDialog.open()
-            }
-            ToolButton {
-                text: qsTr("Refresh")
-                display: AbstractButton.TextOnly
-                onClicked: appController.refreshTorrents()
-            }
-            ToolButton {
-                text: qsTr("Settings")
-                display: AbstractButton.TextOnly
-                onClicked: settingsDialog.open()
-            }
-        }
+    ConfirmPopup {
+        id: removeConfirmPopup
+        parent: window.contentItem
+        anchors.centerIn: parent
+        okText: qsTr("Remove")
+        onAccepted: appController.removeTorrent(window._removeInfoHash, window._removeDeleteFiles)
     }
 
     SettingsDialog {
@@ -148,98 +96,12 @@ ApplicationWindow {
         }
     }
 
-    footer: ToolBar {
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-
-            Label {
-                text: appController.statusMessage
-                font.pixelSize: 12
-                opacity: 0.75
-                elide: Text.ElideRight
-                Layout.fillWidth: true
-            }
-            Label {
-                text: qsTr("%1 torrents").arg(appController.torrents.count)
-                font.pixelSize: 12
-            }
-        }
-    }
-
-    property var folderPathTarget: null
-
-    function pathToFolderUrl(path) {
-        if (!path)
-            return ""
-        if (path.indexOf("file://") === 0)
-            return path
-        return "file://" + path
-    }
-
     FolderDialog {
         id: downloadFolderDialog
         title: qsTr("Choose download folder")
         onAccepted: {
             if (folderPathTarget)
                 folderPathTarget.text = selectedFolder.toLocalFile()
-        }
-    }
-
-    Dialog {
-        id: magnetDialog
-        parent: window.contentItem
-        title: qsTr("Add magnet link")
-        modal: true
-        anchors.centerIn: parent
-        width: 520
-        standardButtons: Dialog.Cancel | Dialog.Ok
-        onAboutToShow: downloadPathField.text = appController.defaultDownloadFolder
-        onAccepted: {
-            appController.addMagnetUri(magnetField.text.trim(), downloadPathField.text)
-            magnetField.text = ""
-        }
-
-        contentItem: ColumnLayout {
-            spacing: 12
-
-            Label {
-                text: qsTr("Paste a magnet URI (magnet:?xt=urn:btih:…)")
-                color: Theme.textMuted
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-            }
-            TextField {
-                id: magnetField
-                placeholderText: qsTr("magnet:?...")
-                Layout.fillWidth: true
-                selectByMouse: true
-            }
-
-            Label {
-                text: qsTr("Download folder")
-                color: Theme.textMuted
-                Layout.fillWidth: true
-            }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                TextField {
-                    id: downloadPathField
-                    Layout.fillWidth: true
-                    selectByMouse: true
-                    placeholderText: qsTr("Folder path…")
-                }
-                Button {
-                    text: qsTr("Browse…")
-                    onClicked: {
-                        folderPathTarget = downloadPathField
-                        downloadFolderDialog.currentFolder = pathToFolderUrl(downloadPathField.text)
-                        downloadFolderDialog.open()
-                    }
-                }
-            }
         }
     }
 
@@ -254,48 +116,120 @@ ApplicationWindow {
     }
 
     Dialog {
+        id: magnetDialog
+        parent: window.contentItem
+        title: qsTr("Add magnet link")
+        modal: true
+        anchors.centerIn: parent
+        width: 480
+        standardButtons: Dialog.Cancel | Dialog.Ok
+        onAboutToShow: downloadPathField.text = appController.defaultDownloadFolder
+        onAccepted: {
+            appController.addMagnetUri(magnetField.text.trim(), downloadPathField.text)
+            magnetField.text = ""
+        }
+
+        background: Rectangle {
+            radius: Theme.radiusLarge
+            color: Theme.surface
+            border.color: Theme.border
+        }
+
+        contentItem: ColumnLayout {
+            spacing: Theme.spacingMd
+            anchors.margins: Theme.spacingLg
+
+            Label {
+                text: qsTr("Paste a magnet URI")
+                color: Theme.textSecondary
+                font.pixelSize: Theme.fontCaption
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+            TgTextField {
+                id: magnetField
+                placeholderText: qsTr("magnet:?xt=urn:btih:…")
+                Layout.fillWidth: true
+                selectByMouse: true
+            }
+            Label {
+                text: qsTr("Download folder")
+                color: Theme.textSecondary
+                font.pixelSize: Theme.fontCaption
+                Layout.fillWidth: true
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSm
+                TgTextField {
+                    id: downloadPathField
+                    Layout.fillWidth: true
+                    selectByMouse: true
+                    placeholderText: qsTr("Folder path…")
+                }
+                TgButton {
+                    text: qsTr("Browse")
+                    onClicked: {
+                        folderPathTarget = downloadPathField
+                        downloadFolderDialog.currentFolder = pathToFolderUrl(downloadPathField.text)
+                        downloadFolderDialog.open()
+                    }
+                }
+            }
+        }
+    }
+
+    Dialog {
         id: torrentAddDialog
         parent: window.contentItem
         title: qsTr("Add torrent")
         modal: true
         anchors.centerIn: parent
-        width: 520
+        width: 480
         standardButtons: Dialog.Cancel | Dialog.Ok
         property url torrentFile
 
         onAboutToShow: downloadPathFieldTorrent.text = appController.defaultDownloadFolder
-
         onAccepted: appController.addTorrentFile(torrentFile, downloadPathFieldTorrent.text)
 
+        background: Rectangle {
+            radius: Theme.radiusLarge
+            color: Theme.surface
+            border.color: Theme.border
+        }
+
         contentItem: ColumnLayout {
-            spacing: 12
+            spacing: Theme.spacingMd
+            anchors.margins: Theme.spacingLg
 
             Label {
                 text: qsTr("Torrent file")
-                color: Theme.textMuted
+                color: Theme.textSecondary
+                font.pixelSize: Theme.fontCaption
             }
             Label {
                 text: window.localFilePath(torrentAddDialog.torrentFile)
                 wrapMode: Text.WrapAnywhere
+                color: Theme.textPrimary
                 Layout.fillWidth: true
             }
-
             Label {
                 text: qsTr("Download folder")
-                color: Theme.textMuted
+                color: Theme.textSecondary
+                font.pixelSize: Theme.fontCaption
                 Layout.fillWidth: true
             }
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
-                TextField {
+                spacing: Theme.spacingSm
+                TgTextField {
                     id: downloadPathFieldTorrent
                     Layout.fillWidth: true
                     selectByMouse: true
                     placeholderText: qsTr("Folder path…")
                 }
-                Button {
-                    text: qsTr("Browse…")
+                TgButton {
+                    text: qsTr("Browse")
                     onClicked: {
                         folderPathTarget = downloadPathFieldTorrent
                         downloadFolderDialog.currentFolder =
@@ -309,229 +243,44 @@ ApplicationWindow {
 
     Item {
         anchors.fill: parent
-        anchors.margins: 16
 
-        // Empty state (ListView cannot show overlay children reliably)
-        ColumnLayout {
+        EmptyState {
             anchors.centerIn: parent
-            width: Math.min(420, parent.width)
-            spacing: 16
             visible: !window.hasTorrents
-
-            Label {
-                text: qsTr("No torrents yet")
-                font.pixelSize: 22
-                font.bold: true
-                color: Theme.textPrimary
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-            }
-
-            Label {
-                text: qsTr("Add a magnet link, open a .torrent file, or drag one onto the window.")
-                color: Theme.textMuted
-                wrapMode: Text.WordWrap
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-            }
-
-            RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 12
-
-                Button {
-                    text: qsTr("Add magnet")
-                    highlighted: true
-                    onClicked: magnetDialog.open()
-                }
-                Button {
-                    text: qsTr("Add .torrent")
-                    onClicked: torrentFileDialog.open()
-                }
-            }
+            subtitle: qsTr("Add a magnet link, open a .torrent file, or drag one onto the window.")
+            onAddMagnet: magnetDialog.open()
+            onAddTorrent: torrentFileDialog.open()
         }
 
         RowLayout {
             anchors.fill: parent
             visible: window.hasTorrents
-            spacing: 12
+            spacing: 0
 
-            ThemedPanel {
-                Layout.preferredWidth: 132
+            TorrentListPane {
+                id: listPane
+                Layout.preferredWidth: Theme.listWidth
                 Layout.fillHeight: true
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    spacing: 4
-
-                    Label {
-                        text: qsTr("Filter")
-                        font.bold: true
-                        color: Theme.textMuted
-                        font.pixelSize: 11
-                    }
-
-                    Repeater {
-                        model: ListModel {
-                            ListElement { filterId: "all"; title: qsTr("All") }
-                            ListElement { filterId: "downloading"; title: qsTr("Downloading") }
-                            ListElement { filterId: "seeding"; title: qsTr("Seeding") }
-                            ListElement { filterId: "paused"; title: qsTr("Paused") }
-                        }
-                        delegate: ItemDelegate {
-                            Layout.fillWidth: true
-                            text: title
-                            highlighted: appController.torrents.activeFilter === filterId
-                            onClicked: {
-                                const savedHash = window.selectedInfoHash
-                                appController.torrents.setFilter(filterId)
-                                const row = appController.torrents.rowForInfoHash(savedHash)
-                                if (row >= 0) {
-                                    torrentList.currentIndex = row
-                                } else if (torrentList.count > 0) {
-                                    torrentList.currentIndex = 0
-                                } else {
-                                    torrentList.currentIndex = -1
-                                }
-                            }
-                        }
-                    }
-
-                    Item { Layout.fillHeight: true }
+                filterHidesAll: window.filterHidesAllTorrents
+                onConfirmRemove: function(infoHash, deleteFiles, name) {
+                    window.confirmRemove(infoHash, deleteFiles, name)
                 }
+                onAddMagnetRequested: magnetDialog.open()
+                onAddTorrentRequested: torrentFileDialog.open()
+                onSettingsRequested: settingsDialog.open()
             }
 
-            SplitView {
-                id: mainSplit
+            Rectangle {
+                width: 1
+                Layout.fillHeight: true
+                color: Theme.divider
+            }
+
+            TorrentDetail {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                orientation: Qt.Horizontal
-
-                ThemedPanel {
-                    SplitView.minimumWidth: 220
-                    SplitView.preferredWidth: 300
-
-                    Label {
-                        anchors.centerIn: parent
-                        width: parent.width - 16
-                        horizontalAlignment: Text.AlignHCenter
-                        visible: window.filterHidesAllTorrents
-                        wrapMode: Text.WordWrap
-                        color: Theme.textMuted
-                        text: qsTr("No torrents match this filter. Try All.")
-                    }
-
-                    ListView {
-                        id: torrentList
-                        anchors.fill: parent
-                        model: appController.torrents
-                        spacing: 4
-                        clip: true
-                        visible: !window.filterHidesAllTorrents
-
-                        Connections {
-                            target: appController.torrents
-                            function onSnapshotsUpdated() {
-                                torrentList.syncSelection()
-                            }
-                            function onActiveFilterChanged() {
-                                if (torrentList.count > 0 && torrentList.currentIndex < 0)
-                                    torrentList.currentIndex = 0
-                            }
-                        }
-
-                        function syncSelection() {
-                            if (currentIndex < 0 || currentIndex >= count) {
-                                window.selectedInfoHash = ""
-                                window.selectedState = -1
-                                return
-                            }
-                            window.selectedInfoHash =
-                                appController.torrents.infoHashAt(currentIndex)
-                            window.selectedState =
-                                appController.torrents.stateAt(currentIndex)
-                        }
-
-                        onCountChanged: {
-                            if (count === 0) {
-                                currentIndex = -1
-                                syncSelection()
-                            } else if (currentIndex < 0 || currentIndex >= count) {
-                                currentIndex = 0
-                            } else {
-                                syncSelection()
-                            }
-                        }
-
-                        onCurrentIndexChanged: syncSelection()
-
-                        Component.onCompleted: {
-                            if (count > 0 && currentIndex < 0)
-                                currentIndex = 0
-                        }
-
-                        delegate: ItemDelegate {
-                            id: row
-                            width: torrentList.width
-                            highlighted: torrentList.currentIndex === index
-                            text: {
-                                var line = name + " — " + progress + "%"
-                                if (downloadRate > 0) {
-                                    line += "  ↓ " + formatBytes(downloadRate) + "/s"
-                                }
-                                return line
-                            }
-
-                            function formatBytes(bytes) {
-                                if (bytes < 1024) return bytes + " B"
-                                if (bytes < 1024 * 1024)
-                                    return (bytes / 1024).toFixed(1) + " KB"
-                                return (bytes / (1024 * 1024)).toFixed(1) + " MB"
-                            }
-
-                            onClicked: torrentList.currentIndex = index
-
-                            TapHandler {
-                                acceptedButtons: Qt.RightButton
-                                onTapped: rowMenu.open()
-                            }
-
-                            Menu {
-                                id: rowMenu
-                                MenuItem {
-                                    text: qsTr("Pause")
-                                    enabled: state !== 4
-                                    onTriggered: appController.pauseTorrent(infoHash)
-                                }
-                                MenuItem {
-                                    text: qsTr("Resume")
-                                    enabled: state === 4
-                                    onTriggered: appController.resumeTorrent(infoHash)
-                                }
-                                MenuSeparator {}
-                                MenuItem {
-                                    text: qsTr("Remove")
-                                    onTriggered: window.confirmRemove(infoHash, false, name)
-                                }
-                                MenuItem {
-                                    text: qsTr("Remove and delete data")
-                                    onTriggered: window.confirmRemove(infoHash, true, name)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                ThemedPanel {
-                    SplitView.minimumWidth: 260
-                    SplitView.fillWidth: true
-                    pad: 0
-
-                    TorrentDetail {
-                        anchors.fill: parent
-                        torrentRow: torrentList.currentIndex
-                    }
-                }
+                torrentRow: listPane.currentIndex
+                windowRef: window
             }
         }
     }

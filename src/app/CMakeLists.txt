@@ -24,6 +24,19 @@ qt_add_qml_module(torrex
         qml/NotificationBanner.qml
         qml/SettingsDialog.qml
         qml/TorrentDetail.qml
+        qml/TorrentListPane.qml
+        qml/TorrentRow.qml
+        qml/TgIconButton.qml
+        qml/TgButton.qml
+        qml/TgTextField.qml
+        qml/FilterChip.qml
+        qml/EmptyState.qml
+        qml/DetailStat.qml
+        qml/DetailStatRow.qml
+        qml/DetailCard.qml
+        qml/TorrentOverviewPane.qml
+        qml/TorrentFilesPane.qml
+        qml/TgTabButton.qml
 )
 
 target_link_libraries(torrex
@@ -55,6 +68,14 @@ if(APPLE)
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in"
+    )
+    # Shell launcher at bin/torrex → torrex.app (avoids stale flat Mach-O with old QML).
+    add_custom_command(TARGET torrex POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            "${CMAKE_SOURCE_DIR}/scripts/torrex-dev-launcher.sh"
+            "${CMAKE_BINARY_DIR}/bin/torrex"
+        COMMAND chmod a+x "${CMAKE_BINARY_DIR}/bin/torrex"
+        COMMENT "Install dev launcher script at bin/torrex"
     )
 endif()
 

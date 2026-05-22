@@ -52,6 +52,8 @@ Planning document for work **after v0.1**. Implementation order may change; depe
 
 **Goal:** Polish beyond the v0.1 functional shell.
 
+**Shipped (UI revamp):** Telegram-inspired tokens and layout — sidebar list with filter chips, chat-style torrent rows, detail pane with header actions, rounded fields and dialogs. Preview: `open build/dev/bin/Torrex.app`.
+
 | Item | Description | Depends on |
 |------|-------------|------------|
 | Native macOS notifications | `UNUserNotificationCenter` or Qt Labs Platform | Production signing optional |

@@ -69,6 +69,9 @@ int main(int argc, char* argv[])
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appController", &controller);
+    engine.rootContext()->setContextProperty(
+        QStringLiteral("torrexUiRev"),
+        2); // bump when QML layout changes; visible in window title
     engine.loadFromModule("Torrex", "Main");
 
     if (engine.rootObjects().isEmpty()) {

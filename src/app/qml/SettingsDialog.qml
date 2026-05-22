@@ -9,9 +9,15 @@ Dialog {
     title: qsTr("Settings")
     modal: true
     anchors.centerIn: parent
-    width: 540
+    width: 520
     height: Math.min(640, parent ? parent.height - 80 : 640)
     standardButtons: Dialog.Cancel | Dialog.Ok
+
+    background: Rectangle {
+        radius: Theme.radiusLarge
+        color: Theme.surface
+        border.color: Theme.border
+    }
 
     onAboutToShow: appController.loadSessionSettingsFromStore()
 

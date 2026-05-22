@@ -28,8 +28,10 @@ brew install cmake ninja pkg-config autoconf autoconf-archive automake libtool
 ./scripts/bootstrap.sh   # first run may take 30–60 min (vcpkg + Qt)
 cmake --preset dev
 cmake --build --preset dev
-open build/dev/bin/Torrex.app
+./scripts/run-dev.sh
 ```
+
+Run `./build/dev/bin/torrex` (shell launcher → `torrex.app`) or `./scripts/run-dev.sh`.
 
 Torrex follows your macOS **Appearance** (Light / Dark / Auto).
 

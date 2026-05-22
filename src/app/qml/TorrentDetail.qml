@@ -3,12 +3,11 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Torrex
 
-// Detail pane for the selected torrent (Overview / Files tabs).
 Item {
     id: root
-    anchors.fill: parent
 
     required property int torrentRow
+    property var windowRef: null
 
     readonly property var model: appController.torrents
     readonly property bool hasSelection: torrentRow >= 0 && torrentRow < model.count
@@ -17,7 +16,6 @@ Item {
         dataRevision
         return hasSelection ? model.infoHashAt(torrentRow) : ""
     }
-
     readonly property string detailName: {
         dataRevision
         return hasSelection ? model.nameAt(torrentRow) : ""
@@ -50,199 +48,212 @@ Item {
         dataRevision
         return hasSelection && model.sequentialDownloadAt(torrentRow)
     }
+    readonly property bool detailPaused: detailState === 4
+
+    Rectangle {
+        anchors.fill: parent
+        color: Theme.windowBackground
+    }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 12
+        spacing: 0
 
-        Label {
-            text: hasSelection ? detailName : qsTr("Select a torrent")
-            font.pixelSize: 20
-            font.bold: true
-            color: Theme.textPrimary
-            wrapMode: Text.Wrap
+        Rectangle {
             Layout.fillWidth: true
-        }
+            implicitHeight: headerCol.implicitHeight + Theme.spacingLg * 2
+            color: Theme.surfaceCard
 
-        TabBar {
-            id: detailTabs
-            Layout.fillWidth: true
-            currentIndex: 0
-
-            TabButton {
-                text: qsTr("Overview")
-                width: implicitWidth + 20
-                onClicked: detailTabs.currentIndex = 0
-            }
-            TabButton {
-                text: qsTr("Files")
-                width: implicitWidth + 20
-                onClicked: detailTabs.currentIndex = 1
-            }
-        }
-
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumHeight: 180
-            visible: hasSelection
-            clip: true
-
-            StackLayout {
-                id: tabStack
+            ColumnLayout {
+                id: headerCol
                 anchors.fill: parent
-                currentIndex: detailTabs.currentIndex
+                anchors.margins: Theme.spacingLg
+                spacing: Theme.spacingMd
+                visible: root.hasSelection
 
-                ColumnLayout {
-                    width: tabStack.width
-                    height: tabStack.height
-                    spacing: 10
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacingMd
 
-                    DetailRow {
-                        label: qsTr("State")
-                        value: root.stateText(detailState)
-                    }
-                    DetailRow {
-                        label: qsTr("Progress")
-                        value: detailProgress + "%"
-                    }
-                    DetailRow {
-                        label: qsTr("Download")
-                        value: root.formatRate(detailDownloadRate)
-                    }
-                    DetailRow {
-                        label: qsTr("Upload")
-                        value: root.formatRate(detailUploadRate)
-                    }
-                    DetailRow {
-                        label: qsTr("Save folder")
-                        value: detailSavePath
-                        wrap: true
-                    }
-
-                    ThemedProgressBar {
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        from: 0
-                        to: 100
-                        value: detailProgress
-                    }
+                        spacing: Theme.spacingXs
 
-                    Item { Layout.fillHeight: true }
-                }
+                        Label {
+                            text: root.detailName
+                            font.pixelSize: Theme.fontHeadline
+                            font.weight: Font.DemiBold
+                            color: Theme.textPrimary
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 3
+                            Layout.fillWidth: true
+                        }
 
-                ColumnLayout {
-                    width: tabStack.width
-                    height: tabStack.height
-                    spacing: 8
-
-                    CheckBox {
-                        text: qsTr("Download files in order (sequential)")
-                        checked: root.detailSequential
-                        enabled: root.hasSelection
-                        onToggled: appController.setTorrentSequentialDownload(
-                            root.detailInfoHash, checked)
-                    }
-
-                    Label {
-                        text: detailFileEntries.length > 0
-                            ? qsTr("%1 file(s)").arg(detailFileEntries.length)
-                            : qsTr("Waiting for torrent metadata…")
-                        color: Theme.textMuted
-                        font.pixelSize: 12
-                        Layout.fillWidth: true
-                    }
-
-                    ListView {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-                        model: detailFileEntries
-                        spacing: 2
-
-                        delegate: RowLayout {
-                            width: ListView.view.width
-                            spacing: 8
-
+                        RowLayout {
+                            spacing: Theme.spacingSm
+                            Rectangle {
+                                width: 8
+                                height: 8
+                                radius: 4
+                                color: Theme.stateColor(root.detailState)
+                            }
                             Label {
-                                text: modelData.path
+                                text: Theme.stateLabel(root.detailState)
+                                font.pixelSize: Theme.fontCaption
+                                color: Theme.textSecondary
+                            }
+                            Label {
+                                text: "·"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontCaption
+                            }
+                            Label {
+                                text: root.detailProgress + "%"
+                                font.pixelSize: Theme.fontCaption
+                                font.weight: Font.DemiBold
                                 color: Theme.textPrimary
-                                elide: Text.ElideMiddle
-                                Layout.fillWidth: true
                             }
-                            Label {
-                                text: modelData.progress + "%"
-                                color: Theme.textMuted
-                                font.pixelSize: 11
-                            }
-                            ComboBox {
-                                id: priorityBox
-                                Layout.preferredWidth: 100
-                                textRole: "label"
-                                model: [
-                                    { label: qsTr("Skip"), value: 0 },
-                                    { label: qsTr("Low"), value: 1 },
-                                    { label: qsTr("Normal"), value: 4 },
-                                    { label: qsTr("High"), value: 7 }
-                                ]
-                                property int lastPriority: modelData.priority
+                        }
+                    }
 
-                                Component.onCompleted: syncFromModel()
-                                onActivated: {
-                                    const entry = model[currentIndex]
-                                    if (entry.value === lastPriority)
-                                        return
-                                    appController.setTorrentFilePriority(
-                                        root.detailInfoHash, modelData.fileIndex, entry.value)
-                                    lastPriority = entry.value
-                                }
+                    RowLayout {
+                        spacing: Theme.spacingXs
+                        TgIconButton {
+                            text: "❚❚"
+                            enabled: root.hasSelection && !root.detailPaused
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("Pause")
+                            onClicked: appController.pauseTorrent(root.detailInfoHash)
+                        }
+                        TgIconButton {
+                            text: "▶"
+                            enabled: root.hasSelection && root.detailPaused
+                            ToolTip.visible: hovered
+                            ToolTip.text: qsTr("Resume")
+                            onClicked: appController.resumeTorrent(root.detailInfoHash)
+                        }
+                        TgIconButton {
+                            text: "⋯"
+                            enabled: root.hasSelection
+                            onClicked: detailMenu.open()
 
-                                function syncFromModel() {
-                                    const p = modelData.priority
-                                    for (let i = 0; i < model.length; ++i) {
-                                        if (model[i].value === p) {
-                                            currentIndex = i
-                                            lastPriority = p
-                                            return
-                                        }
+                            Menu {
+                                id: detailMenu
+                                MenuItem {
+                                    text: qsTr("Remove")
+                                    onTriggered: {
+                                        if (root.windowRef)
+                                            root.windowRef.confirmRemove(
+                                                root.detailInfoHash, false, root.detailName)
                                     }
                                 }
-
-                                Connections {
-                                    target: root
-                                    function onDataRevisionChanged() {
-                                        priorityBox.syncFromModel()
+                                MenuItem {
+                                    text: qsTr("Remove and delete data")
+                                    onTriggered: {
+                                        if (root.windowRef)
+                                            root.windowRef.confirmRemove(
+                                                root.detailInfoHash, true, root.detailName)
                                     }
                                 }
                             }
                         }
                     }
                 }
+
+                ThemedProgressBar {
+                    Layout.fillWidth: true
+                    thick: true
+                    from: 0
+                    to: 100
+                    value: root.detailProgress
+                }
             }
         }
 
-        Label {
-            visible: !hasSelection
+        Rectangle {
+            Layout.fillWidth: true
+            height: 1
+            color: Theme.divider
+            visible: root.hasSelection
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: Theme.spacingLg
+            Layout.rightMargin: Theme.spacingLg
+            Layout.topMargin: Theme.spacingMd
+            Layout.bottomMargin: Theme.spacingSm
+            spacing: Theme.spacingSm
+            visible: root.hasSelection
+
+            TgTabButton {
+                text: qsTr("Overview")
+                checked: tabBar.currentIndex === 0
+                onClicked: tabBar.currentIndex = 0
+            }
+            TgTabButton {
+                text: qsTr("Files")
+                checked: tabBar.currentIndex === 1
+                onClicked: tabBar.currentIndex = 1
+            }
+            Item { Layout.fillWidth: true }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            height: 1
+            color: Theme.divider
+            visible: root.hasSelection
+        }
+
+        Item {
+            id: tabBar
+            property int currentIndex: 0
             Layout.fillWidth: true
             Layout.fillHeight: true
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            text: qsTr("Choose a torrent from the list to see details.")
-            color: Theme.textMuted
-            wrapMode: Text.WordWrap
-        }
-    }
+            Layout.margins: Theme.spacingLg
+            visible: root.hasSelection
+            clip: true
 
-    function stateText(state) {
-        switch (state) {
-        case 0: return qsTr("Idle")
-        case 1: return qsTr("Checking")
-        case 2: return qsTr("Downloading")
-        case 3: return qsTr("Seeding")
-        case 4: return qsTr("Paused")
-        case 5: return qsTr("Error")
-        default: return qsTr("Unknown")
+            Loader {
+                anchors.fill: parent
+                sourceComponent: tabBar.currentIndex === 0 ? overviewPage : filesPage
+            }
+
+            Component {
+                id: overviewPage
+                TorrentOverviewPane {
+                    downloadRateText: root.formatRate(root.detailDownloadRate)
+                    uploadRateText: root.formatRate(root.detailUploadRate)
+                    savePath: root.detailSavePath
+                }
+            }
+
+            Component {
+                id: filesPage
+                TorrentFilesPane {
+                    infoHash: root.detailInfoHash
+                    sequential: root.detailSequential
+                    fileEntries: root.detailFileEntries
+                    dataRevision: root.dataRevision
+                    onSequentialToggled: function(enabled) {
+                        appController.setTorrentSequentialDownload(root.detailInfoHash, enabled)
+                    }
+                    onFilePriorityChanged: function(fileIndex, priority) {
+                        appController.setTorrentFilePriority(
+                            root.detailInfoHash, fileIndex, priority)
+                    }
+                }
+            }
+        }
+
+        EmptyState {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: !root.hasSelection
+            title: qsTr("Select a torrent")
+            subtitle: qsTr("Pick one from the list to see progress, files, and controls.")
+            showActions: false
         }
     }
 
@@ -254,26 +265,5 @@ Item {
         if (bytesPerSec < 1024 * 1024)
             return (bytesPerSec / 1024).toFixed(1) + " KB/s"
         return (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s"
-    }
-
-    component DetailRow: RowLayout {
-        required property string label
-        required property string value
-        property bool wrap: false
-        Layout.fillWidth: true
-        spacing: 12
-
-        Label {
-            text: label
-            color: Theme.textMuted
-            Layout.preferredWidth: 100
-        }
-        Label {
-            text: value.length > 0 ? value : qsTr("—")
-            color: Theme.textPrimary
-            wrapMode: wrap ? Text.Wrap : Text.NoWrap
-            elide: wrap ? Text.ElideNone : Text.ElideRight
-            Layout.fillWidth: true
-        }
     }
 }
