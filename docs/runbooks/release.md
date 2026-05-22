@@ -2,7 +2,7 @@
 
 ## Preconditions
 
-- `main` green on CI (macOS build + tests)
+- `scripts/verify.sh` passes on the release commit locally
 - `CHANGELOG.md` updated for the version
 - [release-qa.md](release-qa.md) checklist completed for the candidate build
 

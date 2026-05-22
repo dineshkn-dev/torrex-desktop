@@ -4,7 +4,7 @@
 
 ## Checklist
 
-- [ ] `scripts/verify.sh` passes locally (or CI equivalent)
+- [ ] `scripts/verify.sh` passes locally
 - [ ] Updated `docs/specs/` if behavior changed
 - [ ] Updated `docs/tracker/ROADMAP.yaml` if progress changed
 - [ ] Added/updated tests for engine or UI logic

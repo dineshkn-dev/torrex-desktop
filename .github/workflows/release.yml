@@ -27,6 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate docs
+        run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
+
+      - name: Check core has no Qt
+        run: ./scripts/check-core-no-qt.sh
+
       - name: Install macOS build dependencies
         run: brew install ninja autoconf autoconf-archive automake libtool pkg-config
 
