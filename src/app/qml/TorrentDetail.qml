@@ -38,6 +38,10 @@ Item {
         dataRevision
         return hasSelection ? model.uploadRateAt(torrentRow) : 0
     }
+    readonly property var detailFilePaths: {
+        dataRevision
+        return hasSelection ? model.filePathsAt(torrentRow) : []
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -56,70 +60,128 @@ Item {
         TabBar {
             id: detailTabs
             Layout.fillWidth: true
-            TabButton { text: qsTr("Overview") }
-            TabButton { text: qsTr("Files") }
+            currentIndex: 0
+
+            TabButton {
+                text: qsTr("Overview")
+                width: implicitWidth + 20
+                onClicked: detailTabs.currentIndex = 0
+            }
+            TabButton {
+                text: qsTr("Files")
+                width: implicitWidth + 20
+                onClicked: detailTabs.currentIndex = 1
+            }
         }
 
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumHeight: 160
+            Layout.minimumHeight: 180
+            visible: hasSelection
 
-            ColumnLayout {
+            SwipeView {
+                id: detailSwipe
                 anchors.fill: parent
-                spacing: 10
-                visible: hasSelection && detailTabs.currentIndex === 0
+                interactive: false
+                currentIndex: detailTabs.currentIndex
 
-                DetailRow {
-                    label: qsTr("State")
-                    value: root.stateText(detailState)
-                }
-                DetailRow {
-                    label: qsTr("Progress")
-                    value: detailProgress + "%"
-                }
-                DetailRow {
-                    label: qsTr("Download")
-                    value: root.formatRate(detailDownloadRate)
-                }
-                DetailRow {
-                    label: qsTr("Upload")
-                    value: root.formatRate(detailUploadRate)
-                }
-                DetailRow {
-                    label: qsTr("Save folder")
-                    value: detailSavePath
-                    wrap: true
+                onCurrentIndexChanged: {
+                    if (detailTabs.currentIndex !== currentIndex)
+                        detailTabs.currentIndex = currentIndex
                 }
 
-                ProgressBar {
-                    Layout.fillWidth: true
-                    from: 0
-                    to: 100
-                    value: detailProgress
+                ColumnLayout {
+                    width: detailSwipe.width
+                    spacing: 10
+
+                    DetailRow {
+                        label: qsTr("State")
+                        value: root.stateText(detailState)
+                    }
+                    DetailRow {
+                        label: qsTr("Progress")
+                        value: detailProgress + "%"
+                    }
+                    DetailRow {
+                        label: qsTr("Download")
+                        value: root.formatRate(detailDownloadRate)
+                    }
+                    DetailRow {
+                        label: qsTr("Upload")
+                        value: root.formatRate(detailUploadRate)
+                    }
+                    DetailRow {
+                        label: qsTr("Save folder")
+                        value: detailSavePath
+                        wrap: true
+                    }
+
+                    ProgressBar {
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 100
+                        value: detailProgress
+                    }
+
+                    Item { Layout.fillHeight: true }
                 }
 
-                Item { Layout.fillHeight: true }
+                ColumnLayout {
+                    width: detailSwipe.width
+                    spacing: 8
+
+                    Label {
+                        text: detailFilePaths.length > 0
+                            ? qsTr("%1 file(s)").arg(detailFilePaths.length)
+                            : qsTr("Waiting for torrent metadata…")
+                        color: Theme.textMuted
+                        font.pixelSize: 12
+                    }
+
+                    ListView {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        model: detailFilePaths
+                        spacing: 2
+
+                        delegate: ItemDelegate {
+                            width: ListView.view.width
+                            text: modelData
+                            onClicked: {}
+                        }
+                    }
+
+                    Label {
+                        visible: detailFilePaths.length > 0
+                        text: qsTr("Priorities and sequential download are planned for a later release.")
+                        color: Theme.textMuted
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                    }
+                }
             }
+        }
 
-            Label {
-                anchors.fill: parent
-                visible: hasSelection && detailTabs.currentIndex === 1
-                text: qsTr("Per-file priorities and sequential download are planned for a later release.")
-                color: Theme.textMuted
-                wrapMode: Text.WordWrap
-                verticalAlignment: Text.AlignTop
-            }
+        Label {
+            visible: !hasSelection
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            text: qsTr("Choose a torrent from the list to see details.")
+            color: Theme.textMuted
+            wrapMode: Text.WordWrap
+        }
+    }
 
-            Label {
-                anchors.centerIn: parent
-                width: parent.width
-                visible: !hasSelection
-                horizontalAlignment: Text.AlignHCenter
-                text: qsTr("Choose a torrent from the list to see details.")
-                color: Theme.textMuted
-                wrapMode: Text.WordWrap
-            }
+    Connections {
+        target: detailTabs
+        function onCurrentIndexChanged() {
+            if (detailSwipe.currentIndex !== detailTabs.currentIndex)
+                detailSwipe.currentIndex = detailTabs.currentIndex
         }
     }
 

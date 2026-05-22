@@ -45,6 +45,7 @@ public:
     Q_INVOKABLE QString savePathAt(int row) const;
     Q_INVOKABLE qint64 downloadRateAt(int row) const;
     Q_INVOKABLE qint64 uploadRateAt(int row) const;
+    Q_INVOKABLE QStringList filePathsAt(int row) const;
 
 signals:
     void countChanged();

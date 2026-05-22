@@ -79,12 +79,27 @@ TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
     return snap;
 }
 
+void fill_file_paths(const lt::torrent_handle& handle, TorrentSnapshot& snap)
+{
+    snap.file_paths.clear();
+    const std::shared_ptr<const lt::torrent_info> info = handle.torrent_file();
+    if (!info) {
+        return;
+    }
+    const lt::file_storage& files = info->files();
+    snap.file_paths.reserve(static_cast<std::size_t>(files.num_files()));
+    for (lt::file_index_t i : files.file_range()) {
+        snap.file_paths.push_back(files.file_path(i));
+    }
+}
+
 void apply_snapshot_from_handle(const lt::torrent_handle& handle, TorrentSnapshot& snap)
 {
     snap = snapshot_from_status(handle.status());
     if ((handle.flags() & lt::torrent_flags::paused) != lt::torrent_flags_t{}) {
         snap.state = TorrentState::Paused;
     }
+    fill_file_paths(handle, snap);
 }
 
 std::string ensure_save_path(const std::string& save_path)

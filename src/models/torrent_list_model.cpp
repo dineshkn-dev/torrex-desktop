@@ -1,5 +1,7 @@
 #include "torrent_list_model.hpp"
 
+#include <QStringList>
+
 namespace torrex::models {
 
 namespace {
@@ -182,6 +184,20 @@ qint64 TorrentListModel::uploadRateAt(const int row) const
 {
     const TorrentSnapshot* item = snapshotAt(row);
     return item == nullptr ? 0 : item->upload_rate;
+}
+
+QStringList TorrentListModel::filePathsAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    if (item == nullptr) {
+        return {};
+    }
+    QStringList paths;
+    paths.reserve(static_cast<int>(item->file_paths.size()));
+    for (const std::string& path : item->file_paths) {
+        paths.push_back(QString::fromStdString(path));
+    }
+    return paths;
 }
 
 } // namespace torrex::models
