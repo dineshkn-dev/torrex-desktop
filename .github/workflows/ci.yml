@@ -14,7 +14,7 @@ jobs:
   validate-docs:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
 
   # macOS-only while v0.1 targets the Mac app (Qt via vcpkg is slow to build).
@@ -30,7 +30,7 @@ jobs:
       VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg/bincache,read;files,${{ github.workspace }}/vcpkg/bincache,write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install macOS build dependencies
         run: brew install ninja autoconf autoconf-archive automake libtool pkg-config
@@ -41,7 +41,7 @@ jobs:
           vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
 
       - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ github.workspace }}/vcpkg/bincache

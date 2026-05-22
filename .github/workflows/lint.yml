@@ -8,7 +8,7 @@ jobs:
   clang-format:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check formatting
         run: |
           FILES=$(find include src tests -name '*.cpp' -o -name '*.hpp' -o -name '*.h')
