@@ -54,6 +54,7 @@ qt_add_qml_module(torrex
         qml/TgSheetFooter.qml
         qml/TgSheetDivider.qml
         qml/TgMenuPicker.qml
+        qml/TorrexLogo.qml
 )
 
 target_link_libraries(torrex
@@ -62,6 +63,15 @@ target_link_libraries(torrex
         Qt6::Quick
         Qt6::QuickControls2
         Qt6::QuickDialogs2
+        Qt6::Svg
+)
+
+qt_add_resources(torrex "brand"
+    PREFIX "/"
+    BASE "${CMAKE_SOURCE_DIR}/resources"
+    FILES
+        "${CMAKE_SOURCE_DIR}/resources/brand/torrex-mark.svg"
+        "${CMAKE_SOURCE_DIR}/resources/brand/torrex-app-icon.svg"
 )
 
 include(${CMAKE_SOURCE_DIR}/cmake/TorrexQtRuntime.cmake)
@@ -81,6 +91,11 @@ set_target_properties(torrex PROPERTIES
 )
 
 if(APPLE)
+    set(_torrex_icns "${CMAKE_SOURCE_DIR}/resources/macos/Torrex.icns")
+    if(EXISTS "${_torrex_icns}")
+        set_source_files_properties("${_torrex_icns}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+        target_sources(torrex PRIVATE "${_torrex_icns}")
+    endif()
     set_target_properties(torrex PROPERTIES
         MACOSX_BUNDLE ON
         MACOSX_BUNDLE_GUI_IDENTIFIER org.torrex.desktop
@@ -89,6 +104,9 @@ if(APPLE)
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in"
     )
+    if(EXISTS "${_torrex_icns}")
+        set_target_properties(torrex PROPERTIES MACOSX_BUNDLE_ICON_FILE Torrex.icns)
+    endif()
     # Shell launcher at bin/torrex → torrex.app (avoids stale flat Mach-O with old QML).
     add_custom_command(TARGET torrex POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy

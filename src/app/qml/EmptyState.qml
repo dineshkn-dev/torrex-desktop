@@ -15,6 +15,11 @@ ColumnLayout {
     signal addMagnet()
     signal addTorrent()
 
+    TorrexLogo {
+        Layout.alignment: Qt.AlignHCenter
+        size: 56
+    }
+
     Label {
         text: parent.title
         font.pixelSize: Theme.fontTitle

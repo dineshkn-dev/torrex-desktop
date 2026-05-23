@@ -3,7 +3,9 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QFile>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -68,6 +70,10 @@ int main(int argc, char* argv[])
     QGuiApplication::setApplicationName("Torrex");
     QGuiApplication::setOrganizationName("Torrex");
     QGuiApplication::setApplicationVersion("0.1.0");
+
+    if (QFile::exists(QStringLiteral(":/brand/torrex-mark.svg"))) {
+        QGuiApplication::setWindowIcon(QIcon(QStringLiteral(":/brand/torrex-mark.svg")));
+    }
 
     add_vcpkg_qt_plugin_paths();
 

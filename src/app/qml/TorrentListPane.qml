@@ -38,17 +38,32 @@ Item {
             spacing: Theme.spacingSm
 
             ColumnLayout {
-                spacing: 0
-                Label {
-                    text: qsTr("Torrex")
-                    font.pixelSize: Theme.fontTitle
-                    font.weight: Font.DemiBold
-                    color: Theme.textPrimary
-                }
-                Label {
-                    text: appController.version
-                    font.pixelSize: Theme.fontCaption
-                    color: Theme.textSecondary
+                spacing: Theme.spacingXs
+                Layout.alignment: Qt.AlignVCenter
+
+                RowLayout {
+                    spacing: Theme.spacingSm
+
+                    TorrexLogo {
+                        size: 36
+                    }
+
+                    ColumnLayout {
+                        spacing: 0
+
+                        Label {
+                            text: qsTr("Torrex")
+                            font.pixelSize: Theme.fontTitle
+                            font.weight: Font.DemiBold
+                            color: Theme.textPrimary
+                        }
+
+                        Label {
+                            text: appController.version
+                            font.pixelSize: Theme.fontCaption
+                            color: Theme.textSecondary
+                        }
+                    }
                 }
             }
 

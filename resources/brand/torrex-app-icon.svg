@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- macOS bundle icon source, 1024px canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2634"/>
+      <stop offset="1" stop-color="#0e1621"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <circle cx="512" cy="512" r="416" stroke="#3390EC" stroke-width="28" opacity="0.2"/>
+  <path d="M512 192v128M512 704v128M192 512h128M704 512h128" stroke="#3390EC" stroke-width="28" stroke-linecap="round" opacity="0.16"/>
+  <path d="M512 288L304 608M512 288L720 608M304 608H720" stroke="#3390EC" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" opacity="0.42"/>
+  <circle cx="512" cy="288" r="52" fill="#3390EC"/>
+  <circle cx="304" cy="608" r="52" fill="#3390EC" opacity="0.88"/>
+  <circle cx="720" cy="608" r="52" fill="#3390EC" opacity="0.88"/>
+  <path d="M512 416v176M448 552l64 64 64-64" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
