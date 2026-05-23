@@ -32,10 +32,11 @@ TgSheet {
         TgSheetDivider {}
 
         TgFormScroll {
-            Layout.leftMargin: Theme.spacingLg
-            Layout.rightMargin: Theme.spacingLg
-            Layout.topMargin: Theme.spacingLg
-            Layout.bottomMargin: Theme.spacingLg
+            Layout.leftMargin: Theme.sheetPadding
+            Layout.rightMargin: Theme.sheetPadding
+            Layout.topMargin: Theme.sheetPadding
+            Layout.bottomMargin: Theme.sheetPadding
+            contentSpacing: Theme.spacingXl
 
             DetailCard {
                 title: qsTr("Appearance")

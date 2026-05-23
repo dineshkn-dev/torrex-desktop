@@ -1,6 +1,7 @@
 add_library(torrex_core STATIC
     session_manager.cpp
     torrent_preview.cpp
+    info_hash_key.cpp
 )
 
 add_library(torrex::core ALIAS torrex_core)

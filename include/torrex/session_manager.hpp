@@ -57,6 +57,7 @@ public:
 
     /// Last engine error (e.g. failed add); cleared when read.
     [[nodiscard]] std::string take_last_error();
+    void clear_last_error();
 
     /// `info_hash_hex` is the key from `TorrentSnapshot::info_hash.v1_hex`.
     [[nodiscard]] std::string pause_torrent(const std::string& info_hash_hex);

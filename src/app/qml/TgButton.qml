@@ -20,6 +20,7 @@ Button {
 
     background: Rectangle {
         radius: Theme.radiusMedium
+        implicitHeight: 40
         color: {
             if (!root.enabled)
                 return Theme.border

@@ -6,8 +6,11 @@ import Torrex
 RowLayout {
     id: root
     Layout.fillWidth: true
-    Layout.margins: Theme.spacingLg
-    spacing: Theme.spacingMd
+    Layout.leftMargin: Theme.sheetPadding
+    Layout.rightMargin: Theme.sheetPadding
+    Layout.topMargin: Theme.spacingMd
+    Layout.bottomMargin: Theme.sheetPadding
+    spacing: Theme.spacingLg
 
     property string cancelText: qsTr("Cancel")
     property string primaryText: qsTr("Save")

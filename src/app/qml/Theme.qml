@@ -50,6 +50,8 @@ QtObject {
     readonly property int spacingSm: 8
     readonly property int spacingMd: 12
     readonly property int spacingLg: 16
+    readonly property int spacingXl: 24
+    readonly property int sheetPadding: 24
     readonly property int listWidth: 340
     readonly property int listMinWidth: 260
     readonly property int listMaxWidth: 400
@@ -66,9 +68,10 @@ QtObject {
     readonly property int maxFlickVelocity: 14000
     readonly property real wheelScrollMultiplier: 1.9
     readonly property real sheetEnterScale: 0.94
-    readonly property int sheetWidth: 560
+    readonly property int sheetWidth: 640
+    readonly property int sheetWideWidth: 760
     readonly property int sheetMinHeight: 700
-    readonly property int sheetMaxHeight: 860
+    readonly property int sheetMaxHeight: 880
     readonly property real sheetHeightRatio: 0.86
     readonly property int sheetMargin: 40
     readonly property color scrollBar: amoled ? "#ffffff22"

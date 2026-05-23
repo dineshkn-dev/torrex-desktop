@@ -23,7 +23,7 @@ Popup {
         if (!host)
             return sheetWidth
         const maxW = host.width - Theme.sheetMargin * 2
-        return Math.min(sheetWidth, Math.max(280, maxW))
+        return Math.min(sheetWidth, Math.max(320, maxW))
     }
     height: {
         if (!parent)

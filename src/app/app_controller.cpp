@@ -141,8 +141,12 @@ AppController::AppController(QObject* parent)
             return;
         }
         add_preview_status_ = QStringLiteral("error");
+        add_preview_error_message_ =
+            tr("Timed out loading torrent metadata. Check your network and try again.");
         add_preview_poll_timer_->stop();
-        setStatusMessage(tr("Timed out loading torrent metadata. Check your network and try again."));
+        add_preview_timeout_timer_->stop();
+        setStatusMessage(add_preview_error_message_);
+        qCWarning(torrexPreview) << "preview timed out";
         emit addPreviewChanged();
     });
 }
@@ -522,7 +526,12 @@ void AppController::handleDroppedUrls(const QList<QUrl>& urls)
 
 void AppController::clearAddPreview()
 {
-    if (!add_preview_info_hash_.isEmpty()) {
+    resetAddPreviewUi(true);
+}
+
+void AppController::resetAddPreviewUi(bool cancel_staging)
+{
+    if (cancel_staging && !add_preview_info_hash_.isEmpty()) {
         (void)session_.cancel_magnet_preview(add_preview_info_hash_.toStdString());
     }
     add_preview_files_.clear();
@@ -530,8 +539,20 @@ void AppController::clearAddPreview()
     add_preview_info_hash_.clear();
     add_preview_size_text_.clear();
     add_preview_status_ = QStringLiteral("idle");
+    add_preview_error_message_.clear();
     add_preview_poll_timer_->stop();
     add_preview_timeout_timer_->stop();
+    emit addPreviewChanged();
+}
+
+void AppController::failAddPreview(const QString& message)
+{
+    add_preview_status_ = QStringLiteral("error");
+    add_preview_error_message_ = message;
+    add_preview_poll_timer_->stop();
+    add_preview_timeout_timer_->stop();
+    setStatusMessage(message);
+    qCWarning(torrexPreview) << "preview failed:" << message;
     emit addPreviewChanged();
 }
 
@@ -555,6 +576,9 @@ void AppController::applyAddPreview(const torrex::TorrentAddPreview& preview)
     add_preview_size_text_ = formatByteSize(static_cast<qint64>(preview.total_size));
     add_preview_status_ = preview.files.empty() ? QStringLiteral("loading")
                                                   : QStringLiteral("ready");
+    if (!preview.files.empty()) {
+        add_preview_error_message_.clear();
+    }
     emit addPreviewChanged();
 }
 
@@ -582,16 +606,6 @@ void AppController::pollMagnetAddPreview()
         add_preview_poll_timer_->stop();
         add_preview_timeout_timer_->stop();
         qCInfo(torrexPreview) << "preview ready with" << file_count << "files";
-    }
-
-    const std::string err = session_.take_last_error();
-    if (!err.empty()) {
-        add_preview_status_ = QStringLiteral("error");
-        add_preview_poll_timer_->stop();
-        add_preview_timeout_timer_->stop();
-        qCWarning(torrexPreview) << "preview error:" << QString::fromStdString(err);
-        setStatusMessage(QString::fromStdString(err));
-        emit addPreviewChanged();
     }
 }
 
@@ -667,6 +681,7 @@ bool AppController::loadMagnetPreview(const QString& uri, const QString& save_pa
 
     add_preview_title_ = QString::fromStdString(placeholder.name);
     add_preview_status_ = QStringLiteral("loading");
+    add_preview_error_message_.clear();
     emit addPreviewChanged();
 
     qCInfo(torrexPreview) << "loadMagnetPreview start" << add_preview_title_;
@@ -675,9 +690,7 @@ bool AppController::loadMagnetPreview(const QString& uri, const QString& save_pa
     const std::string err = session_.begin_magnet_preview(trimmed.toStdString(),
                                                           folder.toStdString(), info_hash);
     if (!err.empty()) {
-        add_preview_status_ = QStringLiteral("error");
-        emit addPreviewChanged();
-        setStatusMessage(QString::fromStdString(err));
+        failAddPreview(QString::fromStdString(err));
         return false;
     }
 
@@ -686,15 +699,19 @@ bool AppController::loadMagnetPreview(const QString& uri, const QString& save_pa
     add_preview_poll_timer_->start();
     add_preview_timeout_timer_->start();
 
-    QTimer::singleShot(100, this, [this] {
+    QTimer::singleShot(250, this, [this] {
         pollMagnetAddPreview();
+        if (add_preview_status_ != QStringLiteral("loading")) {
+            return;
+        }
+        const std::optional<torrex::TorrentAddPreview> preview =
+            session_.magnet_preview(add_preview_info_hash_.toStdString());
+        if (preview.has_value()) {
+            return;
+        }
         const std::string async_err = session_.take_last_error();
         if (!async_err.empty()) {
-            add_preview_status_ = QStringLiteral("error");
-            add_preview_poll_timer_->stop();
-            add_preview_timeout_timer_->stop();
-            setStatusMessage(QString::fromStdString(async_err));
-            emit addPreviewChanged();
+            failAddPreview(QString::fromStdString(async_err));
         }
     });
     return true;
@@ -770,7 +787,7 @@ void AppController::addMagnetWithSelection(const QString& uri,
         return;
     }
 
-    clearAddPreview();
+    resetAddPreviewUi(false);
     QTimer::singleShot(300, this, [this, folder] {
         const std::string async_err = session_.take_last_error();
         if (!async_err.empty()) {

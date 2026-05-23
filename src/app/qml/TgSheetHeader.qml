@@ -6,7 +6,10 @@ import Torrex
 RowLayout {
     id: root
     Layout.fillWidth: true
-    Layout.margins: Theme.spacingLg
+    Layout.leftMargin: Theme.sheetPadding
+    Layout.rightMargin: Theme.sheetPadding
+    Layout.topMargin: Theme.sheetPadding
+    Layout.bottomMargin: Theme.spacingMd
     spacing: Theme.spacingMd
 
     property string title: ""

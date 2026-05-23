@@ -6,23 +6,41 @@ import Torrex
 // File checklist shown before confirming a torrent/magnet add.
 ColumnLayout {
     id: root
-    spacing: Theme.spacingSm
+    spacing: Theme.spacingMd
 
     property string status: "idle"
     property string title: ""
     property string sizeText: ""
     property var fileRows: []
-    property int fileListPreferredHeight: 240
+    property int fileListPreferredHeight: 280
+
+    readonly property int colToggle: 46
+    readonly property int colSize: 76
+    readonly property int colType: 52
 
     signal selectionChanged()
 
-    // QVariantMap uses "path" — avoid item.path (conflicts with QML Path type).
     function field(obj, key, fallback) {
         if (obj === undefined || obj === null)
             return fallback
         if (key in obj)
             return obj[key]
         return fallback
+    }
+
+    function fileNameFromPath(path) {
+        if (!path)
+            return ""
+        const slash = path.lastIndexOf("/")
+        return slash >= 0 ? path.substring(slash + 1) : path
+    }
+
+    function fileTypeFromPath(path) {
+        const name = root.fileNameFromPath(path)
+        const dot = name.lastIndexOf(".")
+        if (dot <= 0 || dot === name.length - 1)
+            return qsTr("—")
+        return name.substring(dot + 1).toUpperCase()
     }
 
     function rowFromVariant(item, index) {
@@ -59,17 +77,15 @@ ColumnLayout {
         return out
     }
 
-    function setAllWanted(wanted) {
-        const rows = []
-        for (let i = 0; i < root.fileRows.length; ++i) {
-            const row = root.fileRows[i]
-            rows.push({
-                filePath: row.filePath,
-                fileIndex: row.fileIndex,
-                size: row.size,
-                sizeText: row.sizeText,
-                wanted: wanted
-            })
+    function setRowWanted(index, wanted) {
+        const rows = root.fileRows.slice()
+        const entry = rows[index]
+        rows[index] = {
+            filePath: entry.filePath,
+            fileIndex: entry.fileIndex,
+            size: entry.size,
+            sizeText: entry.sizeText,
+            wanted: wanted
         }
         root.fileRows = rows
         root.updateSizeText()
@@ -111,113 +127,167 @@ ColumnLayout {
         color: Theme.textPrimary
         wrapMode: Text.Wrap
         Layout.fillWidth: true
+        Layout.bottomMargin: Theme.spacingXs
     }
 
-    ColumnLayout {
+    Label {
+        text: root.status === "loading"
+            ? qsTr("Loading file list from peers…")
+            : root.status === "error"
+                ? (appController.addPreviewErrorMessage.length > 0
+                    ? appController.addPreviewErrorMessage
+                    : qsTr("Could not load file list"))
+                : root.fileRows.length > 0
+                ? qsTr("%1 file(s) · %2 selected").arg(root.fileRows.length).arg(root.sizeText)
+                : qsTr("No files to show yet")
+        font.pixelSize: Theme.fontCaption
+        color: Theme.textSecondary
+        wrapMode: Text.WordWrap
         Layout.fillWidth: true
-        spacing: Theme.spacingSm
-
-        Label {
-            text: root.status === "loading"
-                ? qsTr("Loading file list from peers…")
-                : root.status === "error"
-                    ? qsTr("Could not load file list")
-                    : root.fileRows.length > 0
-                    ? qsTr("%1 file(s) · %2 selected").arg(root.fileRows.length).arg(root.sizeText)
-                    : qsTr("No files to show yet")
-            font.pixelSize: Theme.fontCaption
-            color: Theme.textSecondary
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Theme.spacingSm
-
-            Item { Layout.fillWidth: true }
-
-            TgButton {
-                text: qsTr("All")
-                enabled: root.status === "ready" && root.fileRows.length > 0
-                onClicked: root.setAllWanted(true)
-            }
-            TgButton {
-                text: qsTr("None")
-                enabled: root.status === "ready" && root.fileRows.length > 0
-                onClicked: root.setAllWanted(false)
-            }
-        }
     }
 
-    TgScrollView {
-        id: fileScroll
+    Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.max(160, Math.min(360, root.fileListPreferredHeight))
-        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+        Layout.preferredHeight: tableColumn.implicitHeight
+        visible: root.status === "ready" || root.status === "loading"
+        radius: Theme.radiusMedium
+        color: Theme.surfaceCard
+        border.color: Theme.border
+        border.width: 1
+        clip: true
 
         Column {
-            id: fileColumn
-            width: fileScroll.availableWidth > 0 ? fileScroll.availableWidth : fileScroll.width
-            spacing: Theme.spacingXs
+            id: tableColumn
+            width: parent.width
 
-            Repeater {
-                model: root.fileRows
+            Rectangle {
+                id: headerRow
+                width: parent.width
+                height: 36
+                color: Theme.hover
 
-                delegate: Rectangle {
-                    required property int index
-                    required property var modelData
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Theme.spacingMd
+                    anchors.rightMargin: Theme.spacingMd
+                    spacing: Theme.spacingMd
 
-                    width: fileColumn.width
-                    implicitHeight: rowLayout.implicitHeight + Theme.spacingMd * 2
-                    radius: Theme.radiusMedium
-                    color: Theme.surfaceCard
-                    border.color: Theme.border
-                    border.width: 1
-                    visible: root.status === "ready" || root.status === "loading"
+                    Label {
+                        text: qsTr("Download")
+                        font.pixelSize: Theme.fontCaption
+                        font.weight: Font.DemiBold
+                        color: Theme.textSecondary
+                        Layout.preferredWidth: root.colToggle
+                        horizontalAlignment: Text.AlignHCenter
+                    }
 
-                    RowLayout {
-                        id: rowLayout
-                        anchors.fill: parent
-                        anchors.margins: Theme.spacingMd
-                        spacing: Theme.spacingMd
+                    Label {
+                        text: qsTr("Name")
+                        font.pixelSize: Theme.fontCaption
+                        font.weight: Font.DemiBold
+                        color: Theme.textSecondary
+                        Layout.fillWidth: true
+                    }
 
-                        TgSwitch {
-                            checked: modelData.wanted
-                            enabled: root.status === "ready"
-                            onToggled: function(on) {
-                                const rows = root.fileRows.slice()
-                                const entry = rows[index]
-                                rows[index] = {
-                                    filePath: entry.filePath,
-                                    fileIndex: entry.fileIndex,
-                                    size: entry.size,
-                                    sizeText: entry.sizeText,
-                                    wanted: on
+                    Label {
+                        text: qsTr("Size")
+                        font.pixelSize: Theme.fontCaption
+                        font.weight: Font.DemiBold
+                        color: Theme.textSecondary
+                        Layout.preferredWidth: root.colSize
+                        horizontalAlignment: Text.AlignRight
+                    }
+
+                    Label {
+                        text: qsTr("Type")
+                        font.pixelSize: Theme.fontCaption
+                        font.weight: Font.DemiBold
+                        color: Theme.textSecondary
+                        Layout.preferredWidth: root.colType
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+            }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: Theme.divider
+            }
+
+            TgScrollView {
+                id: fileScroll
+                width: parent.width
+                height: Math.max(120, Math.min(380, root.fileListPreferredHeight))
+                ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+                Column {
+                    id: fileColumn
+                    width: fileScroll.availableWidth > 0 ? fileScroll.availableWidth : fileScroll.width
+
+                    Repeater {
+                        model: root.fileRows
+
+                        delegate: Item {
+                            required property int index
+                            required property var modelData
+
+                            width: fileColumn.width
+                            height: 44
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: Theme.spacingMd
+                                anchors.rightMargin: Theme.spacingMd
+                                spacing: Theme.spacingMd
+
+                                TgSwitch {
+                                    checked: modelData.wanted
+                                    enabled: root.status === "ready"
+                                    onToggled: function(on) {
+                                        root.setRowWanted(index, on)
+                                    }
                                 }
-                                root.fileRows = rows
-                                root.updateSizeText()
+
+                                Label {
+                                    id: nameLabel
+                                    text: root.fileNameFromPath(modelData.filePath)
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontBody
+                                    elide: Text.ElideMiddle
+                                    Layout.fillWidth: true
+                                    ToolTip.visible: nameHover.hovered && modelData.filePath.length > 0
+                                    ToolTip.text: modelData.filePath
+
+                                    HoverHandler {
+                                        id: nameHover
+                                    }
+                                }
+
+                                Label {
+                                    text: modelData.sizeText
+                                    color: Theme.textSecondary
+                                    font.pixelSize: Theme.fontCaption
+                                    Layout.preferredWidth: root.colSize
+                                    horizontalAlignment: Text.AlignRight
+                                }
+
+                                Label {
+                                    text: root.fileTypeFromPath(modelData.filePath)
+                                    color: Theme.textSecondary
+                                    font.pixelSize: Theme.fontCaption
+                                    Layout.preferredWidth: root.colType
+                                    horizontalAlignment: Text.AlignHCenter
+                                }
                             }
-                        }
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: 80
-                            spacing: 2
-
-                            Label {
-                                text: modelData.filePath
-                                color: Theme.textPrimary
-                                font.pixelSize: Theme.fontBody
-                                elide: Text.ElideMiddle
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                text: modelData.sizeText
-                                color: Theme.textSecondary
-                                font.pixelSize: Theme.fontCaption
-                                Layout.fillWidth: true
+                            Rectangle {
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                height: 1
+                                color: Theme.divider
+                                visible: index < root.fileRows.length - 1
                             }
                         }
                     }

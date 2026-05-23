@@ -6,8 +6,9 @@ import Torrex
 
 TgSheet {
     id: root
-    sheetMinHeight: 560
-    sheetMaxHeight: 820
+    sheetWidth: Theme.sheetWideWidth
+    sheetMinHeight: 620
+    sheetMaxHeight: 880
 
     property url torrentFile
 
@@ -52,20 +53,22 @@ TgSheet {
         TgSheetDivider {}
 
         TgFormScroll {
-            Layout.leftMargin: Theme.spacingLg
-            Layout.rightMargin: Theme.spacingLg
-            Layout.topMargin: Theme.spacingLg
-            Layout.bottomMargin: Theme.spacingLg
+            Layout.leftMargin: Theme.sheetPadding
+            Layout.rightMargin: Theme.sheetPadding
+            Layout.topMargin: Theme.sheetPadding
+            Layout.bottomMargin: Theme.sheetPadding
+            contentSpacing: Theme.spacingXl
 
             Label {
                 text: qsTr("Download folder")
                 color: Theme.textSecondary
                 font.pixelSize: Theme.fontCaption
                 Layout.fillWidth: true
+                Layout.bottomMargin: -Theme.spacingSm
             }
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Theme.spacingSm
+                spacing: Theme.spacingMd
                 TgTextField {
                     id: downloadPathField
                     Layout.fillWidth: true
@@ -84,6 +87,8 @@ TgSheet {
             AddTorrentFilePicker {
                 id: filePicker
                 Layout.fillWidth: true
+                Layout.topMargin: Theme.spacingSm
+                fileListPreferredHeight: 320
                 status: appController.addPreviewStatus
                 title: appController.addPreviewTitle
             }

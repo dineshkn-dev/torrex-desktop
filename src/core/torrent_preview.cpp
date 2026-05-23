@@ -1,4 +1,5 @@
 #include <torrex/torrent_preview.hpp>
+#include <torrex/info_hash_key.hpp>
 
 #include <libtorrent/load_torrent.hpp>
 #include <libtorrent/magnet_uri.hpp>
@@ -11,24 +12,13 @@ namespace torrex {
 
 namespace {
 
-std::string hash_key(const lt::info_hash_t& hashes)
-{
-    std::ostringstream out;
-    if (hashes.has_v1()) {
-        out << hashes.v1;
-    } else if (hashes.has_v2()) {
-        out << hashes.v2;
-    }
-    return out.str();
-}
-
 void fill_from_torrent_info(const lt::torrent_info& info, TorrentAddPreview& out)
 {
     out.name = info.name();
     if (out.name.empty()) {
         out.name = "Torrent";
     }
-    out.info_hash_hex = hash_key(info.info_hashes());
+    out.info_hash_hex = info_hash_key(info.info_hashes());
     out.files.clear();
     out.total_size = 0;
 
@@ -75,7 +65,7 @@ std::string preview_magnet_uri(const std::string& uri, TorrentAddPreview& out)
         return "Invalid magnet URI: " + ec.message();
     }
 
-    out.info_hash_hex = hash_key(params.info_hashes);
+    out.info_hash_hex = info_hash_key(params.info_hashes);
     out.name = params.name;
     if (out.name.empty()) {
         out.name = "Magnet link";

@@ -52,6 +52,7 @@ class AppController : public QObject {
     Q_PROPERTY(QVariantList addPreviewFiles READ addPreviewFiles NOTIFY addPreviewChanged)
     Q_PROPERTY(QString addPreviewTitle READ addPreviewTitle NOTIFY addPreviewChanged)
     Q_PROPERTY(QString addPreviewStatus READ addPreviewStatus NOTIFY addPreviewChanged)
+    Q_PROPERTY(QString addPreviewErrorMessage READ addPreviewErrorMessage NOTIFY addPreviewChanged)
     Q_PROPERTY(QString addPreviewInfoHash READ addPreviewInfoHash NOTIFY addPreviewChanged)
     Q_PROPERTY(QString addPreviewSizeText READ addPreviewSizeText NOTIFY addPreviewChanged)
 
@@ -151,10 +152,13 @@ private:
     [[nodiscard]] QVariantList addPreviewFiles() const { return add_preview_files_; }
     [[nodiscard]] QString addPreviewTitle() const { return add_preview_title_; }
     [[nodiscard]] QString addPreviewStatus() const { return add_preview_status_; }
+    [[nodiscard]] QString addPreviewErrorMessage() const { return add_preview_error_message_; }
     [[nodiscard]] QString addPreviewInfoHash() const { return add_preview_info_hash_; }
     [[nodiscard]] QString addPreviewSizeText() const { return add_preview_size_text_; }
 
     void clearAddPreview();
+    void resetAddPreviewUi(bool cancel_staging);
+    void failAddPreview(const QString& message);
     void applyAddPreview(const torrex::TorrentAddPreview& preview);
     void pollMagnetAddPreview();
     [[nodiscard]] static std::vector<std::pair<int, int>> filePrioritiesFromSelection(
@@ -192,6 +196,7 @@ private:
     QVariantList add_preview_files_;
     QString add_preview_title_;
     QString add_preview_status_{QStringLiteral("idle")};
+    QString add_preview_error_message_;
     QString add_preview_info_hash_;
     QString add_preview_size_text_;
     QTimer* add_preview_poll_timer_ = nullptr;

@@ -11,6 +11,7 @@ Popup {
     padding: Theme.spacingLg
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     transformOrigin: Item.Center
+
     property string heading: ""
     property string message: ""
     property string okText: qsTr("OK")
@@ -25,7 +26,7 @@ Popup {
             return 420
         return Math.min(420, Math.max(280, host.width - Theme.sheetMargin * 2))
     }
-    implicitHeight: contentLayout.implicitHeight + 2 * padding
+    implicitHeight: contentLayout.implicitHeight + topPadding + bottomPadding
 
     enter: Transition {
         ParallelAnimation {
@@ -75,10 +76,7 @@ Popup {
 
     ColumnLayout {
         id: contentLayout
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: root.padding
+        width: root.availableWidth
         spacing: Theme.spacingMd
 
         Label {
@@ -96,16 +94,20 @@ Popup {
             color: Theme.textSecondary
             font.pixelSize: Theme.fontBody
             Layout.fillWidth: true
+            Layout.bottomMargin: Theme.spacingXs
         }
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: Theme.spacingSm
+            Layout.topMargin: Theme.spacingSm
+            spacing: Theme.spacingMd
 
             Item { Layout.fillWidth: true }
 
             TgButton {
                 text: root.cancelText
+                Layout.preferredHeight: 40
+                Layout.alignment: Qt.AlignVCenter
                 onClicked: {
                     root.rejected()
                     root.close()
@@ -114,6 +116,8 @@ Popup {
             TgButton {
                 text: root.okText
                 primary: true
+                Layout.preferredHeight: 40
+                Layout.alignment: Qt.AlignVCenter
                 onClicked: {
                     root.accepted()
                     root.close()

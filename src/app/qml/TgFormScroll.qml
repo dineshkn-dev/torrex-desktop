@@ -11,12 +11,13 @@ TgScrollView {
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
     readonly property real formWidth: availableWidth > 0 ? availableWidth : width
+    property int contentSpacing: Theme.spacingXl
 
     default property alias content: formColumn.data
 
     ColumnLayout {
         id: formColumn
         width: root.formWidth
-        spacing: Theme.spacingLg
+        spacing: root.contentSpacing
     }
 }

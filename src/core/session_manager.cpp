@@ -1,3 +1,4 @@
+#include <torrex/info_hash_key.hpp>
 #include <torrex/log.hpp>
 #include <torrex/session_manager.hpp>
 #include <torrex/torrent_preview.hpp>
@@ -18,6 +19,7 @@
 #include <chrono>
 #include <cctype>
 #include <deque>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <mutex>
@@ -29,17 +31,6 @@
 namespace torrex {
 
 namespace {
-
-std::string hash_key(const lt::info_hash_t& hashes)
-{
-    std::ostringstream out;
-    if (hashes.has_v1()) {
-        out << hashes.v1;
-    } else if (hashes.has_v2()) {
-        out << hashes.v2;
-    }
-    return out.str();
-}
 
 std::string resume_filename_key(const std::string& key)
 {
@@ -75,7 +66,7 @@ TorrentState map_state(const lt::torrent_status::state_t state)
 TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
 {
     TorrentSnapshot snap;
-    snap.info_hash.v1_hex = hash_key(st.info_hashes);
+    snap.info_hash.v1_hex = info_hash_key(st.info_hashes);
     snap.name = st.name;
     if (snap.name.empty()) {
         snap.name = "Torrent";
@@ -244,6 +235,31 @@ void apply_file_priorities(const lt::torrent_handle& handle,
     }
 }
 
+bool hash_keys_equal_insensitive(const std::string& a, const std::string& b)
+{
+    if (a.size() != b.size()) {
+        return false;
+    }
+    return std::equal(a.begin(), a.end(), b.begin(), [](const char x, const char y) {
+        return std::tolower(static_cast<unsigned char>(x))
+            == std::tolower(static_cast<unsigned char>(y));
+    });
+}
+
+bool safe_apply_snapshot_from_handle(const lt::torrent_handle& handle, TorrentSnapshot& snap)
+{
+    if (!handle.is_valid()) {
+        return false;
+    }
+    try {
+        apply_snapshot_from_handle(handle, snap);
+        return true;
+    } catch (const std::exception& ex) {
+        log::warn("session", std::string("torrent handle snapshot failed: ") + ex.what());
+        return false;
+    }
+}
+
 } // namespace
 
 struct SessionManager::Impl {
@@ -386,7 +402,9 @@ struct SessionManager::Impl {
             return;
         }
         TorrentSnapshot snap;
-        apply_snapshot_from_handle(handle, snap);
+        if (!safe_apply_snapshot_from_handle(handle, snap)) {
+            return;
+        }
 
         const std::size_t file_count = snap.files.size();
         log::info("session",
@@ -403,13 +421,33 @@ struct SessionManager::Impl {
         apply_preview_snapshot(it->second, key, handle, snap);
     }
 
+    std::optional<std::string> find_pending_key(const std::string& id) const
+    {
+        if (const auto it = pending_magnets.find(id); it != pending_magnets.end()) {
+            return id;
+        }
+        for (const auto& [key, pending] : pending_magnets) {
+            if (hash_keys_equal_insensitive(key, id)) {
+                return key;
+            }
+            (void)pending;
+        }
+        return std::nullopt;
+    }
+
     void update_entry(const lt::torrent_handle& handle)
     {
         if (!handle.is_valid()) {
             return;
         }
-        lt::torrent_status st = handle.status();
-        const std::string key = hash_key(st.info_hashes);
+        lt::torrent_status st;
+        try {
+            st = handle.status();
+        } catch (const std::exception& ex) {
+            log::warn("session", std::string("torrent status failed: ") + ex.what());
+            return;
+        }
+        const std::string key = info_hash_key(st.info_hashes);
         if (key.empty()) {
             return;
         }
@@ -417,7 +455,7 @@ struct SessionManager::Impl {
         bool is_pending = false;
         {
             std::scoped_lock lock(mutex);
-            is_pending = pending_magnets.contains(key);
+            is_pending = find_pending_key(key).has_value();
         }
         if (is_pending) {
             refresh_pending_preview(key, handle);
@@ -427,7 +465,9 @@ struct SessionManager::Impl {
         std::scoped_lock lock(mutex);
         auto& entry = torrents[key];
         entry.handle = handle;
-        apply_snapshot_from_handle(handle, entry.snapshot);
+        if (!safe_apply_snapshot_from_handle(handle, entry.snapshot)) {
+            torrents.erase(key);
+        }
     }
 
     lt::torrent_handle find_handle_by_id(const std::string& id) const
@@ -462,7 +502,7 @@ struct SessionManager::Impl {
         if (data_directory.empty() || !alert) {
             return;
         }
-        const std::string key = hash_key(alert->params.info_hashes);
+        const std::string key = info_hash_key(alert->params.info_hashes);
         if (key.empty()) {
             return;
         }
@@ -496,7 +536,7 @@ struct SessionManager::Impl {
                 update_entry(a->handle);
             } else if (auto* a = lt::alert_cast<lt::torrent_removed_alert>(raw)) {
                 std::scoped_lock lock(mutex);
-                const std::string key = hash_key(a->info_hashes);
+                const std::string key = info_hash_key(a->info_hashes);
                 if (!key.empty()) {
                     torrents.erase(key);
                     pending_magnets.erase(key);
@@ -512,7 +552,9 @@ struct SessionManager::Impl {
             std::scoped_lock lock(mutex);
             for (auto& [key, entry] : torrents) {
                 if (entry.handle.is_valid()) {
-                    apply_snapshot_from_handle(entry.handle, entry.snapshot);
+                    if (!safe_apply_snapshot_from_handle(entry.handle, entry.snapshot)) {
+                        entry.handle = {};
+                    }
                 }
                 (void)key;
             }
@@ -524,6 +566,9 @@ struct SessionManager::Impl {
             }
         }
         for (const auto& [key, handle] : pending_to_refresh) {
+            if (!handle.is_valid()) {
+                continue;
+            }
             refresh_pending_preview(key, handle);
         }
     }
@@ -628,7 +673,7 @@ struct SessionManager::Impl {
                 // upload_mode: fetch metadata from peers but do not download payload yet.
                 params.flags |= lt::torrent_flags::upload_mode;
 
-                const std::string key = hash_key(params.info_hashes);
+                const std::string key = info_hash_key(params.info_hashes);
                 if (!key.empty()) {
                     {
                         std::scoped_lock lock(mutex);
@@ -641,6 +686,36 @@ struct SessionManager::Impl {
                     }
                     lt::torrent_handle existing = find_handle_by_id(key);
                     if (existing.is_valid()) {
+                        bool in_library = false;
+                        {
+                            std::scoped_lock lock(mutex);
+                            if (torrents.find(key) != torrents.end()) {
+                                in_library = true;
+                            } else {
+                                for (const auto& [torrent_key, entry] : torrents) {
+                                    if (hash_keys_equal_insensitive(torrent_key, key)) {
+                                        in_library = true;
+                                        break;
+                                    }
+                                    (void)entry;
+                                }
+                            }
+                        }
+                        if (in_library) {
+                            PendingMagnetPreview pending;
+                            pending.handle = existing;
+                            pending.save_path = cmd.save_path;
+                            pending.preview.info_hash_hex = key;
+                            {
+                                std::scoped_lock lock(mutex);
+                                pending_magnets[key] = std::move(pending);
+                            }
+                            refresh_pending_preview(key, existing);
+                            log::info("session",
+                                      "begin_magnet_preview reuse existing hash=" + key.substr(0, 8)
+                                          + "…");
+                            continue;
+                        }
                         set_error("Torrent already exists.");
                         continue;
                     }
@@ -693,12 +768,28 @@ struct SessionManager::Impl {
             }
 
             if (cmd.type == CommandType::CancelMagnetPreview) {
-                lt::torrent_handle handle = find_handle_by_id(cmd.primary);
-                if (handle.is_valid()) {
-                    session->remove_torrent(handle);
+                lt::torrent_handle handle;
+                {
+                    std::scoped_lock lock(mutex);
+                    const std::optional<std::string> pending_key = find_pending_key(cmd.primary);
+                    if (!pending_key.has_value()) {
+                        continue;
+                    }
+                    const auto it = pending_magnets.find(*pending_key);
+                    if (it == pending_magnets.end()) {
+                        continue;
+                    }
+                    handle = it->second.handle;
+                    pending_magnets.erase(it);
                 }
-                std::scoped_lock lock(mutex);
-                pending_magnets.erase(cmd.primary);
+                if (handle.is_valid()) {
+                    try {
+                        session->remove_torrent(handle);
+                    } catch (const std::exception& ex) {
+                        log::warn("session",
+                                  std::string("cancel_magnet_preview remove failed: ") + ex.what());
+                    }
+                }
                 continue;
             }
 
@@ -733,7 +824,7 @@ struct SessionManager::Impl {
             params.save_path = cmd.save_path;
             params.flags |= lt::torrent_flags::auto_managed;
 
-            const std::string key = hash_key(params.info_hashes);
+            const std::string key = info_hash_key(params.info_hashes);
             if (!key.empty()) {
                 lt::torrent_handle existing = find_handle_by_id(key);
                 if (existing.is_valid()) {
@@ -984,7 +1075,7 @@ std::string SessionManager::begin_magnet_preview(const std::string& uri,
         return "Invalid magnet URI: " + ec.message();
     }
 
-    out_info_hash_hex = hash_key(params.info_hashes);
+    out_info_hash_hex = info_hash_key(params.info_hashes);
     if (out_info_hash_hex.empty()) {
         return "Magnet link has no info hash.";
     }
@@ -997,6 +1088,10 @@ std::string SessionManager::begin_magnet_preview(const std::string& uri,
     cmd.primary = uri;
     cmd.save_path = save_path;
     impl_->enqueue(std::move(cmd));
+    {
+        std::scoped_lock lock(impl_->mutex);
+        impl_->last_error.clear();
+    }
     return {};
 }
 
@@ -1066,6 +1161,12 @@ std::string SessionManager::take_last_error()
     std::string err = std::move(impl_->last_error);
     impl_->last_error.clear();
     return err;
+}
+
+void SessionManager::clear_last_error()
+{
+    std::scoped_lock lock(impl_->mutex);
+    impl_->last_error.clear();
 }
 
 std::string SessionManager::pause_torrent(const std::string& info_hash_hex)
