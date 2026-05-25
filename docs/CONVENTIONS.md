@@ -1,10 +1,10 @@
-# Torrex conventions
+# Torrin conventions
 
-## C++ (`src/core/`, `include/torrex/`)
+## C++ (`src/core/`, `include/torrin/`)
 
 - **Standard:** C++20 in application code; libtorrent may impose C++14+.
 - **Naming:** `PascalCase` types, `snake_case` functions and files, `kConstant` or `constexpr` for constants.
-- **Headers:** Public API under `include/torrex/`; implementation in `src/core/`.
+- **Headers:** Public API under `include/torrin/`; implementation in `src/core/`.
 - **Errors:** Use `std::expected` or explicit `Result<T>` typedef; no exceptions across the engine thread boundary.
 - **Logging:** `spdlog` in core (when added); include `session_id` / `info_hash` where relevant.
 

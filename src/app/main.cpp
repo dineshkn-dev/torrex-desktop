@@ -38,8 +38,8 @@ void add_vcpkg_qt_plugin_paths()
     const QDir bin_dir = exe.absoluteDir();
 
     const QStringList plugin_roots = {
-#ifdef TORREX_QT_PLUGINS_DIR
-        QStringLiteral(TORREX_QT_PLUGINS_DIR),
+#ifdef TORRIN_QT_PLUGINS_DIR
+        QStringLiteral(TORRIN_QT_PLUGINS_DIR),
 #endif
         bin_dir.absoluteFilePath(QStringLiteral("../vcpkg_installed/arm64-osx/Qt6/plugins")),
         bin_dir.absoluteFilePath(QStringLiteral("../vcpkg_installed/x64-osx/Qt6/plugins")),
@@ -67,24 +67,24 @@ int main(int argc, char* argv[])
     QQuickStyle::setStyle(QStringLiteral("Basic"));
 
     QGuiApplication app(argc, argv);
-    QGuiApplication::setApplicationName("Torrex");
-    QGuiApplication::setOrganizationName("Torrex");
+    QGuiApplication::setApplicationName("Torrin");
+    QGuiApplication::setOrganizationName("Torrin");
     QGuiApplication::setApplicationVersion("0.1.0");
 
-    if (QFile::exists(QStringLiteral(":/brand/torrex-mark.svg"))) {
-        QGuiApplication::setWindowIcon(QIcon(QStringLiteral(":/brand/torrex-mark.svg")));
+    if (QFile::exists(QStringLiteral(":/brand/torrin-mark.svg"))) {
+        QGuiApplication::setWindowIcon(QIcon(QStringLiteral(":/brand/torrin-mark.svg")));
     }
 
     add_vcpkg_qt_plugin_paths();
 
     QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Unknown);
 
-    torrex::app::AppController controller;
+    torrin::app::AppController controller;
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appController", &controller);
-    engine.rootContext()->setContextProperty(QStringLiteral("torrexUiRev"), 2);
-    engine.loadFromModule("Torrex", "Main");
+    engine.rootContext()->setContextProperty(QStringLiteral("torrinUiRev"), 2);
+    engine.loadFromModule("Torrin", "Main");
 
     if (engine.rootObjects().isEmpty()) {
         return 1;

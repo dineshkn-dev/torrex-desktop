@@ -1,4 +1,4 @@
-# Torrex documentation
+# Torrin documentation
 
 | Document | Purpose |
 |----------|---------|

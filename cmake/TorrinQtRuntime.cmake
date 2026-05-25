@@ -1,5 +1,5 @@
 # Qt image-format plugins and plugin paths (PNG for Quick Controls style assets).
-function(torrex_configure_qt_runtime target)
+function(torrin_configure_qt_runtime target)
     if(NOT TARGET ${target})
         return()
     endif()
@@ -13,7 +13,7 @@ function(torrex_configure_qt_runtime target)
             set(_qt_plugins "${prefix}/Qt6/plugins")
             if(EXISTS "${_qt_plugins}/imageformats")
                 target_compile_definitions(${target} PRIVATE
-                    TORREX_QT_PLUGINS_DIR="${_qt_plugins}")
+                    TORRIN_QT_PLUGINS_DIR="${_qt_plugins}")
                 break()
             endif()
         endforeach()

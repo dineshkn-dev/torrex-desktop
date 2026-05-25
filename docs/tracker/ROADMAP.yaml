@@ -1,6 +1,6 @@
 # Forward-looking roadmap. Shipped work is documented in docs/specs/PRODUCT.md and CHANGELOG.md.
 version: 2
-project: torrex
+project: torrin
 released_version: "0.1.0"
 
 milestones:

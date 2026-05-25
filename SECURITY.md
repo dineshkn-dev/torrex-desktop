@@ -20,4 +20,4 @@ We aim to acknowledge within 72 hours and provide a fix timeline for confirmed i
 
 ## Safe use
 
-Torrex is a BitTorrent **tool**. Users are responsible for complying with applicable laws and rights when downloading or sharing content.
+Torrin is a BitTorrent **tool**. Users are responsible for complying with applicable laws and rights when downloading or sharing content.

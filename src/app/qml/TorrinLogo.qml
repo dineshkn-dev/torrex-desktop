@@ -1,7 +1,7 @@
 import QtQuick
-import Torrex
+import Torrin
 
-// Scalable Torrex mark (SVG in Qt resources).
+// Scalable Torrin mark (SVG in Qt resources).
 Item {
     id: root
     implicitWidth: size
@@ -13,7 +13,7 @@ Item {
         anchors.centerIn: parent
         width: root.size
         height: root.size
-        source: "qrc:/brand/torrex-mark.svg"
+        source: "qrc:/brand/torrin-mark.svg"
         sourceSize: Qt.size(root.size, root.size)
         fillMode: Image.PreserveAspectFit
         smooth: true

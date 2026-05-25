@@ -4,9 +4,9 @@
 
 #include <string>
 
-namespace torrex {
+namespace torrin {
 
 /// Stable lowercase hex key for maps and QML (40 chars for v1 SHA-1).
 [[nodiscard]] std::string info_hash_key(const lt::info_hash_t& hashes);
 
-} // namespace torrex
+} // namespace torrin

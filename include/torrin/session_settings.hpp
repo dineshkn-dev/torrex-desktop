@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace torrex {
+namespace torrin {
 
 /// Engine session/network limits (no Qt). Rates are bytes/s; 0 means unlimited.
 struct SessionSettings {
@@ -31,4 +31,4 @@ constexpr int kProxyTypeNone = 0;
 constexpr int kProxyTypeSocks5 = 1;
 constexpr int kProxyTypeHttp = 2;
 
-} // namespace torrex
+} // namespace torrin

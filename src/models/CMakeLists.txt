@@ -1,18 +1,18 @@
-add_library(torrex_models STATIC
+add_library(torrin_models STATIC
     torrent_list_model.cpp
 )
 
-add_library(torrex::models ALIAS torrex_models)
+add_library(torrin::models ALIAS torrin_models)
 
-target_link_libraries(torrex_models
+target_link_libraries(torrin_models
     PUBLIC
-        torrex_core
+        torrin_core
         Qt6::Core
 )
 
-target_include_directories(torrex_models
+target_include_directories(torrin_models
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_compile_features(torrex_models PUBLIC cxx_std_20)
+target_compile_features(torrin_models PUBLIC cxx_std_20)

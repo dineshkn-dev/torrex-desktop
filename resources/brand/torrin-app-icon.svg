@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- macOS bundle icon source, 1024px canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" rx="224" fill="#0d0d0d"/>
+  <circle cx="512" cy="512" r="384" stroke="#ffffff" stroke-width="12" opacity="0.12"/>
+  <path d="M352 352h320" stroke="#f5f5f5" stroke-width="40" stroke-linecap="round"/>
+  <path d="M512 352v280" stroke="#f5f5f5" stroke-width="40" stroke-linecap="round"/>
+  <circle cx="512" cy="688" r="36" fill="#d8d8d8"/>
+</svg>

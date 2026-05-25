@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 // Left sidebar: filters, torrent list, status (Telegram chat-list style).
 Item {
@@ -44,7 +44,7 @@ Item {
                 RowLayout {
                     spacing: Theme.spacingSm
 
-                    TorrexLogo {
+                    TorrinLogo {
                         size: 36
                     }
 
@@ -52,7 +52,7 @@ Item {
                         spacing: 0
 
                         Label {
-                            text: qsTr("Torrex")
+                            text: qsTr("Torrin")
                             font.pixelSize: Theme.fontTitle
                             font.weight: Font.DemiBold
                             color: Theme.textPrimary

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import Torrex
+import Torrin
 
 // Modal sheet with Telegram-style open/close motion.
 Popup {

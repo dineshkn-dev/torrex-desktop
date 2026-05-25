@@ -1,5 +1,5 @@
 import QtQuick
-import Torrex
+import Torrin
 
 Item {
     id: root

@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>Torrex</string>
+    <string>Torrin</string>
     <key>CFBundleIdentifier</key>
-    <string>io.github.torrex.Torrex</string>
+    <string>io.github.torrin.Torrin</string>
     <key>CFBundleVersion</key>
     <string>0.1.0</string>
     <key>CFBundleShortVersionString</key>

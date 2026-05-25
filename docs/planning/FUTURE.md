@@ -1,4 +1,4 @@
-# Torrex — next major work
+# Torrin — next major work
 
 Planning document for work **after v0.1**. Implementation order may change; dependencies are noted.
 
@@ -8,7 +8,7 @@ Planning document for work **after v0.1**. Implementation order may change; depe
 
 | Item | Description | Depends on |
 |------|-------------|------------|
-| Developer ID signing | Sign `Torrex.app` and `.dmg` with Apple Developer ID Application | Apple dev account |
+| Developer ID signing | Sign `Torrin.app` and `.dmg` with Apple Developer ID Application | Apple dev account |
 | Notarization | `notarytool` submit + staple ticket on release artifacts | Signing |
 | Hardened runtime | Entitlements documented; align with libtorrent/Qt needs | Signing |
 | Sparkle or in-app updates | Optional auto-update channel for tagged releases | Notarized DMG |
@@ -52,7 +52,7 @@ Planning document for work **after v0.1**. Implementation order may change; depe
 
 **Goal:** Polish beyond the v0.1 functional shell.
 
-**Shipped (UI revamp):** Telegram-inspired tokens and layout — sidebar list with filter chips, chat-style torrent rows, detail pane with header actions, rounded fields and dialogs. Preview: `open build/dev/bin/Torrex.app`.
+**Shipped (UI revamp):** Telegram-inspired tokens and layout — sidebar list with filter chips, chat-style torrent rows, detail pane with header actions, rounded fields and dialogs. Preview: `open build/dev/bin/Torrin.app`.
 
 | Item | Description | Depends on |
 |------|-------------|------------|

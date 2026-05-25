@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import Torrex
+import Torrin
 
 // Accent picker chip (settings appearance).
 Item {

@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// Design tokens; appearance from appController (accent, light/dark/AMOLED).
+// Design tokens; appearance from appController. AMOLED = fixed black/gray; accent on controls only.
 QtObject {
     readonly property var _app: typeof appController !== "undefined" ? appController : null
     readonly property int appearanceMode: _app ? _app.appearanceMode : 0
@@ -17,6 +17,18 @@ QtObject {
     }
     readonly property bool amoled: appearanceMode === 3
     readonly property bool light: !dark
+
+    // AMOLED palette: pure black + neutral grays; accent never tints surfaces.
+    readonly property color amoledWindow: "#000000"
+    readonly property color amoledSurface: "#050505"
+    readonly property color amoledSurfaceCard: "#0c0c0c"
+    readonly property color amoledElevated: "#111111"
+    readonly property color amoledHover: "#141414"
+    readonly property color amoledSelected: "#1c1c1e"
+    readonly property color amoledDivider: "#1c1c1e"
+    readonly property color amoledBorder: "#2c2c2e"
+    readonly property color amoledTextPrimary: "#f5f5f5"
+    readonly property color amoledTextSecondary: "#8e8e93"
 
     readonly property color accent: {
         const table = accentColors
@@ -85,33 +97,31 @@ QtObject {
     readonly property int fontStat: 15
 
     // Surfaces
-    readonly property color windowBackground: amoled ? "#000000"
+    readonly property color windowBackground: amoled ? amoledWindow
         : (dark ? "#0e1621" : "#ffffff")
-    readonly property color sidebarBackground: amoled ? "#000000"
+    readonly property color sidebarBackground: amoled ? amoledWindow
         : (dark ? "#17212b" : "#f7f8fa")
-    readonly property color surface: amoled ? "#050505"
+    readonly property color surface: amoled ? amoledSurface
         : (dark ? "#1e2a38" : "#ffffff")
-    readonly property color surfaceCard: amoled ? "#0c0c0c"
+    readonly property color surfaceCard: amoled ? amoledSurfaceCard
         : (dark ? "#243447" : "#f4f6f8")
-    readonly property color surfaceElevated: amoled
-        ? Qt.rgba(accent.r, accent.g, accent.b, 0.14)
+    readonly property color surfaceElevated: amoled ? amoledElevated
         : (dark ? Qt.rgba(accent.r, accent.g, accent.b, 0.28) : "#eef6fc")
-    readonly property color hover: amoled ? "#141414"
+    readonly property color hover: amoled ? amoledHover
         : (dark ? "#202b36" : "#f0f0f2")
     readonly property color selected: accent
-    readonly property color selectedMuted: amoled
-        ? Qt.rgba(accent.r, accent.g, accent.b, 0.32)
+    readonly property color selectedMuted: amoled ? amoledSelected
         : (dark ? Qt.rgba(accent.r, accent.g, accent.b, 0.4) : Qt.rgba(accent.r, accent.g, accent.b, 0.13))
 
-    readonly property color textPrimary: amoled ? "#f5f5f5"
+    readonly property color textPrimary: amoled ? amoledTextPrimary
         : (dark ? "#f5f5f5" : "#000000")
-    readonly property color textSecondary: amoled ? "#8e8e93"
+    readonly property color textSecondary: amoled ? amoledTextSecondary
         : (dark ? "#708499" : "#707579")
     readonly property color textMuted: textSecondary
     readonly property color textOnAccent: "#ffffff"
-    readonly property color divider: amoled ? "#1c1c1e"
+    readonly property color divider: amoled ? amoledDivider
         : (dark ? "#101921" : "#e6e6e6")
-    readonly property color border: amoled ? "#2c2c2e"
+    readonly property color border: amoled ? amoledBorder
         : (dark ? "#101921" : "#dadce0")
 
     readonly property color success: "#4fae4e"

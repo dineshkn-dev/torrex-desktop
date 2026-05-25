@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Generate macOS Torrex.icns from resources/brand/torrex-app-icon.svg
+# Generate macOS Torrin.icns from resources/brand/torrin-app-icon.svg
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SVG="${ROOT}/resources/brand/torrex-app-icon.svg"
-ICONSET="${ROOT}/resources/macos/Torrex.iconset"
-ICNS="${ROOT}/resources/macos/Torrex.icns"
+SVG="${ROOT}/resources/brand/torrin-app-icon.svg"
+ICONSET="${ROOT}/resources/macos/Torrin.iconset"
+ICNS="${ROOT}/resources/macos/Torrin.icns"
 
 if [[ ! -f "$SVG" ]]; then
     echo "Missing ${SVG}" >&2

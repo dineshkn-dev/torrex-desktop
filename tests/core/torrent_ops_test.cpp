@@ -1,4 +1,4 @@
-#include <torrex/session_manager.hpp>
+#include <torrin/session_manager.hpp>
 
 #include <gtest/gtest.h>
 
@@ -6,7 +6,7 @@ namespace {
 
 TEST(TorrentOpsValidation, RejectsEmptyIdWhenRunning)
 {
-    torrex::SessionManager session;
+    torrin::SessionManager session;
     session.start();
     EXPECT_EQ(session.pause_torrent(""), "Torrent id is empty.");
     EXPECT_EQ(session.resume_torrent(""), "Torrent id is empty.");
@@ -16,7 +16,7 @@ TEST(TorrentOpsValidation, RejectsEmptyIdWhenRunning)
 
 TEST(TorrentOpsValidation, RequiresRunningSession)
 {
-    torrex::SessionManager session;
+    torrin::SessionManager session;
     EXPECT_EQ(session.pause_torrent("abc"), "Session is not running.");
 }
 

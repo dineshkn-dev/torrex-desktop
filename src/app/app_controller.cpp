@@ -1,9 +1,9 @@
 #include "app_controller.hpp"
 
-#include <torrex/session_settings.hpp>
-#include <torrex/torrent_preview.hpp>
-#include <torrex/types.hpp>
-#include <torrex/version.hpp>
+#include <torrin/session_settings.hpp>
+#include <torrin/torrent_preview.hpp>
+#include <torrin/types.hpp>
+#include <torrin/version.hpp>
 
 #include <QDir>
 #include <QFileInfo>
@@ -15,9 +15,9 @@
 #include <QTimer>
 #include <QUrl>
 
-Q_LOGGING_CATEGORY(torrexPreview, "torrex.preview")
+Q_LOGGING_CATEGORY(torrinPreview, "torrin.preview")
 
-namespace torrex::app {
+namespace torrin::app {
 
 namespace {
 
@@ -25,7 +25,7 @@ QString builtin_default_download_path()
 {
     const QString base =
         QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-    const QString path = base + QStringLiteral("/Torrex");
+    const QString path = base + QStringLiteral("/Torrin");
     QDir().mkpath(path);
     return path;
 }
@@ -146,14 +146,14 @@ AppController::AppController(QObject* parent)
         add_preview_poll_timer_->stop();
         add_preview_timeout_timer_->stop();
         setStatusMessage(add_preview_error_message_);
-        qCWarning(torrexPreview) << "preview timed out";
+        qCWarning(torrinPreview) << "preview timed out";
         emit addPreviewChanged();
     });
 }
 
 AppController::~AppController() { session_.shutdown(); }
 
-QString AppController::version() const { return QString::fromUtf8(torrex::kVersion); }
+QString AppController::version() const { return QString::fromUtf8(torrin::kVersion); }
 
 void AppController::loadSessionSettingsFromStore()
 {
@@ -552,18 +552,18 @@ void AppController::failAddPreview(const QString& message)
     add_preview_poll_timer_->stop();
     add_preview_timeout_timer_->stop();
     setStatusMessage(message);
-    qCWarning(torrexPreview) << "preview failed:" << message;
+    qCWarning(torrinPreview) << "preview failed:" << message;
     emit addPreviewChanged();
 }
 
-void AppController::applyAddPreview(const torrex::TorrentAddPreview& preview)
+void AppController::applyAddPreview(const torrin::TorrentAddPreview& preview)
 {
     add_preview_title_ = QString::fromStdString(preview.name);
     add_preview_info_hash_ = QString::fromStdString(preview.info_hash_hex);
 
     QVariantList rows;
     rows.reserve(static_cast<int>(preview.files.size()));
-    for (const torrex::TorrentPreviewFile& file : preview.files) {
+    for (const torrin::TorrentPreviewFile& file : preview.files) {
         QVariantMap row;
         row.insert(QStringLiteral("path"), QString::fromStdString(file.path));
         row.insert(QStringLiteral("fileIndex"), file.index);
@@ -589,23 +589,23 @@ void AppController::pollMagnetAddPreview()
         return;
     }
 
-    const std::optional<torrex::TorrentAddPreview> preview =
+    const std::optional<torrin::TorrentAddPreview> preview =
         session_.magnet_preview(add_preview_info_hash_.toStdString());
     if (!preview.has_value()) {
-        qCDebug(torrexPreview) << "poll: no staged preview yet for"
+        qCDebug(torrinPreview) << "poll: no staged preview yet for"
                                << add_preview_info_hash_.left(8) << "…";
         return;
     }
 
     const int file_count = static_cast<int>(preview->files.size());
-    qCInfo(torrexPreview) << "poll:" << QString::fromStdString(preview->name) << "files"
+    qCInfo(torrinPreview) << "poll:" << QString::fromStdString(preview->name) << "files"
                           << file_count;
 
     applyAddPreview(*preview);
     if (!preview->files.empty()) {
         add_preview_poll_timer_->stop();
         add_preview_timeout_timer_->stop();
-        qCInfo(torrexPreview) << "preview ready with" << file_count << "files";
+        qCInfo(torrinPreview) << "preview ready with" << file_count << "files";
     }
 }
 
@@ -633,9 +633,9 @@ bool AppController::loadTorrentFilePreview(const QUrl& file_url)
         return false;
     }
 
-    torrex::TorrentAddPreview preview;
+    torrin::TorrentAddPreview preview;
     const std::string err =
-        torrex::preview_torrent_file(file_url.toLocalFile().toStdString(), preview);
+        torrin::preview_torrent_file(file_url.toLocalFile().toStdString(), preview);
     if (!err.empty()) {
         add_preview_status_ = QStringLiteral("error");
         emit addPreviewChanged();
@@ -669,9 +669,9 @@ bool AppController::loadMagnetPreview(const QString& uri, const QString& save_pa
 
     clearAddPreview();
 
-    torrex::TorrentAddPreview placeholder;
+    torrin::TorrentAddPreview placeholder;
     const std::string parse_err =
-        torrex::preview_magnet_uri(trimmed.toStdString(), placeholder);
+        torrin::preview_magnet_uri(trimmed.toStdString(), placeholder);
     if (!parse_err.empty()) {
         add_preview_status_ = QStringLiteral("error");
         emit addPreviewChanged();
@@ -684,7 +684,7 @@ bool AppController::loadMagnetPreview(const QString& uri, const QString& save_pa
     add_preview_error_message_.clear();
     emit addPreviewChanged();
 
-    qCInfo(torrexPreview) << "loadMagnetPreview start" << add_preview_title_;
+    qCInfo(torrinPreview) << "loadMagnetPreview start" << add_preview_title_;
 
     std::string info_hash;
     const std::string err = session_.begin_magnet_preview(trimmed.toStdString(),
@@ -695,7 +695,7 @@ bool AppController::loadMagnetPreview(const QString& uri, const QString& save_pa
     }
 
     add_preview_info_hash_ = QString::fromStdString(info_hash);
-    qCInfo(torrexPreview) << "staged hash" << add_preview_info_hash_.left(8) << "…";
+    qCInfo(torrinPreview) << "staged hash" << add_preview_info_hash_.left(8) << "…";
     add_preview_poll_timer_->start();
     add_preview_timeout_timer_->start();
 
@@ -704,7 +704,7 @@ bool AppController::loadMagnetPreview(const QString& uri, const QString& save_pa
         if (add_preview_status_ != QStringLiteral("loading")) {
             return;
         }
-        const std::optional<torrex::TorrentAddPreview> preview =
+        const std::optional<torrin::TorrentAddPreview> preview =
             session_.magnet_preview(add_preview_info_hash_.toStdString());
         if (preview.has_value()) {
             return;
@@ -971,4 +971,4 @@ void AppController::setStatusMessage(const QString& message)
     emit statusMessageChanged();
 }
 
-} // namespace torrex::app
+} // namespace torrin::app

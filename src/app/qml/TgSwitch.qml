@@ -1,5 +1,5 @@
 import QtQuick
-import Torrex
+import Torrin
 
 // Pure-QML toggle (no Qt Quick Controls style PNG assets).
 Item {

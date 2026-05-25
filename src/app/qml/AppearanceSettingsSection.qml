@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 // Appearance block for Settings (theme + accent).
 ColumnLayout {
@@ -37,7 +37,7 @@ ColumnLayout {
     }
 
     Label {
-        text: qsTr("Pure black backgrounds for OLED displays. Works best in dark environments.")
+        text: qsTr("True black backgrounds on OLED. Surfaces stay neutral; accent colors only tint buttons, progress, and highlights.")
         font.pixelSize: Theme.fontCaption
         color: Theme.textSecondary
         wrapMode: Text.WordWrap
@@ -52,6 +52,17 @@ ColumnLayout {
         color: Theme.textSecondary
         Layout.fillWidth: true
         Layout.topMargin: Theme.spacingSm
+    }
+
+    Label {
+        text: appController.appearanceMode === 3
+            ? qsTr("Same clean black UI for every accent — only controls and indicators use the color you pick.")
+            : qsTr("Tint for buttons, links, progress bars, and selected states.")
+        font.pixelSize: Theme.fontCaption
+        color: Theme.textSecondary
+        wrapMode: Text.WordWrap
+        Layout.fillWidth: true
+        Layout.bottomMargin: Theme.spacingXs
     }
 
     Flow {

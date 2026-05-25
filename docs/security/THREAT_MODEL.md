@@ -1,4 +1,4 @@
-# Torrex threat model (draft)
+# Torrin threat model (draft)
 
 ## Assets
 

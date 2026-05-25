@@ -1,11 +1,11 @@
 #include "torrent_list_model.hpp"
 
-#include <torrex/torrent_filter.hpp>
+#include <torrin/torrent_filter.hpp>
 
 #include <QVariantMap>
 #include <QStringList>
 
-namespace torrex::models {
+namespace torrin::models {
 
 TorrentListModel::TorrentListModel(SessionManager& session, QObject* parent)
     : QAbstractListModel(parent), session_(session)
@@ -221,4 +221,4 @@ bool TorrentListModel::sequentialDownloadAt(const int row) const
     return item != nullptr && item->sequential_download;
 }
 
-} // namespace torrex::models
+} // namespace torrin::models

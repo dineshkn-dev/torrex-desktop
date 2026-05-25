@@ -1,4 +1,4 @@
-# Torrex — contributor guide
+# Torrin — contributor guide
 
 Build, test, and change the codebase. Product scope is in [docs/specs/PRODUCT.md](docs/specs/PRODUCT.md); planned work is in [docs/planning/FUTURE.md](docs/planning/FUTURE.md).
 
@@ -29,18 +29,18 @@ ctest --preset dev
 
 | Path | Role |
 |------|------|
-| `src/core/` | `torrex_core` — libtorrent session (**no Qt**) |
+| `src/core/` | `torrin_core` — libtorrent session (**no Qt**) |
 | `src/models/` | Qt models for QML |
 | `src/app/` | Application entry and `AppController` |
 | `src/app/qml/` | Qt Quick UI |
-| `include/torrex/` | Public C++ API |
+| `include/torrin/` | Public C++ API |
 | `docs/` | Product spec, planning, ADRs — [docs/INDEX.md](docs/INDEX.md) |
 | `tests/` | gtest |
 | `scripts/` | bootstrap, verify, validate-docs |
 
 ## Invariants
 
-1. **`torrex_core` must not include Qt** — `scripts/check-core-no-qt.sh`
+1. **`torrin_core` must not include Qt** — `scripts/check-core-no-qt.sh`
 2. **All libtorrent calls on the engine thread** — UI uses queued commands only
 3. **QML binds to snapshots** — never expose `torrent_handle` to QML
 4. **No secrets in the repo**

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace torrex {
+namespace torrin {
 
 struct TorrentPreviewFile {
     int index = 0;
@@ -25,4 +25,4 @@ struct TorrentAddPreview {
 /// Parse magnet URI (name from `dn` when present; files empty until metadata).
 [[nodiscard]] std::string preview_magnet_uri(const std::string& uri, TorrentAddPreview& out);
 
-} // namespace torrex
+} // namespace torrin

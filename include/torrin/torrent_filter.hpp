@@ -1,10 +1,10 @@
 #pragma once
 
-#include <torrex/types.hpp>
+#include <torrin/types.hpp>
 
 #include <cstring>
 
-namespace torrex {
+namespace torrin {
 
 inline bool is_complete_seeding(const TorrentSnapshot& item)
 {
@@ -34,4 +34,4 @@ inline bool torrent_matches_filter(const TorrentSnapshot& item, const char* filt
     return true;
 }
 
-} // namespace torrex
+} // namespace torrin

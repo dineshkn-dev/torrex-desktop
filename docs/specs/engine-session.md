@@ -1,6 +1,6 @@
 # Engine session specification
 
-`torrex_core::SessionManager` owns the libtorrent session lifecycle.
+`torrin_core::SessionManager` owns the libtorrent session lifecycle.
 
 ## Behavior
 
@@ -11,7 +11,7 @@
 5. `pause_torrent()` / `resume_torrent()` / `remove_torrent()` operate by info-hash key.
 6. `set_file_priority()` / `set_sequential_download()` enqueue per-torrent changes.
 7. `set_session_settings()` applies bandwidth, port, DHT/UPnP, and proxy options.
-8. No Qt types in `src/core/` or `include/torrex/`.
+8. No Qt types in `src/core/` or `include/torrin/`.
 
 ## Tests
 

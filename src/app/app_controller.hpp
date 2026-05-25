@@ -1,7 +1,7 @@
 #pragma once
 
-#include <torrex/session_manager.hpp>
-#include <torrex/torrent_preview.hpp>
+#include <torrin/session_manager.hpp>
+#include <torrin/torrent_preview.hpp>
 
 #include "torrent_list_model.hpp"
 
@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-namespace torrex::app {
+namespace torrin::app {
 
 class AppController : public QObject {
     Q_OBJECT
@@ -159,7 +159,7 @@ private:
     void clearAddPreview();
     void resetAddPreviewUi(bool cancel_staging);
     void failAddPreview(const QString& message);
-    void applyAddPreview(const torrex::TorrentAddPreview& preview);
+    void applyAddPreview(const torrin::TorrentAddPreview& preview);
     void pollMagnetAddPreview();
     [[nodiscard]] static std::vector<std::pair<int, int>> filePrioritiesFromSelection(
         const QVariantList& files);
@@ -205,4 +205,4 @@ private:
     models::TorrentListModel torrent_model_;
 };
 
-} // namespace torrex::app
+} // namespace torrin::app

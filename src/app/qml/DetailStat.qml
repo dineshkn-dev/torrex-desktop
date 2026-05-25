@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 // Label + prominent value (detail pane stat cell).
 ColumnLayout {

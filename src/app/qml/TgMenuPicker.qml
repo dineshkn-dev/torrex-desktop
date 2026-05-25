@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import Torrex
+import Torrin
 
 // Popup menu picker (replaces ComboBox; no dropdown PNG assets).
 Item {

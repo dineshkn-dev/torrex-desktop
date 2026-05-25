@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 ColumnLayout {
     id: root
@@ -15,7 +15,7 @@ ColumnLayout {
     signal addMagnet()
     signal addTorrent()
 
-    TorrexLogo {
+    TorrinLogo {
         Layout.alignment: Qt.AlignHCenter
         size: 56
     }

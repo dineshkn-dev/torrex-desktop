@@ -1,4 +1,4 @@
-# Torrex
+# Torrin
 
 Open-source BitTorrent client for **macOS** (v0.1), built with **C++20**, **libtorrent 2.x**, and **Qt 6 Quick**.
 
@@ -9,7 +9,7 @@ Open-source BitTorrent client for **macOS** (v0.1), built with **C++20**, **libt
 - Bandwidth limits, port, DHT/UPnP, and proxy settings
 - Master–detail UI, filters, system light/dark theme
 - Drag-and-drop, fast-resume, completion notifications
-- Signed release `.dmg` with SBOM (see [Releases](https://github.com/dineshkn-dev/torrex-desktop/releases))
+- Signed release `.dmg` with SBOM (see [Releases](https://github.com/dineshkn-dev/torrin/releases))
 
 Full list: [docs/specs/PRODUCT.md](docs/specs/PRODUCT.md).
 
@@ -31,17 +31,17 @@ cmake --build --preset dev
 ./scripts/run-dev.sh
 ```
 
-Run `./build/dev/bin/torrex` (shell launcher → `torrex.app`) or `./scripts/run-dev.sh`.
+Run `./build/dev/bin/torrin` (shell launcher → `torrin.app`) or `./scripts/run-dev.sh`.
 
-Torrex follows your macOS **Appearance** (Light / Dark / Auto).
+Torrin follows your macOS **Appearance** (Light / Dark / Auto).
 
 Optional: `export VCPKG_ROOT=~/vcpkg` if vcpkg is outside the repo.
 
 ## Architecture
 
-- `torrex_core` — libtorrent session (no Qt)
-- `torrex_models` — Qt models
-- `torrex` — Qt Quick app
+- `torrin_core` — libtorrent session (no Qt)
+- `torrin_models` — Qt models
+- `torrin` — Qt Quick app
 
 Details: [docs/architecture/](docs/architecture/).
 
@@ -55,4 +55,4 @@ GPL-3.0-or-later — see [LICENSE](LICENSE). libtorrent is BSD-licensed.
 
 ## Security
 
-Report issues per [SECURITY.md](SECURITY.md). Use Torrex only for content you have the right to download or share.
+Report issues per [SECURITY.md](SECURITY.md). Use Torrin only for content you have the right to download or share.

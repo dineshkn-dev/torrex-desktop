@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 // Scrollable form body for sheets and detail panes (width tracks viewport).
 TgScrollView {

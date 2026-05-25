@@ -1,5 +1,5 @@
 import QtQuick
-import Torrex
+import Torrin
 
 // Bordered surface panel (use instead of Frame.background on native macOS style).
 Item {

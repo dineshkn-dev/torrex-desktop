@@ -9,13 +9,13 @@ if(NOT MACDEPLOYQT_EXECUTABLE)
     return()
 endif()
 
-set(_torrex_qml_dir "${CMAKE_SOURCE_DIR}/src/app/qml")
+set(_torrin_qml_dir "${CMAKE_SOURCE_DIR}/src/app/qml")
 add_custom_command(
-    TARGET torrex
+    TARGET torrin
     POST_BUILD
     COMMAND "${MACDEPLOYQT_EXECUTABLE}"
-            "$<TARGET_BUNDLE_DIR:torrex>"
+            "$<TARGET_BUNDLE_DIR:torrin>"
             -always-overwrite
-            -qmldir="${_torrex_qml_dir}"
-    COMMENT "Running macdeployqt on Torrex.app"
+            -qmldir="${_torrin_qml_dir}"
+    COMMENT "Running macdeployqt on Torrin.app"
 )

@@ -1,10 +1,10 @@
-#include <torrex/info_hash_key.hpp>
+#include <torrin/info_hash_key.hpp>
 
 #include <libtorrent/hex.hpp>
 
 #include <cctype>
 
-namespace torrex {
+namespace torrin {
 
 std::string info_hash_key(const lt::info_hash_t& hashes)
 {
@@ -20,4 +20,4 @@ std::string info_hash_key(const lt::info_hash_t& hashes)
     return key;
 }
 
-} // namespace torrex
+} // namespace torrin

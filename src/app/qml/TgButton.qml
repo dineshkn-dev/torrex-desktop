@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import Torrex
+import Torrin
 
 Button {
     id: root

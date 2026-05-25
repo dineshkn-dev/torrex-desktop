@@ -1,20 +1,20 @@
-#include <torrex/session_manager.hpp>
+#include <torrin/session_manager.hpp>
 
 #include <gtest/gtest.h>
 
 TEST(AddTorrentValidation, RejectsInvalidMagnet) {
-    torrex::SessionManager session;
+    torrin::SessionManager session;
     session.start();
-    const std::string err = session.add_magnet("not-a-magnet", "/tmp/torrex-test");
+    const std::string err = session.add_magnet("not-a-magnet", "/tmp/torrin-test");
     EXPECT_FALSE(err.empty());
     session.shutdown();
 }
 
 TEST(AddTorrentValidation, RejectsMissingFile) {
-    torrex::SessionManager session;
+    torrin::SessionManager session;
     session.start();
     const std::string err =
-        session.add_torrent_file("/nonexistent/torrex-missing.torrent", "/tmp/torrex-test");
+        session.add_torrent_file("/nonexistent/torrin-missing.torrent", "/tmp/torrin-test");
     EXPECT_FALSE(err.empty());
     session.shutdown();
 }

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import Torrex
+import Torrin
 
 // Circular icon/text action (Telegram header style).
 ToolButton {

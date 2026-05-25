@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 Item {
     id: root
@@ -30,6 +30,15 @@ Item {
                 easing.type: Easing.OutCubic
             }
         }
+    }
+
+    Rectangle {
+        width: 3
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        visible: root.selected && Theme.amoled
+        color: Theme.accent
     }
 
     Rectangle {

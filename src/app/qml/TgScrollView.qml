@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import Torrex
+import Torrin
 
 // Scroll area tuned for fast wheel + smooth inertial flick (Telegram-like).
 ScrollView {

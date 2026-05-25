@@ -1,9 +1,9 @@
-#include <torrex/session_manager.hpp>
+#include <torrin/session_manager.hpp>
 
 #include <gtest/gtest.h>
 
 TEST(SessionManager, StartShutdown) {
-    torrex::SessionManager session;
+    torrin::SessionManager session;
     EXPECT_FALSE(session.is_running());
     session.start();
     EXPECT_TRUE(session.is_running());
@@ -12,7 +12,7 @@ TEST(SessionManager, StartShutdown) {
 }
 
 TEST(SessionManager, DoubleStartIsIdempotent) {
-    torrex::SessionManager session;
+    torrin::SessionManager session;
     session.start();
     session.start();
     EXPECT_TRUE(session.is_running());

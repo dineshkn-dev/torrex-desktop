@@ -1,6 +1,6 @@
 find_package(GTest CONFIG REQUIRED)
 
-add_executable(torrex_tests
+add_executable(torrin_tests
     core/version_test.cpp
     core/session_manager_test.cpp
     core/add_torrent_test.cpp
@@ -11,13 +11,16 @@ add_executable(torrex_tests
     core/torrent_preview_test.cpp
 )
 
-target_link_libraries(torrex_tests
+target_link_libraries(torrin_tests
     PRIVATE
-        torrex_core
+        torrin_core
         GTest::gtest_main
 )
 
-target_compile_features(torrex_tests PRIVATE cxx_std_20)
+target_compile_features(torrin_tests PRIVATE cxx_std_20)
+
+# Core-only tests; global AUTOMOC would warn without any Qt sources.
+set_target_properties(torrin_tests PROPERTIES AUTOMOC OFF AUTORCC OFF AUTOUIC OFF)
 
 include(GoogleTest)
-gtest_discover_tests(torrex_tests)
+gtest_discover_tests(torrin_tests)

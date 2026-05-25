@@ -13,7 +13,8 @@
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_POLICY_DEFAULT_CMP0167": "OLD"
       }
     },
     {
@@ -21,7 +22,7 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "TORREX_BUILD_TESTS": "ON"
+        "TORRIN_BUILD_TESTS": "ON"
       }
     },
     {
@@ -29,14 +30,14 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "TORREX_BUILD_TESTS": "ON"
+        "TORRIN_BUILD_TESTS": "ON"
       }
     },
     {
       "name": "sanitize",
       "inherits": "dev",
       "cacheVariables": {
-        "TORREX_ENABLE_SANITIZERS": "ON"
+        "TORRIN_ENABLE_SANITIZERS": "ON"
       }
     }
   ],

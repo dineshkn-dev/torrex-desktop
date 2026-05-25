@@ -1,6 +1,6 @@
-# Torrex product specification (v0.1)
+# Torrin product specification (v0.1)
 
-Torrex v0.1 is a **macOS** BitTorrent client. This document describes what the shipped product does today.
+Torrin v0.1 is a **macOS** BitTorrent client. This document describes what the shipped product does today.
 
 ## Capabilities
 
@@ -22,7 +22,7 @@ Torrex v0.1 is a **macOS** BitTorrent client. This document describes what the s
 
 - Sidebar **filters** (All, Downloading, Seeding, Paused)
 - **Master–detail** layout with Overview and Files tabs
-- **Appearance** settings: system / light / dark / **AMOLED** (pure black) themes and **accent color** (blue, teal, violet, rose, orange, green)
+- **Appearance** settings: system / light / dark / **AMOLED** (true black, neutral grays — unchanged by accent) and **accent color** (blue, teal, violet, rose, orange, green) for controls and highlights
 - **Drag-and-drop** magnets and `.torrent` files onto the window
 - **In-app notification** when a download completes
 

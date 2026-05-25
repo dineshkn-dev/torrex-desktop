@@ -7,12 +7,12 @@
 #include <sstream>
 #include <string>
 
-namespace torrex::log {
+namespace torrin::log {
 
 inline bool enabled()
 {
     static const bool on = [] {
-        const char* env = std::getenv("TORREX_LOG");
+        const char* env = std::getenv("TORRIN_LOG");
         return env != nullptr && env[0] != '\0' && env[0] != '0';
     }();
     return on;
@@ -37,7 +37,7 @@ inline void write(const char* level, const char* component, const std::string& m
 #endif
 
     std::cerr << std::put_time(&local_tm, "%H:%M:%S") << '.' << std::setw(3) << std::setfill('0')
-              << ms.count() << " [" << level << "] torrex." << component << ": " << message
+              << ms.count() << " [" << level << "] torrin." << component << ": " << message
               << std::endl;
 }
 
@@ -56,4 +56,4 @@ inline void error(const char* component, const std::string& message)
     write("ERROR", component, message);
 }
 
-} // namespace torrex::log
+} // namespace torrin::log

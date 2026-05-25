@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 // Settings row: label + switch (avoids broken CheckBox PNG assets).
 RowLayout {

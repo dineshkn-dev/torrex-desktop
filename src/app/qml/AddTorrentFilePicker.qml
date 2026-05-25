@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 // File checklist shown before confirming a torrent/magnet add.
 ColumnLayout {

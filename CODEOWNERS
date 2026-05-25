@@ -3,7 +3,7 @@
 
 # Engine and security-sensitive paths
 /src/core/ @dineshkn
-/include/torrex/ @dineshkn
+/include/torrin/ @dineshkn
 /cmake/ @dineshkn
 /.github/workflows/ @dineshkn
 /packaging/ @dineshkn

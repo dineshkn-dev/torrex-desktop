@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 Rectangle {
     Layout.fillWidth: true

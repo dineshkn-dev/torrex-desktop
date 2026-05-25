@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Torrex is a cross-platform desktop BitTorrent client built from a greenfield repository. We need a mature protocol implementation and a modern UI that ships on macOS, Windows, and Linux.
+Torrin is a cross-platform desktop BitTorrent client built from a greenfield repository. We need a mature protocol implementation and a modern UI that ships on macOS, Windows, and Linux.
 
 ## Decision
 

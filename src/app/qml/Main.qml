@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import QtQuick.Dialogs
-import Torrex
+import Torrin
 
 ApplicationWindow {
     id: window
@@ -11,9 +11,7 @@ ApplicationWindow {
     minimumWidth: 800
     minimumHeight: 520
     visible: true
-    title: torrexUiRev >= 2
-        ? qsTr("Torrex %1").arg(appController.version)
-        : qsTr("Torrex %1 (legacy UI)").arg(appController.version)
+    title: qsTr("Torrin %1").arg(appController.version)
     color: Theme.windowBackground
 
     Behavior on color {
@@ -56,7 +54,7 @@ ApplicationWindow {
         removeConfirmPopup.message = deleteFiles
             ? qsTr("Delete all downloaded files for \"%1\"? This cannot be undone.")
                   .arg(torrentName)
-            : qsTr("Remove \"%1\" from Torrex? Downloaded files will stay on disk.")
+            : qsTr("Remove \"%1\" from Torrin? Downloaded files will stay on disk.")
                   .arg(torrentName)
         removeConfirmPopup.open()
     }

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import Torrex
+import Torrin
 
 MenuSeparator {
     topPadding: Theme.spacingXs

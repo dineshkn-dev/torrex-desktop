@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import Torrex
+import Torrin
 
 // Numeric setting with +/- steppers (avoids SpinBox style assets).
 RowLayout {

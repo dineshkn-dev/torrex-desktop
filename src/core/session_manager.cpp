@@ -1,7 +1,7 @@
-#include <torrex/info_hash_key.hpp>
-#include <torrex/log.hpp>
-#include <torrex/session_manager.hpp>
-#include <torrex/torrent_preview.hpp>
+#include <torrin/info_hash_key.hpp>
+#include <torrin/log.hpp>
+#include <torrin/session_manager.hpp>
+#include <torrin/torrent_preview.hpp>
 
 #include <libtorrent/add_torrent_params.hpp>
 #include <libtorrent/alert_types.hpp>
@@ -28,7 +28,7 @@
 #include <thread>
 #include <unordered_map>
 
-namespace torrex {
+namespace torrin {
 
 namespace {
 
@@ -1242,4 +1242,4 @@ std::string SessionManager::set_sequential_download(const std::string& info_hash
     return {};
 }
 
-} // namespace torrex
+} // namespace torrin

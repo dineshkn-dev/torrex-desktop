@@ -1,5 +1,5 @@
-#include <torrex/torrent_preview.hpp>
-#include <torrex/info_hash_key.hpp>
+#include <torrin/torrent_preview.hpp>
+#include <torrin/info_hash_key.hpp>
 
 #include <libtorrent/load_torrent.hpp>
 #include <libtorrent/magnet_uri.hpp>
@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <sstream>
 
-namespace torrex {
+namespace torrin {
 
 namespace {
 
@@ -76,4 +76,4 @@ std::string preview_magnet_uri(const std::string& uri, TorrentAddPreview& out)
     return {};
 }
 
-} // namespace torrex
+} // namespace torrin

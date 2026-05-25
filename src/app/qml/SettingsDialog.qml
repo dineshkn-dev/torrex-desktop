@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import QtQuick.Dialogs
-import Torrex
+import Torrin
 
 // Modal settings sheet (avoids native Dialog chrome and layout bleed-through).
 TgSheet {
@@ -79,7 +79,7 @@ TgSheet {
                     }
 
                     Label {
-                        text: qsTr("Torrents restore automatically when you quit and reopen Torrex.")
+                        text: qsTr("Torrents restore automatically when you quit and reopen Torrin.")
                         font.pixelSize: Theme.fontCaption
                         color: Theme.textSecondary
                         wrapMode: Text.WordWrap

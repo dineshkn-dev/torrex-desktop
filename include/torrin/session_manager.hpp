@@ -1,8 +1,8 @@
 #pragma once
 
-#include <torrex/session_settings.hpp>
-#include <torrex/torrent_preview.hpp>
-#include <torrex/types.hpp>
+#include <torrin/session_settings.hpp>
+#include <torrin/torrent_preview.hpp>
+#include <torrin/types.hpp>
 
 #include <atomic>
 #include <memory>
@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-namespace torrex {
+namespace torrin {
 
 /// Owns the libtorrent session on a dedicated worker thread. No Qt types.
 class SessionManager {
@@ -77,4 +77,4 @@ private:
     std::atomic<bool> running_{false};
 };
 
-} // namespace torrex
+} // namespace torrin

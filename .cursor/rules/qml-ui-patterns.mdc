@@ -1,5 +1,5 @@
 ---
-description: QML presentation-only patterns for Torrex UI
+description: QML presentation-only patterns for Torrin UI
 globs: "src/app/qml/**"
 alwaysApply: false
 ---

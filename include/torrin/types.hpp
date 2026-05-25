@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace torrex {
+namespace torrin {
 
 struct InfoHash {
     std::string v1_hex; // 40-char hex when available
@@ -40,4 +40,4 @@ struct TorrentSnapshot {
     std::vector<TorrentFileSnapshot> files;
 };
 
-} // namespace torrex
+} // namespace torrin

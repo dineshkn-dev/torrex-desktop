@@ -1,13 +1,13 @@
 #pragma once
 
-#include <torrex/session_manager.hpp>
-#include <torrex/types.hpp>
+#include <torrin/session_manager.hpp>
+#include <torrin/types.hpp>
 
 #include <QAbstractListModel>
 #include <QString>
 #include <vector>
 
-namespace torrex::models {
+namespace torrin::models {
 
 class TorrentListModel : public QAbstractListModel {
     Q_OBJECT
@@ -69,4 +69,4 @@ private:
     int data_revision_ = 0;
 };
 
-} // namespace torrex::models
+} // namespace torrin::models
