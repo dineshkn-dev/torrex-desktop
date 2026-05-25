@@ -67,7 +67,7 @@ jobs:
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@v0
         with:
-          path: build/ci-release/bin/Torrin.app
+          path: build/ci-release/bin/torrin.app
           format: spdx-json
           output-file: build/ci-release/staging/torrin.spdx.json
 

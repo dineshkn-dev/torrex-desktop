@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Package Torrin.app into a compressed .dmg and write SHA-256 checksums.
+# Package torrin.app into a compressed .dmg and write SHA-256 checksums.
 # Usage: ./scripts/package-macos.sh [build/ci-release]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${1:-$ROOT/build/ci-release}"
-APP="$BUILD_DIR/bin/Torrin.app"
+APP="$BUILD_DIR/bin/torrin.app"
 STAGING="$BUILD_DIR/staging"
 VERSION="$(grep -E 'constexpr const char\* kVersion' "$ROOT/include/torrin/version.hpp" | sed -E 's/.*"([^"]+)".*/\1/')"
 

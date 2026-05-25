@@ -17,5 +17,5 @@ add_custom_command(
             "$<TARGET_BUNDLE_DIR:torrin>"
             -always-overwrite
             -qmldir="${_torrin_qml_dir}"
-    COMMENT "Running macdeployqt on Torrin.app"
+    COMMENT "Running macdeployqt on torrin.app"
 )
