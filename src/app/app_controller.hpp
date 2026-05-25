@@ -131,6 +131,10 @@ public:
 
     Q_INVOKABLE void pauseTorrent(const QString& info_hash);
     Q_INVOKABLE void resumeTorrent(const QString& info_hash);
+    Q_INVOKABLE void stopSeeding(const QString& info_hash);
+    Q_INVOKABLE void resumeSeeding(const QString& info_hash);
+    Q_INVOKABLE void forceRecheck(const QString& info_hash);
+    Q_INVOKABLE void forceReannounce(const QString& info_hash);
     Q_INVOKABLE void removeTorrent(const QString& info_hash, bool delete_files);
     Q_INVOKABLE void setTorrentFilePriority(const QString& info_hash,
                                             int file_index,

@@ -24,6 +24,10 @@ Item {
         dataRevision
         return hasSelection ? model.stateAt(torrentRow) : -1
     }
+    readonly property bool detailUploadStopped: {
+        dataRevision
+        return hasSelection && model.uploadStoppedAt(torrentRow)
+    }
     readonly property int detailProgress: {
         dataRevision
         return hasSelection ? model.progressAt(torrentRow) : 0
@@ -63,13 +67,13 @@ Item {
             Layout.fillWidth: true
             implicitHeight: headerCol.implicitHeight + Theme.spacingLg * 2
             color: Theme.surfaceCard
+            visible: root.hasSelection
 
             ColumnLayout {
                 id: headerCol
                 anchors.fill: parent
                 anchors.margins: Theme.spacingLg
                 spacing: Theme.spacingMd
-                visible: root.hasSelection
 
                 RowLayout {
                     Layout.fillWidth: true
@@ -99,7 +103,7 @@ Item {
                                 color: Theme.stateColor(root.detailState)
                             }
                             Label {
-                                text: Theme.stateLabel(root.detailState)
+                                text: Theme.stateLabel(root.detailState, root.detailUploadStopped)
                                 font.pixelSize: Theme.fontCaption
                                 color: Theme.textSecondary
                             }
@@ -143,6 +147,30 @@ Item {
 
                             TgMenu {
                                 id: detailMenu
+                                MenuItem {
+                                    text: qsTr("Stop seeding")
+                                    enabled: Theme.canStopSeeding(
+                                        root.detailState, root.detailProgress, root.detailUploadStopped)
+                                    onTriggered: appController.stopSeeding(root.detailInfoHash)
+                                }
+                                MenuItem {
+                                    text: qsTr("Resume seeding")
+                                    enabled: Theme.canResumeSeeding(
+                                        root.detailState, root.detailProgress, root.detailUploadStopped)
+                                    onTriggered: appController.resumeSeeding(root.detailInfoHash)
+                                }
+                                TgMenuSeparator {}
+                                MenuItem {
+                                    text: qsTr("Force recheck")
+                                    enabled: root.hasSelection
+                                    onTriggered: appController.forceRecheck(root.detailInfoHash)
+                                }
+                                MenuItem {
+                                    text: qsTr("Force reannounce")
+                                    enabled: root.hasSelection
+                                    onTriggered: appController.forceReannounce(root.detailInfoHash)
+                                }
+                                TgMenuSeparator {}
                                 MenuItem {
                                     text: qsTr("Remove")
                                     onTriggered: {
@@ -251,13 +279,18 @@ Item {
             }
         }
 
-        EmptyState {
+        Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             visible: !root.hasSelection
-            title: qsTr("Select a torrent")
-            subtitle: qsTr("Pick one from the list to see progress, files, and controls.")
-            showActions: false
+
+            EmptyState {
+                anchors.centerIn: parent
+                width: Math.min(420, parent.width - Theme.spacingLg * 4)
+                title: qsTr("Select a torrent")
+                subtitle: qsTr("Pick one from the list to see progress, files, and controls.")
+                showActions: false
+            }
         }
     }
 

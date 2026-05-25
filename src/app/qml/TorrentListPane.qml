@@ -91,7 +91,7 @@ Item {
             }
 
             TgIconButton {
-                text: "⚙"
+                glyph: "settings"
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Settings")
                 onClicked: root.settingsRequested()
@@ -257,6 +257,7 @@ Item {
                     name: { void(_rev); return appController.torrents.nameAt(index) }
                     progress: { void(_rev); return appController.torrents.progressAt(index) }
                     state: { void(_rev); return appController.torrents.stateAt(index) }
+                    uploadStopped: { void(_rev); return appController.torrents.uploadStoppedAt(index) }
                     downloadRate: { void(_rev); return appController.torrents.downloadRateAt(index) }
                     uploadRate: { void(_rev); return appController.torrents.uploadRateAt(index) }
                     selected: torrentList.currentIndex === index
@@ -277,6 +278,29 @@ Item {
                             text: qsTr("Resume")
                             enabled: rowDelegate.state === 4
                             onTriggered: appController.resumeTorrent(rowDelegate.infoHash)
+                        }
+                        MenuItem {
+                            text: qsTr("Stop seeding")
+                            enabled: Theme.canStopSeeding(
+                                rowDelegate.state, rowDelegate.progress, rowDelegate.uploadStopped)
+                            onTriggered: appController.stopSeeding(rowDelegate.infoHash)
+                        }
+                        MenuItem {
+                            text: qsTr("Resume seeding")
+                            enabled: Theme.canResumeSeeding(
+                                rowDelegate.state, rowDelegate.progress, rowDelegate.uploadStopped)
+                            onTriggered: appController.resumeSeeding(rowDelegate.infoHash)
+                        }
+                        TgMenuSeparator {}
+                        MenuItem {
+                            text: qsTr("Force recheck")
+                            enabled: rowDelegate.infoHash.length > 0
+                            onTriggered: appController.forceRecheck(rowDelegate.infoHash)
+                        }
+                        MenuItem {
+                            text: qsTr("Force reannounce")
+                            enabled: rowDelegate.infoHash.length > 0
+                            onTriggered: appController.forceReannounce(rowDelegate.infoHash)
                         }
                         TgMenuSeparator {}
                         MenuItem {

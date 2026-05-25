@@ -30,6 +30,7 @@ qt_add_qml_module(torrin
         qml/TorrentListPane.qml
         qml/TorrentRow.qml
         qml/TgIconButton.qml
+        qml/TgSettingsIcon.qml
         qml/TgButton.qml
         qml/TgTextField.qml
         qml/FilterChip.qml

@@ -62,6 +62,11 @@ public:
     /// `info_hash_hex` is the key from `TorrentSnapshot::info_hash.v1_hex`.
     [[nodiscard]] std::string pause_torrent(const std::string& info_hash_hex);
     [[nodiscard]] std::string resume_torrent(const std::string& info_hash_hex);
+    /// Stops uploading for a completed torrent without pausing (files stay available).
+    [[nodiscard]] std::string stop_seeding(const std::string& info_hash_hex);
+    [[nodiscard]] std::string resume_seeding(const std::string& info_hash_hex);
+    [[nodiscard]] std::string force_recheck(const std::string& info_hash_hex);
+    [[nodiscard]] std::string force_reannounce(const std::string& info_hash_hex);
     [[nodiscard]] std::string remove_torrent(const std::string& info_hash_hex,
                                              bool delete_files = false);
 

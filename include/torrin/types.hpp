@@ -36,6 +36,8 @@ struct TorrentSnapshot {
     std::int64_t download_rate = 0;
     std::int64_t upload_rate = 0;
     std::string save_path;
+    /// True when a completed torrent has upload disabled via stop-seeding (not paused).
+    bool upload_stopped = false;
     bool sequential_download = false;
     std::vector<TorrentFileSnapshot> files;
 };

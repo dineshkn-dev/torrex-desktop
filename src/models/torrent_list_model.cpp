@@ -144,6 +144,12 @@ int TorrentListModel::stateAt(const int row) const
     return item == nullptr ? -1 : static_cast<int>(item->state);
 }
 
+bool TorrentListModel::uploadStoppedAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item != nullptr && item->upload_stopped;
+}
+
 int TorrentListModel::progressAt(const int row) const
 {
     const TorrentSnapshot* item = snapshotAt(row);

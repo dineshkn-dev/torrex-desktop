@@ -7,7 +7,8 @@ Torrin v0.1 is a **macOS** BitTorrent client. This document describes what the s
 ### Torrents
 
 - Add downloads via **magnet link** or **`.torrent` file**, with a **file checklist** before starting (select which files to download)
-- **Pause**, **resume**, and **remove** (optionally delete data on disk)
+- **Pause**, **resume**, **stop seeding** / **resume seeding** (disable upload on completed torrents without pausing), and **remove** (optionally delete data on disk)
+- **Force recheck** and **force reannounce** per torrent
 - **Per-torrent save folder** when adding; **default folder** in Settings
 - **File priorities** (skip / low / normal / high) and **sequential download** per torrent
 - **Fast-resume**: torrent list and progress restore after quit and relaunch

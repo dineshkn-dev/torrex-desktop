@@ -12,6 +12,7 @@ Item {
     property string infoHash: ""
     property int progress: 0
     property int state: 0
+    property bool uploadStopped: false
     property real downloadRate: 0
     property real uploadRate: 0
     property bool selected: false
@@ -130,7 +131,7 @@ Item {
         }
     }
 
-    readonly property string metaLine: Theme.stateLabel(root.state)
+    readonly property string metaLine: Theme.stateLabel(root.state, root.uploadStopped)
 
     readonly property string speedText: {
         if (root.downloadRate > 0)

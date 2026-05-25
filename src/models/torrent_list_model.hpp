@@ -44,6 +44,7 @@ public:
     Q_INVOKABLE QString infoHashAt(int row) const;
     Q_INVOKABLE QString nameAt(int row) const;
     Q_INVOKABLE int stateAt(int row) const;
+    Q_INVOKABLE bool uploadStoppedAt(int row) const;
     Q_INVOKABLE int progressAt(int row) const;
     Q_INVOKABLE QString savePathAt(int row) const;
     Q_INVOKABLE qint64 downloadRateAt(int row) const;

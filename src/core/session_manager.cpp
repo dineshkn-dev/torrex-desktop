@@ -1,6 +1,7 @@
 #include <torrin/info_hash_key.hpp>
 #include <torrin/log.hpp>
 #include <torrin/session_manager.hpp>
+#include <torrin/torrent_filter.hpp>
 #include <torrin/torrent_preview.hpp>
 
 #include <libtorrent/add_torrent_params.hpp>
@@ -274,6 +275,7 @@ struct SessionManager::Impl {
     struct TorrentEntry {
         lt::torrent_handle handle;
         TorrentSnapshot snapshot;
+        bool upload_stopped = false;
     };
 
     std::unordered_map<std::string, TorrentEntry> torrents;
@@ -294,6 +296,10 @@ struct SessionManager::Impl {
         CancelMagnetPreview,
         Pause,
         Resume,
+        StopSeeding,
+        ResumeSeeding,
+        ForceRecheck,
+        ForceReannounce,
         Remove,
         SetFilePriority,
         SetSequential,
@@ -370,6 +376,33 @@ struct SessionManager::Impl {
         cmd.primary = info_hash_hex;
         cmd.delete_files = delete_files;
         enqueue(std::move(cmd));
+    }
+
+    void apply_per_torrent_upload_limit(const lt::torrent_handle& handle,
+                                        const TorrentEntry& entry) const
+    {
+        if (!handle.is_valid()) {
+            return;
+        }
+        if (entry.upload_stopped) {
+            handle.set_upload_limit(1);
+            return;
+        }
+        const int global = settings.upload_rate_limit;
+        handle.set_upload_limit(global > 0 ? global : -1);
+    }
+
+    TorrentEntry* find_entry_by_id(const std::string& id)
+    {
+        if (const auto it = torrents.find(id); it != torrents.end()) {
+            return &it->second;
+        }
+        for (auto& [key, entry] : torrents) {
+            if (hash_keys_equal_insensitive(key, id)) {
+                return &entry;
+            }
+        }
+        return nullptr;
     }
 
     void apply_preview_snapshot(PendingMagnetPreview& pending,
@@ -464,10 +497,14 @@ struct SessionManager::Impl {
 
         std::scoped_lock lock(mutex);
         auto& entry = torrents[key];
+        const bool upload_stopped = entry.upload_stopped;
         entry.handle = handle;
         if (!safe_apply_snapshot_from_handle(handle, entry.snapshot)) {
             torrents.erase(key);
+            return;
         }
+        entry.upload_stopped = upload_stopped;
+        entry.snapshot.upload_stopped = upload_stopped;
     }
 
     lt::torrent_handle find_handle_by_id(const std::string& id) const
@@ -851,8 +888,10 @@ struct SessionManager::Impl {
 
         for (const Command& cmd : batch) {
             if (cmd.type != CommandType::Pause && cmd.type != CommandType::Resume
-                && cmd.type != CommandType::Remove && cmd.type != CommandType::SetFilePriority
-                && cmd.type != CommandType::SetSequential) {
+                && cmd.type != CommandType::StopSeeding && cmd.type != CommandType::ResumeSeeding
+                && cmd.type != CommandType::ForceRecheck
+                && cmd.type != CommandType::ForceReannounce && cmd.type != CommandType::Remove
+                && cmd.type != CommandType::SetFilePriority && cmd.type != CommandType::SetSequential) {
                 continue;
             }
             if (cmd.primary.empty()) {
@@ -867,11 +906,80 @@ struct SessionManager::Impl {
             }
 
             if (cmd.type == CommandType::Pause) {
+                {
+                    std::scoped_lock lock(mutex);
+                    if (TorrentEntry* entry = find_entry_by_id(cmd.primary)) {
+                        entry->upload_stopped = false;
+                        entry->snapshot.upload_stopped = false;
+                    }
+                }
                 handle.unset_flags(lt::torrent_flags::auto_managed);
                 handle.pause();
             } else if (cmd.type == CommandType::Resume) {
                 handle.resume();
                 handle.set_flags(lt::torrent_flags::auto_managed);
+                {
+                    std::scoped_lock lock(mutex);
+                    if (TorrentEntry* entry = find_entry_by_id(cmd.primary)) {
+                        entry->upload_stopped = false;
+                        entry->snapshot.upload_stopped = false;
+                        apply_per_torrent_upload_limit(handle, *entry);
+                    }
+                }
+            } else if (cmd.type == CommandType::StopSeeding) {
+                TorrentEntry* entry = nullptr;
+                {
+                    std::scoped_lock lock(mutex);
+                    entry = find_entry_by_id(cmd.primary);
+                    if (entry == nullptr) {
+                        set_error("Torrent not found.");
+                        continue;
+                    }
+                    if (!is_complete_seeding(entry->snapshot)) {
+                        set_error("Torrent is not seeding.");
+                        continue;
+                    }
+                    if (entry->snapshot.state == TorrentState::Paused) {
+                        set_error("Cannot stop seeding while paused.");
+                        continue;
+                    }
+                    if (entry->upload_stopped) {
+                        set_error("Upload is already stopped.");
+                        continue;
+                    }
+                    entry->upload_stopped = true;
+                    entry->snapshot.upload_stopped = true;
+                }
+                handle.set_upload_limit(1);
+            } else if (cmd.type == CommandType::ResumeSeeding) {
+                TorrentEntry* entry = nullptr;
+                {
+                    std::scoped_lock lock(mutex);
+                    entry = find_entry_by_id(cmd.primary);
+                    if (entry == nullptr) {
+                        set_error("Torrent not found.");
+                        continue;
+                    }
+                    if (!is_complete_seeding(entry->snapshot)) {
+                        set_error("Torrent is not seeding.");
+                        continue;
+                    }
+                    if (entry->snapshot.state == TorrentState::Paused) {
+                        set_error("Cannot resume seeding while paused.");
+                        continue;
+                    }
+                    if (!entry->upload_stopped) {
+                        set_error("Upload is not stopped.");
+                        continue;
+                    }
+                    entry->upload_stopped = false;
+                    entry->snapshot.upload_stopped = false;
+                }
+                apply_per_torrent_upload_limit(handle, *entry);
+            } else if (cmd.type == CommandType::ForceRecheck) {
+                handle.force_recheck();
+            } else if (cmd.type == CommandType::ForceReannounce) {
+                handle.force_reannounce();
             } else if (cmd.type == CommandType::SetFilePriority) {
                 if (cmd.file_index < 0) {
                     set_error("Invalid file index.");
@@ -1190,6 +1298,54 @@ std::string SessionManager::resume_torrent(const std::string& info_hash_hex)
         return "Torrent id is empty.";
     }
     impl_->enqueue_torrent_op(Impl::CommandType::Resume, info_hash_hex);
+    return {};
+}
+
+std::string SessionManager::stop_seeding(const std::string& info_hash_hex)
+{
+    if (!running_.load()) {
+        return "Session is not running.";
+    }
+    if (info_hash_hex.empty()) {
+        return "Torrent id is empty.";
+    }
+    impl_->enqueue_torrent_op(Impl::CommandType::StopSeeding, info_hash_hex);
+    return {};
+}
+
+std::string SessionManager::resume_seeding(const std::string& info_hash_hex)
+{
+    if (!running_.load()) {
+        return "Session is not running.";
+    }
+    if (info_hash_hex.empty()) {
+        return "Torrent id is empty.";
+    }
+    impl_->enqueue_torrent_op(Impl::CommandType::ResumeSeeding, info_hash_hex);
+    return {};
+}
+
+std::string SessionManager::force_recheck(const std::string& info_hash_hex)
+{
+    if (!running_.load()) {
+        return "Session is not running.";
+    }
+    if (info_hash_hex.empty()) {
+        return "Torrent id is empty.";
+    }
+    impl_->enqueue_torrent_op(Impl::CommandType::ForceRecheck, info_hash_hex);
+    return {};
+}
+
+std::string SessionManager::force_reannounce(const std::string& info_hash_hex)
+{
+    if (!running_.load()) {
+        return "Session is not running.";
+    }
+    if (info_hash_hex.empty()) {
+        return "Torrent id is empty.";
+    }
+    impl_->enqueue_torrent_op(Impl::CommandType::ForceReannounce, info_hash_hex);
     return {};
 }
 

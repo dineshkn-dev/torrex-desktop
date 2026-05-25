@@ -139,7 +139,9 @@ QtObject {
         }
     }
 
-    function stateLabel(torrentState) {
+    function stateLabel(torrentState, uploadStopped) {
+        if (torrentState === 3 && uploadStopped)
+            return qsTr("Seeding (upload stopped)")
         switch (torrentState) {
         case 0: return qsTr("Idle")
         case 1: return qsTr("Checking")
@@ -149,5 +151,13 @@ QtObject {
         case 5: return qsTr("Error")
         default: return qsTr("Unknown")
         }
+    }
+
+    function canStopSeeding(torrentState, progress, uploadStopped) {
+        return torrentState === 3 && progress >= 100 && !uploadStopped
+    }
+
+    function canResumeSeeding(torrentState, progress, uploadStopped) {
+        return torrentState === 3 && progress >= 100 && uploadStopped
     }
 }

@@ -917,6 +917,54 @@ void AppController::resumeTorrent(const QString& info_hash)
         tr("Torrent resumed."));
 }
 
+void AppController::stopSeeding(const QString& info_hash)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    runTorrentOp(
+        [this, id] { return session_.stop_seeding(id.toStdString()); },
+        tr("Upload stopped."));
+}
+
+void AppController::resumeSeeding(const QString& info_hash)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    runTorrentOp(
+        [this, id] { return session_.resume_seeding(id.toStdString()); },
+        tr("Upload resumed."));
+}
+
+void AppController::forceRecheck(const QString& info_hash)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    runTorrentOp(
+        [this, id] { return session_.force_recheck(id.toStdString()); },
+        tr("Recheck started."));
+}
+
+void AppController::forceReannounce(const QString& info_hash)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    runTorrentOp(
+        [this, id] { return session_.force_reannounce(id.toStdString()); },
+        tr("Reannounce sent."));
+}
+
 void AppController::removeTorrent(const QString& info_hash, const bool delete_files)
 {
     const QString id = info_hash.trimmed();
