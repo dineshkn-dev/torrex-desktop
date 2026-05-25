@@ -1,5 +1,7 @@
 #include "app_controller.hpp"
 
+#include <torrin/version.hpp>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -69,7 +71,7 @@ int main(int argc, char* argv[])
     QGuiApplication app(argc, argv);
     QGuiApplication::setApplicationName("Torrin");
     QGuiApplication::setOrganizationName("Torrin");
-    QGuiApplication::setApplicationVersion("0.1.0");
+    QGuiApplication::setApplicationVersion(QString::fromUtf8(torrin::kVersion));
 
     if (QFile::exists(QStringLiteral(":/brand/torrin-mark.svg"))) {
         QGuiApplication::setWindowIcon(QIcon(QStringLiteral(":/brand/torrin-mark.svg")));
