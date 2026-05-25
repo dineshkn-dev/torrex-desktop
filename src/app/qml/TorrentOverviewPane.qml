@@ -3,27 +3,137 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Torrin
 
-// Overview tab: transfer stats + save path (fills detail pane).
 Item {
     id: root
 
-    required property string downloadRateText
-    required property string uploadRateText
+    required property real downloadRate
+    required property real uploadRate
+    readonly property string downloadRateText: Theme.formatRateForTorrent(
+        root.downloadRate, root.paused)
+    readonly property string uploadRateText: Theme.formatRateForTorrent(
+        root.uploadRate, root.paused)
     required property string savePath
+    required property string infoHash
+    required property int progress
+    required property real downloaded
+    required property real total
+    required property real uploaded
+    required property int peers
+    required property int seeds
+    required property int connections
+    required property int etaSeconds
+    required property int torrentState
+    required property bool paused
+    required property bool sequential
+    required property bool hasMetadata
+
+    readonly property string etaDisplay: Theme.formatEtaForTorrent(
+        root.etaSeconds, root.torrentState, root.progress, root.paused)
+
+    signal sequentialToggled(bool enabled)
 
     TgFormScroll {
         anchors.fill: parent
 
-        DetailCard {
-            title: qsTr("Transfer")
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Theme.spacingMd
 
-            DetailStatRow {
-                label: qsTr("Download")
-                value: root.downloadRateText
+            DetailSpeedCard {
+                direction: qsTr("Download")
+                rateText: root.downloadRateText
+                paused: root.paused
+                tint: Theme.accent
             }
-            DetailStatRow {
-                label: qsTr("Upload")
-                value: root.uploadRateText
+            DetailSpeedCard {
+                direction: qsTr("Upload")
+                rateText: root.uploadRateText
+                paused: root.paused
+                tint: Theme.success
+            }
+        }
+
+        GridLayout {
+            Layout.fillWidth: true
+            columns: 2
+            columnSpacing: Theme.spacingMd
+            rowSpacing: Theme.spacingMd
+
+            DetailMetricTile {
+                caption: qsTr("Peers")
+                value: root.peers > 0 ? String(root.peers) : qsTr("—")
+                hint: root.connections > 0 ? qsTr("%1 connected").arg(root.connections) : ""
+                accent: Theme.accent
+            }
+            DetailMetricTile {
+                caption: qsTr("Seeds")
+                value: root.seeds > 0 ? String(root.seeds) : qsTr("—")
+                accent: Theme.success
+            }
+            DetailMetricTile {
+                caption: qsTr("ETA")
+                value: root.etaDisplay
+                accent: Theme.warning
+            }
+            DetailMetricTile {
+                caption: qsTr("Ratio")
+                value: Theme.formatRatio(root.uploaded, root.downloaded)
+                accent: Theme.accentColors.violet
+            }
+        }
+
+        DetailCard {
+            title: qsTr("Progress")
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSm
+
+                ThemedProgressBar {
+                    Layout.fillWidth: true
+                    thick: true
+                    from: 0
+                    to: 100
+                    value: root.progress
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Label {
+                        text: Theme.formatBytes(root.downloaded) + " / " + Theme.formatBytes(root.total)
+                        font.pixelSize: Theme.fontBody
+                        font.weight: Font.DemiBold
+                        color: Theme.textPrimary
+                    }
+                    Item { Layout.fillWidth: true }
+                    Label {
+                        text: root.progress + "%"
+                        font.pixelSize: Theme.fontCaption
+                        color: Theme.textSecondary
+                    }
+                }
+            }
+        }
+
+        DetailCard {
+            title: qsTr("Options")
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingMd
+
+                Label {
+                    text: qsTr("Sequential download")
+                    font.pixelSize: Theme.fontBody
+                    color: Theme.textPrimary
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
+                }
+
+                TgSwitch {
+                    checked: root.sequential
+                    onToggled: function(on) { root.sequentialToggled(on) }
+                }
             }
         }
 
@@ -34,6 +144,23 @@ Item {
                 label: qsTr("Save folder")
                 value: root.savePath.length > 0 ? root.savePath : qsTr("—")
                 wrapValue: true
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSm
+                DetailStatRow {
+                    Layout.fillWidth: true
+                    label: qsTr("Info hash")
+                    value: Theme.shortInfoHash(root.infoHash)
+                }
+                TgButton {
+                    text: qsTr("Copy")
+                    onClicked: appController.copyText(root.infoHash)
+                }
+            }
+            DetailStatRow {
+                label: qsTr("Metadata")
+                value: root.hasMetadata ? qsTr("Ready") : qsTr("Fetching…")
             }
         }
 

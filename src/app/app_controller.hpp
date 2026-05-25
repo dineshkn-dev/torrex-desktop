@@ -128,6 +128,7 @@ public:
     Q_INVOKABLE void applySessionSettings();
     Q_INVOKABLE void loadSessionSettingsFromStore();
     Q_INVOKABLE void clearNotification();
+    Q_INVOKABLE void copyText(const QString& text);
 
     Q_INVOKABLE void pauseTorrent(const QString& info_hash);
     Q_INVOKABLE void resumeTorrent(const QString& info_hash);

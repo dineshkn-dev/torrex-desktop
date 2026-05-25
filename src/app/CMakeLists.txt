@@ -38,6 +38,12 @@ qt_add_qml_module(torrin
         qml/DetailStat.qml
         qml/DetailStatRow.qml
         qml/DetailCard.qml
+        qml/DetailProgressRing.qml
+        qml/DetailMetricTile.qml
+        qml/DetailActionChip.qml
+        qml/DetailSegmentBar.qml
+        qml/DetailSpeedCard.qml
+        qml/DetailStatusPill.qml
         qml/TorrentOverviewPane.qml
         qml/TorrentFilesPane.qml
         qml/TgTabButton.qml

@@ -46,6 +46,14 @@ public:
     Q_INVOKABLE int stateAt(int row) const;
     Q_INVOKABLE bool uploadStoppedAt(int row) const;
     Q_INVOKABLE int progressAt(int row) const;
+    Q_INVOKABLE qint64 downloadedAt(int row) const;
+    Q_INVOKABLE qint64 totalSizeAt(int row) const;
+    Q_INVOKABLE qint64 uploadedTotalAt(int row) const;
+    Q_INVOKABLE int peersAt(int row) const;
+    Q_INVOKABLE int seedsAt(int row) const;
+    Q_INVOKABLE int connectionsAt(int row) const;
+    Q_INVOKABLE int etaSecondsAt(int row) const;
+    Q_INVOKABLE bool hasMetadataAt(int row) const;
     Q_INVOKABLE QString savePathAt(int row) const;
     Q_INVOKABLE qint64 downloadRateAt(int row) const;
     Q_INVOKABLE qint64 uploadRateAt(int row) const;

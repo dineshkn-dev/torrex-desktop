@@ -52,6 +52,38 @@ Item {
         dataRevision
         return hasSelection && model.sequentialDownloadAt(torrentRow)
     }
+    readonly property real detailDownloaded: {
+        dataRevision
+        return hasSelection ? model.downloadedAt(torrentRow) : 0
+    }
+    readonly property real detailTotal: {
+        dataRevision
+        return hasSelection ? model.totalSizeAt(torrentRow) : 0
+    }
+    readonly property real detailUploaded: {
+        dataRevision
+        return hasSelection ? model.uploadedTotalAt(torrentRow) : 0
+    }
+    readonly property int detailPeers: {
+        dataRevision
+        return hasSelection ? model.peersAt(torrentRow) : 0
+    }
+    readonly property int detailSeeds: {
+        dataRevision
+        return hasSelection ? model.seedsAt(torrentRow) : 0
+    }
+    readonly property int detailConnections: {
+        dataRevision
+        return hasSelection ? model.connectionsAt(torrentRow) : 0
+    }
+    readonly property int detailEta: {
+        dataRevision
+        return hasSelection ? model.etaSecondsAt(torrentRow) : -1
+    }
+    readonly property bool detailHasMetadata: {
+        dataRevision
+        return hasSelection && model.hasMetadataAt(torrentRow)
+    }
     readonly property bool detailPaused: detailState === 4
 
     Rectangle {
@@ -63,141 +95,133 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        Rectangle {
+        // Hero header with accent glow
+        Item {
             Layout.fillWidth: true
-            implicitHeight: headerCol.implicitHeight + Theme.spacingLg * 2
-            color: Theme.surfaceCard
+            implicitHeight: heroCol.implicitHeight + Theme.spacingXl * 2
             visible: root.hasSelection
+            clip: true
+
+            Rectangle {
+                anchors.fill: parent
+                gradient: Gradient {
+                    orientation: Gradient.Vertical
+                    GradientStop { position: 0.0; color: Theme.accentGlow(0.22) }
+                    GradientStop { position: 0.55; color: Theme.accentGlow(0.06) }
+                    GradientStop { position: 1.0; color: "transparent" }
+                }
+            }
 
             ColumnLayout {
-                id: headerCol
+                id: heroCol
                 anchors.fill: parent
-                anchors.margins: Theme.spacingLg
-                spacing: Theme.spacingMd
+                anchors.margins: Theme.spacingXl
+                spacing: Theme.spacingLg
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: Theme.spacingMd
+                    spacing: Theme.spacingLg
+
+                    DetailProgressRing {
+                        size: 104
+                        progress: root.detailProgress
+                        ringColor: root.detailProgress >= 100 ? Theme.success : Theme.accent
+                    }
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Layout.minimumWidth: 120
-                        spacing: Theme.spacingXs
+                        spacing: Theme.spacingSm
 
                         Label {
                             text: root.detailName
-                            font.pixelSize: Theme.fontHeadline
+                            font.pixelSize: Theme.fontTitle
                             font.weight: Font.DemiBold
                             color: Theme.textPrimary
                             wrapMode: Text.Wrap
-                            maximumLineCount: 3
+                            maximumLineCount: 4
                             Layout.fillWidth: true
                         }
 
-                        RowLayout {
-                            spacing: Theme.spacingSm
-                            Rectangle {
-                                width: 8
-                                height: 8
-                                radius: 4
-                                color: Theme.stateColor(root.detailState)
-                            }
-                            Label {
-                                text: Theme.stateLabel(root.detailState, root.detailUploadStopped)
-                                font.pixelSize: Theme.fontCaption
-                                color: Theme.textSecondary
-                            }
-                            Label {
-                                text: "·"
-                                color: Theme.textSecondary
-                                font.pixelSize: Theme.fontCaption
-                            }
-                            Label {
-                                text: root.detailProgress + "%"
-                                font.pixelSize: Theme.fontCaption
-                                font.weight: Font.DemiBold
-                                color: Theme.textPrimary
-                            }
+                        DetailStatusPill {
+                            torrentState: root.detailState
+                            uploadStopped: root.detailUploadStopped
                         }
-                    }
 
-                    RowLayout {
-                        Layout.alignment: Qt.AlignTop | Qt.AlignRight
-                        Layout.minimumWidth: 132
-                        spacing: Theme.spacingXs
-                        TgIconButton {
-                            text: "❚❚"
-                            enabled: root.hasSelection && !root.detailPaused
-                            ToolTip.visible: hovered
-                            ToolTip.text: qsTr("Pause")
-                            onClicked: appController.pauseTorrent(root.detailInfoHash)
-                        }
-                        TgIconButton {
-                            text: "▶"
-                            enabled: root.hasSelection && root.detailPaused
-                            ToolTip.visible: hovered
-                            ToolTip.text: qsTr("Resume")
-                            onClicked: appController.resumeTorrent(root.detailInfoHash)
-                        }
-                        TgIconButton {
-                            id: detailMoreButton
-                            text: "⋯"
-                            enabled: root.hasSelection
-                            onClicked: detailMenu.popupAt(detailMoreButton, 0, detailMoreButton.height)
-
-                            TgMenu {
-                                id: detailMenu
-                                MenuItem {
-                                    text: qsTr("Stop seeding")
-                                    enabled: Theme.canStopSeeding(
-                                        root.detailState, root.detailProgress, root.detailUploadStopped)
-                                    onTriggered: appController.stopSeeding(root.detailInfoHash)
-                                }
-                                MenuItem {
-                                    text: qsTr("Resume seeding")
-                                    enabled: Theme.canResumeSeeding(
-                                        root.detailState, root.detailProgress, root.detailUploadStopped)
-                                    onTriggered: appController.resumeSeeding(root.detailInfoHash)
-                                }
-                                TgMenuSeparator {}
-                                MenuItem {
-                                    text: qsTr("Force recheck")
-                                    enabled: root.hasSelection
-                                    onTriggered: appController.forceRecheck(root.detailInfoHash)
-                                }
-                                MenuItem {
-                                    text: qsTr("Force reannounce")
-                                    enabled: root.hasSelection
-                                    onTriggered: appController.forceReannounce(root.detailInfoHash)
-                                }
-                                TgMenuSeparator {}
-                                MenuItem {
-                                    text: qsTr("Remove")
-                                    onTriggered: {
-                                        if (root.windowRef)
-                                            root.windowRef.confirmRemove(
-                                                root.detailInfoHash, false, root.detailName)
-                                    }
-                                }
-                                MenuItem {
-                                    text: qsTr("Remove and delete data")
-                                    onTriggered: {
-                                        if (root.windowRef)
-                                            root.windowRef.confirmRemove(
-                                                root.detailInfoHash, true, root.detailName)
-                                    }
-                                }
-                            }
+                        Label {
+                            text: Theme.formatBytes(root.detailDownloaded) + " / "
+                                + Theme.formatBytes(root.detailTotal)
+                            font.pixelSize: Theme.fontCaption
+                            color: Theme.textSecondary
+                            Layout.fillWidth: true
                         }
                     }
                 }
 
-                ThemedProgressBar {
+                Flow {
                     Layout.fillWidth: true
-                    thick: true
-                    from: 0
-                    to: 100
-                    value: root.detailProgress
+                    spacing: Theme.spacingSm
+
+                    DetailActionChip {
+                        glyph: "❚❚"
+                        text: qsTr("Pause")
+                        enabled: root.hasSelection && !root.detailPaused
+                        onClicked: appController.pauseTorrent(root.detailInfoHash)
+                    }
+                    DetailActionChip {
+                        glyph: "▶"
+                        text: qsTr("Resume")
+                        enabled: root.hasSelection && root.detailPaused
+                        onClicked: appController.resumeTorrent(root.detailInfoHash)
+                    }
+                    DetailActionChip {
+                        glyph: "⊘"
+                        text: qsTr("Stop seeding")
+                        enabled: Theme.canStopSeeding(
+                            root.detailState, root.detailProgress, root.detailUploadStopped)
+                        onClicked: appController.stopSeeding(root.detailInfoHash)
+                    }
+                    DetailActionChip {
+                        glyph: "↻"
+                        text: qsTr("Resume seeding")
+                        enabled: Theme.canResumeSeeding(
+                            root.detailState, root.detailProgress, root.detailUploadStopped)
+                        onClicked: appController.resumeSeeding(root.detailInfoHash)
+                    }
+                    DetailActionChip {
+                        id: detailMoreChip
+                        glyph: "⋯"
+                        text: qsTr("More")
+                        onClicked: detailMenu.popupAt(detailMoreChip, 0, detailMoreChip.height)
+
+                        TgMenu {
+                            id: detailMenu
+                            MenuItem {
+                                text: qsTr("Force recheck")
+                                onTriggered: appController.forceRecheck(root.detailInfoHash)
+                            }
+                            MenuItem {
+                                text: qsTr("Force reannounce")
+                                onTriggered: appController.forceReannounce(root.detailInfoHash)
+                            }
+                            TgMenuSeparator {}
+                            MenuItem {
+                                text: qsTr("Remove")
+                                onTriggered: {
+                                    if (root.windowRef)
+                                        root.windowRef.confirmRemove(
+                                            root.detailInfoHash, false, root.detailName)
+                                }
+                            }
+                            MenuItem {
+                                text: qsTr("Remove and delete data")
+                                onTriggered: {
+                                    if (root.windowRef)
+                                        root.windowRef.confirmRemove(
+                                            root.detailInfoHash, true, root.detailName)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -209,68 +233,63 @@ Item {
             visible: root.hasSelection
         }
 
-        RowLayout {
+        DetailSegmentBar {
+            id: segmentBar
             Layout.fillWidth: true
             Layout.leftMargin: Theme.spacingLg
             Layout.rightMargin: Theme.spacingLg
             Layout.topMargin: Theme.spacingMd
             Layout.bottomMargin: Theme.spacingSm
-            spacing: Theme.spacingSm
             visible: root.hasSelection
-
-            TgTabButton {
-                text: qsTr("Overview")
-                checked: tabBar.currentIndex === 0
-                onClicked: tabBar.currentIndex = 0
-            }
-            TgTabButton {
-                text: qsTr("Files")
-                checked: tabBar.currentIndex === 1
-                onClicked: tabBar.currentIndex = 1
-            }
-            Item { Layout.fillWidth: true }
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-            visible: root.hasSelection
+            tabs: [
+                { title: qsTr("Overview") },
+                { title: qsTr("Files") }
+            ]
+            onTabActivated: function(index) { segmentBar.currentIndex = index }
         }
 
         Item {
-            id: tabBar
-            property int currentIndex: 0
+            id: contentHost
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.margins: Theme.spacingLg
             visible: root.hasSelection
             clip: true
 
-            Loader {
+            StackLayout {
                 anchors.fill: parent
-                sourceComponent: tabBar.currentIndex === 0 ? overviewPage : filesPage
-            }
+                currentIndex: segmentBar.currentIndex
 
-            Component {
-                id: overviewPage
                 TorrentOverviewPane {
-                    downloadRateText: root.formatRate(root.detailDownloadRate)
-                    uploadRateText: root.formatRate(root.detailUploadRate)
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    downloadRate: root.detailDownloadRate
+                    uploadRate: root.detailUploadRate
                     savePath: root.detailSavePath
-                }
-            }
-
-            Component {
-                id: filesPage
-                TorrentFilesPane {
                     infoHash: root.detailInfoHash
+                    progress: root.detailProgress
+                    downloaded: root.detailDownloaded
+                    total: root.detailTotal
+                    uploaded: root.detailUploaded
+                    peers: root.detailPeers
+                    seeds: root.detailSeeds
+                    connections: root.detailConnections
+                    etaSeconds: root.detailEta
+                    torrentState: root.detailState
+                    paused: root.detailPaused
                     sequential: root.detailSequential
-                    fileEntries: root.detailFileEntries
-                    dataRevision: root.dataRevision
+                    hasMetadata: root.detailHasMetadata
                     onSequentialToggled: function(enabled) {
                         appController.setTorrentSequentialDownload(root.detailInfoHash, enabled)
                     }
+                }
+
+                TorrentFilesPane {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    infoHash: root.detailInfoHash
+                    fileEntries: root.detailFileEntries
+                    dataRevision: root.dataRevision
                     onFilePriorityChanged: function(fileIndex, priority) {
                         appController.setTorrentFilePriority(
                             root.detailInfoHash, fileIndex, priority)
@@ -292,15 +311,5 @@ Item {
                 showActions: false
             }
         }
-    }
-
-    function formatRate(bytesPerSec) {
-        if (bytesPerSec <= 0)
-            return qsTr("—")
-        if (bytesPerSec < 1024)
-            return bytesPerSec + " B/s"
-        if (bytesPerSec < 1024 * 1024)
-            return (bytesPerSec / 1024).toFixed(1) + " KB/s"
-        return (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s"
     }
 }

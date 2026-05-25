@@ -160,4 +160,71 @@ QtObject {
     function canResumeSeeding(torrentState, progress, uploadStopped) {
         return torrentState === 3 && progress >= 100 && uploadStopped
     }
+
+    function formatBytes(bytes) {
+        const n = Number(bytes)
+        if (!isFinite(n) || n <= 0)
+            return qsTr("0 B")
+        bytes = n
+        if (bytes < 1024)
+            return bytes + " B"
+        if (bytes < 1024 * 1024)
+            return (bytes / 1024).toFixed(1) + " KB"
+        if (bytes < 1024 * 1024 * 1024)
+            return (bytes / (1024 * 1024)).toFixed(1) + " MB"
+        return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB"
+    }
+
+    function formatRate(bytesPerSec) {
+        if (bytesPerSec <= 0)
+            return qsTr("—")
+        return formatBytes(bytesPerSec) + "/s"
+    }
+
+    function formatRateForTorrent(bytesPerSec, paused) {
+        if (paused)
+            return qsTr("—")
+        return formatRate(bytesPerSec)
+    }
+
+    function formatEta(seconds) {
+        if (seconds < 0)
+            return qsTr("—")
+        if (seconds < 60)
+            return qsTr("%1s").arg(seconds)
+        if (seconds < 3600) {
+            const m = Math.floor(seconds / 60)
+            const s = seconds % 60
+            return qsTr("%1m %2s").arg(m).arg(s)
+        }
+        const h = Math.floor(seconds / 3600)
+        const m = Math.floor((seconds % 3600) / 60)
+        return qsTr("%1h %2m").arg(h).arg(m)
+    }
+
+    function formatEtaForTorrent(seconds, torrentState, progress, paused) {
+        if (paused || torrentState === 4)
+            return qsTr("Paused")
+        if (progress >= 100 || torrentState === 3)
+            return qsTr("Done")
+        if (torrentState === 0 || torrentState === 5)
+            return qsTr("—")
+        return formatEta(seconds)
+    }
+
+    function formatRatio(uploaded, downloaded) {
+        if (downloaded <= 0)
+            return qsTr("—")
+        return (uploaded / downloaded).toFixed(2)
+    }
+
+    function shortInfoHash(hex) {
+        if (!hex || hex.length < 12)
+            return hex || ""
+        return hex.slice(0, 8) + "…" + hex.slice(-6)
+    }
+
+    function accentGlow(alpha) {
+        return Qt.rgba(accent.r, accent.g, accent.b, alpha)
+    }
 }

@@ -3,45 +3,29 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import Torrin
 
-// Files tab: sequential toggle + file list.
 Item {
     id: root
 
     required property string infoHash
-    required property bool sequential
     required property var fileEntries
     required property int dataRevision
 
-    signal sequentialToggled(bool enabled)
     signal filePriorityChanged(int fileIndex, int priority)
+
+    readonly property int fileCount: {
+        const entries = root.fileEntries
+        if (entries === undefined || entries === null)
+            return 0
+        return entries.length
+    }
 
     ColumnLayout {
         anchors.fill: parent
         spacing: Theme.spacingMd
 
-        DetailCard {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Theme.spacingMd
-
-                Label {
-                    text: qsTr("Download in order (sequential)")
-                    font.pixelSize: Theme.fontBody
-                    color: Theme.textPrimary
-                    wrapMode: Text.WordWrap
-                    Layout.fillWidth: true
-                }
-
-                TgSwitch {
-                    checked: root.sequential
-                    onToggled: function(on) { root.sequentialToggled(on) }
-                }
-            }
-        }
-
         Label {
-            text: root.fileEntries.length > 0
-                ? qsTr("%1 file(s)").arg(root.fileEntries.length)
+            text: root.fileCount > 0
+                ? qsTr("%1 files in this torrent").arg(root.fileCount)
                 : qsTr("Waiting for metadata…")
             font.pixelSize: Theme.fontCaption
             color: Theme.textSecondary
@@ -49,106 +33,147 @@ Item {
             Layout.leftMargin: Theme.spacingXs
         }
 
-        ListView {
-            id: fileList
+        RowLayout {
+            visible: root.fileCount > 0
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            flickDeceleration: Theme.flickDeceleration
-            maximumFlickVelocity: Theme.maxFlickVelocity
-            pixelAligned: false
-            spacing: Theme.spacingSm
-            model: root.fileEntries
+            Layout.leftMargin: Theme.spacingMd
+            Layout.rightMargin: Theme.spacingMd
+            spacing: Theme.spacingMd
 
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-                implicitWidth: 6
-                contentItem: Rectangle {
-                    implicitWidth: 6
-                    radius: 3
-                    color: Theme.scrollBar
-                }
+            Label {
+                text: qsTr("File name")
+                font.pixelSize: Theme.fontCaption
+                font.weight: Font.DemiBold
+                color: Theme.textSecondary
+                Layout.fillWidth: true
             }
 
-            delegate: Rectangle {
-                id: fileDelegate
-                required property int index
-                required property var modelData
+            Label {
+                text: qsTr("Priority")
+                font.pixelSize: Theme.fontCaption
+                font.weight: Font.DemiBold
+                color: Theme.textSecondary
+                horizontalAlignment: Text.AlignHCenter
+                Layout.minimumWidth: 100
+                Layout.preferredWidth: 100
+                Layout.maximumWidth: 100
+            }
+        }
 
-                width: fileList.width
-                implicitHeight: fileRow.implicitHeight + Theme.spacingMd * 2
-                radius: Theme.radiusMedium
-                color: Theme.surfaceCard
-                border.color: Theme.border
-                border.width: 1
+        // ListView needs a parent Item with fillHeight in ColumnLayout (otherwise height = 0).
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-                RowLayout {
-                    id: fileRow
-                    anchors.fill: parent
-                    anchors.margins: Theme.spacingMd
-                    spacing: Theme.spacingMd
+            ListView {
+                id: fileList
+                anchors.fill: parent
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                flickDeceleration: Theme.flickDeceleration
+                maximumFlickVelocity: Theme.maxFlickVelocity
+                spacing: Theme.spacingSm
+                model: root.fileEntries
+
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AlwaysOff
+                }
+
+                delegate: Rectangle {
+                    id: fileDelegate
+                    required property int index
+                    required property var modelData
+
+                    width: fileList.width
+                    implicitHeight: fileCol.implicitHeight + Theme.spacingMd * 2
+                    radius: Theme.radiusMedium
+                    color: Theme.surfaceCard
+                    border.color: Theme.border
+                    border.width: 1
 
                     ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: Theme.spacingXs
+                        id: fileCol
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingMd
+                        spacing: Theme.spacingSm
 
-                        Label {
-                            text: fileDelegate.modelData["path"] ?? ""
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontBody
-                            elide: Text.ElideMiddle
+                        RowLayout {
                             Layout.fillWidth: true
-                        }
+                            spacing: Theme.spacingMd
 
-                        Label {
-                            text: qsTr("%1% complete").arg(fileDelegate.modelData.progress)
-                            color: Theme.textSecondary
-                            font.pixelSize: Theme.fontCaption
-                        }
-                    }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: Theme.spacingXs
 
-                    TgMenuPicker {
-                        id: priorityPicker
-                        Layout.minimumWidth: 88
-                        Layout.preferredWidth: 100
-                        Layout.maximumWidth: 120
-                        model: priorityPicker.priorityModel
-                        property var priorityModel: [
-                            { label: qsTr("Skip"), value: 0 },
-                            { label: qsTr("Low"), value: 1 },
-                            { label: qsTr("Normal"), value: 4 },
-                            { label: qsTr("High"), value: 7 }
-                        ]
-                        property int lastPriority: fileDelegate.modelData.priority
+                                Label {
+                                    text: fileDelegate.modelData["path"] ?? ""
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontBody
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideMiddle
+                                    Layout.fillWidth: true
+                                }
 
-                        Component.onCompleted: syncFromModel()
+                                Label {
+                                    text: {
+                                        const sz = fileDelegate.modelData["size"] ?? 0
+                                        const pct = fileDelegate.modelData["progress"] ?? 0
+                                        return Theme.formatBytes(sz) + " · " + pct + "%"
+                                    }
+                                    color: Theme.textSecondary
+                                    font.pixelSize: Theme.fontCaption
+                                }
+                            }
 
-                        onActivated: function(pickIndex) {
-                            const item = priorityModel[pickIndex]
-                            if (item.value === lastPriority)
-                                return
-                            root.filePriorityChanged(
-                                fileDelegate.modelData.fileIndex, item.value)
-                            lastPriority = item.value
-                        }
+                            TgMenuPicker {
+                                id: priorityPicker
+                                Layout.minimumWidth: 88
+                                Layout.preferredWidth: 100
+                                property var priorityModel: [
+                                    { label: qsTr("Skip"), value: 0 },
+                                    { label: qsTr("Low"), value: 1 },
+                                    { label: qsTr("Normal"), value: 4 },
+                                    { label: qsTr("High"), value: 7 }
+                                ]
+                                model: priorityPicker.priorityModel
+                                property int lastPriority: fileDelegate.modelData["priority"] ?? 4
 
-                        function syncFromModel() {
-                            const p = fileDelegate.modelData.priority
-                            for (let i = 0; i < priorityModel.length; ++i) {
-                                if (priorityModel[i].value === p) {
-                                    currentIndex = i
-                                    lastPriority = p
-                                    return
+                                Component.onCompleted: syncFromModel()
+
+                                onActivated: function(pickIndex) {
+                                    const item = priorityModel[pickIndex]
+                                    if (item.value === lastPriority)
+                                        return
+                                    root.filePriorityChanged(
+                                        fileDelegate.modelData["fileIndex"], item.value)
+                                    lastPriority = item.value
+                                }
+
+                                function syncFromModel() {
+                                    const p = fileDelegate.modelData["priority"]
+                                    for (let i = 0; i < priorityModel.length; ++i) {
+                                        if (priorityModel[i].value === p) {
+                                            currentIndex = i
+                                            lastPriority = p
+                                            return
+                                        }
+                                    }
+                                }
+
+                                Connections {
+                                    target: root
+                                    function onDataRevisionChanged() {
+                                        priorityPicker.syncFromModel()
+                                    }
                                 }
                             }
                         }
 
-                        Connections {
-                            target: root
-                            function onDataRevisionChanged() {
-                                priorityPicker.syncFromModel()
-                            }
+                        ThemedProgressBar {
+                            Layout.fillWidth: true
+                            from: 0
+                            to: 100
+                            value: fileDelegate.modelData["progress"] ?? 0
                         }
                     }
                 }

@@ -7,6 +7,7 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QClipboard>
 #include <QGuiApplication>
 #include <QLoggingCategory>
 #include <QSettings>
@@ -410,6 +411,19 @@ void AppController::clearNotification()
     }
     notification_message_.clear();
     emit notificationMessageChanged();
+}
+
+void AppController::copyText(const QString& text)
+{
+    const QString trimmed = text.trimmed();
+    if (trimmed.isEmpty()) {
+        setStatusMessage(tr("Nothing to copy."));
+        return;
+    }
+    if (QClipboard* clip = QGuiApplication::clipboard()) {
+        clip->setText(trimmed);
+        setStatusMessage(tr("Copied to clipboard."));
+    }
 }
 
 void AppController::postNotification(const QString& message)

@@ -156,6 +156,54 @@ int TorrentListModel::progressAt(const int row) const
     return item == nullptr ? 0 : item->progress_percent;
 }
 
+qint64 TorrentListModel::downloadedAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item == nullptr ? 0 : item->downloaded;
+}
+
+qint64 TorrentListModel::totalSizeAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item == nullptr ? 0 : item->total;
+}
+
+qint64 TorrentListModel::uploadedTotalAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item == nullptr ? 0 : item->uploaded_total;
+}
+
+int TorrentListModel::peersAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item == nullptr ? 0 : item->num_peers;
+}
+
+int TorrentListModel::seedsAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item == nullptr ? 0 : item->num_seeds;
+}
+
+int TorrentListModel::connectionsAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item == nullptr ? 0 : item->num_connections;
+}
+
+int TorrentListModel::etaSecondsAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item == nullptr ? -1 : item->eta_seconds;
+}
+
+bool TorrentListModel::hasMetadataAt(const int row) const
+{
+    const TorrentSnapshot* item = snapshotAt(row);
+    return item != nullptr && item->has_metadata;
+}
+
 QString TorrentListModel::savePathAt(const int row) const
 {
     const TorrentSnapshot* item = snapshotAt(row);
@@ -216,6 +264,7 @@ QVariantList TorrentListModel::fileEntriesAt(const int row) const
         entry.insert(QStringLiteral("fileIndex"), file.index);
         entry.insert(QStringLiteral("priority"), file.priority);
         entry.insert(QStringLiteral("progress"), file.progress_percent);
+        entry.insert(QStringLiteral("size"), static_cast<qlonglong>(file.size_bytes));
         entries.push_back(entry);
     }
     return entries;

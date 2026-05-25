@@ -6,6 +6,7 @@ add_executable(torrin_tests
     core/add_torrent_test.cpp
     core/torrent_ops_test.cpp
     core/torrent_seeding_controls_test.cpp
+    core/torrent_total_test.cpp
     core/torrent_filter_test.cpp
     core/session_settings_test.cpp
     core/torrent_controls_test.cpp

@@ -64,6 +64,62 @@ TorrentState map_state(const lt::torrent_status::state_t state)
     return TorrentState::Idle;
 }
 
+constexpr std::int64_t kMinEtaRateBytesPerSec = 1024;
+constexpr int kMaxEtaSeconds = 30 * 24 * 3600;
+
+int compute_eta_seconds(const TorrentSnapshot& snap)
+{
+    if (snap.state == TorrentState::Paused) {
+        return -1;
+    }
+    if (snap.state != TorrentState::Downloading && snap.state != TorrentState::Checking) {
+        return -1;
+    }
+    if (snap.progress_percent >= 100) {
+        return -1;
+    }
+    if (snap.download_rate < kMinEtaRateBytesPerSec || snap.total <= snap.downloaded) {
+        return -1;
+    }
+    const std::int64_t remaining = snap.total - snap.downloaded;
+    const std::int64_t eta = remaining / snap.download_rate;
+    if (eta > kMaxEtaSeconds) {
+        return -1;
+    }
+    return static_cast<int>(eta);
+}
+
+std::int64_t total_from_file_list(const std::vector<TorrentFileSnapshot>& files)
+{
+    std::int64_t sum = 0;
+    for (const TorrentFileSnapshot& file : files) {
+        sum += file.size_bytes;
+    }
+    return sum;
+}
+
+std::int64_t resolve_torrent_total(const lt::torrent_status& st,
+                                   const std::vector<TorrentFileSnapshot>& files)
+{
+    if (st.total > 0) {
+        return st.total;
+    }
+    if (st.total_wanted > 0) {
+        return st.total_wanted;
+    }
+    if (st.total_wanted_done > 0) {
+        return st.total_wanted_done;
+    }
+    const std::int64_t from_files = total_from_file_list(files);
+    if (from_files > 0) {
+        return from_files;
+    }
+    if (st.progress > 0.001F && st.total_done > 0) {
+        return static_cast<std::int64_t>(static_cast<double>(st.total_done) / st.progress + 0.5);
+    }
+    return 0;
+}
+
 TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
 {
     TorrentSnapshot snap;
@@ -74,7 +130,7 @@ TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
     }
     snap.state = map_state(st.state);
     snap.downloaded = st.total_done;
-    snap.total = st.total_wanted > 0 ? st.total_wanted : st.total_wanted_done;
+    snap.total = resolve_torrent_total(st, snap.files);
     snap.progress_percent = static_cast<int>(st.progress * 100.F + 0.5F);
     if (snap.progress_percent == 0 && snap.total > 0 && snap.downloaded > 0) {
         snap.progress_percent =
@@ -82,6 +138,11 @@ TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
     }
     snap.download_rate = st.download_rate;
     snap.upload_rate = st.upload_rate;
+    snap.uploaded_total = st.total_upload;
+    snap.num_peers = st.num_peers;
+    snap.num_seeds = st.num_seeds;
+    snap.num_connections = st.num_connections;
+    snap.has_metadata = st.has_metadata;
     snap.save_path = st.save_path;
     if (st.errc) {
         snap.state = TorrentState::Error;
@@ -106,22 +167,50 @@ void fill_files(const lt::torrent_handle& handle, TorrentSnapshot& snap)
         (handle.flags() & lt::torrent_flags::sequential_download) != lt::torrent_flags_t{};
     const lt::file_storage& storage = info->files();
     snap.files.reserve(static_cast<std::size_t>(storage.num_files()));
+    std::vector<std::int64_t> file_progress;
+    try {
+        file_progress = handle.file_progress();
+    } catch (const std::exception&) {
+        file_progress.clear();
+    }
     for (lt::file_index_t i : storage.file_range()) {
         TorrentFileSnapshot file;
         file.index = static_cast<int>(i);
         file.path = storage.file_path(i);
+        file.size_bytes = storage.file_size(i);
         file.priority = priority_to_int(handle.file_priority(i));
+        const int idx = static_cast<int>(i);
+        if (idx >= 0 && static_cast<std::size_t>(idx) < file_progress.size()
+            && file.size_bytes > 0) {
+            const std::int64_t done = file_progress[static_cast<std::size_t>(idx)];
+            file.progress_percent = static_cast<int>((done * 100) / file.size_bytes);
+        }
         snap.files.push_back(std::move(file));
     }
 }
 
 void apply_snapshot_from_handle(const lt::torrent_handle& handle, TorrentSnapshot& snap)
 {
-    snap = snapshot_from_status(handle.status());
+    const lt::torrent_status st = handle.status();
+    snap = snapshot_from_status(st);
     if ((handle.flags() & lt::torrent_flags::paused) != lt::torrent_flags_t{}) {
         snap.state = TorrentState::Paused;
+        snap.download_rate = 0;
+        snap.upload_rate = 0;
     }
     fill_files(handle, snap);
+    std::int64_t total = resolve_torrent_total(st, snap.files);
+    if (total <= 0 && snap.progress_percent > 0 && snap.downloaded > 0) {
+        total = (snap.downloaded * 100) / snap.progress_percent;
+    }
+    if (total > 0) {
+        snap.total = total;
+    }
+    if (snap.progress_percent == 0 && snap.total > 0 && snap.downloaded > 0) {
+        snap.progress_percent =
+            static_cast<int>((snap.downloaded * 100) / snap.total);
+    }
+    snap.eta_seconds = compute_eta_seconds(snap);
 }
 
 void apply_proxy_settings(lt::settings_pack& pack, const SessionSettings& settings)

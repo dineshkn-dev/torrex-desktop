@@ -30,6 +30,8 @@ ScrollView {
         policy: ScrollBar.AsNeeded
         implicitWidth: 6
 
+        background: Item { implicitWidth: 0 }
+
         contentItem: Rectangle {
             implicitWidth: 6
             radius: 3
@@ -49,6 +51,8 @@ ScrollView {
         id: horizontalBar
         policy: root.horizontalPolicy
         implicitHeight: 6
+
+        background: Item { implicitHeight: 0 }
 
         contentItem: Rectangle {
             implicitHeight: 6
