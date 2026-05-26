@@ -5,9 +5,10 @@ import Torrin
 // Popup menu picker (replaces ComboBox; no dropdown PNG assets).
 Item {
     id: root
-    implicitHeight: 36
+    implicitHeight: pickerButton.implicitHeight
     implicitWidth: pickerButton.implicitWidth
 
+    property bool compact: false
     property var model: []
     property int currentIndex: 0
     property string textRole: "label"
@@ -26,6 +27,7 @@ Item {
     TgButton {
         id: pickerButton
         anchors.fill: parent
+        compact: root.compact
         text: root.labelAt(root.currentIndex)
         onClicked: pickerMenu.popupAt(pickerButton, 0, pickerButton.height)
     }

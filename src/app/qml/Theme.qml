@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// Design tokens; appearance from appController. AMOLED = fixed black/gray; accent on controls only.
+// Design tokens; appearance from appController. Dark = AMOLED (true black, neutral grays).
 QtObject {
     readonly property var _app: typeof appController !== "undefined" ? appController : null
     readonly property int appearanceMode: _app ? _app.appearanceMode : 0
@@ -11,14 +11,14 @@ QtObject {
     readonly property bool dark: {
         if (appearanceMode === 1)
             return false
-        if (appearanceMode === 2 || appearanceMode === 3)
+        if (appearanceMode === 2)
             return true
         return systemColorScheme === Qt.ColorScheme.Dark
     }
-    readonly property bool amoled: appearanceMode === 3
+    readonly property bool amoled: dark
     readonly property bool light: !dark
 
-    // AMOLED palette: pure black + neutral grays; accent never tints surfaces.
+    // Dark palette: pure black + neutral grays; accent never tints surfaces.
     readonly property color amoledWindow: "#000000"
     readonly property color amoledSurface: "#050505"
     readonly property color amoledSurfaceCard: "#0c0c0c"
@@ -86,8 +86,7 @@ QtObject {
     readonly property int sheetMaxHeight: 880
     readonly property real sheetHeightRatio: 0.86
     readonly property int sheetMargin: 40
-    readonly property color scrollBar: amoled ? "#ffffff22"
-        : (dark ? "#ffffff30" : "#00000028")
+    readonly property color scrollBar: dark ? "#ffffff22" : "#00000028"
 
     // Typography
     readonly property int fontTitle: 22
@@ -97,32 +96,22 @@ QtObject {
     readonly property int fontStat: 15
 
     // Surfaces
-    readonly property color windowBackground: amoled ? amoledWindow
-        : (dark ? "#0e1621" : "#ffffff")
-    readonly property color sidebarBackground: amoled ? amoledWindow
-        : (dark ? "#17212b" : "#f7f8fa")
-    readonly property color surface: amoled ? amoledSurface
-        : (dark ? "#1e2a38" : "#ffffff")
-    readonly property color surfaceCard: amoled ? amoledSurfaceCard
-        : (dark ? "#243447" : "#f4f6f8")
-    readonly property color surfaceElevated: amoled ? amoledElevated
-        : (dark ? Qt.rgba(accent.r, accent.g, accent.b, 0.28) : "#eef6fc")
-    readonly property color hover: amoled ? amoledHover
-        : (dark ? "#202b36" : "#f0f0f2")
+    readonly property color windowBackground: dark ? amoledWindow : "#ffffff"
+    readonly property color sidebarBackground: dark ? amoledWindow : "#f7f8fa"
+    readonly property color surface: dark ? amoledSurface : "#ffffff"
+    readonly property color surfaceCard: dark ? amoledSurfaceCard : "#f4f6f8"
+    readonly property color surfaceElevated: dark ? amoledElevated : "#eef6fc"
+    readonly property color hover: dark ? amoledHover : "#f0f0f2"
     readonly property color selected: accent
-    readonly property color selectedMuted: amoled ? amoledSelected
-        : (dark ? Qt.rgba(accent.r, accent.g, accent.b, 0.4) : Qt.rgba(accent.r, accent.g, accent.b, 0.13))
+    readonly property color selectedMuted: dark ? amoledSelected
+        : Qt.rgba(accent.r, accent.g, accent.b, 0.13)
 
-    readonly property color textPrimary: amoled ? amoledTextPrimary
-        : (dark ? "#f5f5f5" : "#000000")
-    readonly property color textSecondary: amoled ? amoledTextSecondary
-        : (dark ? "#708499" : "#707579")
+    readonly property color textPrimary: dark ? amoledTextPrimary : "#000000"
+    readonly property color textSecondary: dark ? amoledTextSecondary : "#707579"
     readonly property color textMuted: textSecondary
     readonly property color textOnAccent: "#ffffff"
-    readonly property color divider: amoled ? amoledDivider
-        : (dark ? "#101921" : "#e6e6e6")
-    readonly property color border: amoled ? amoledBorder
-        : (dark ? "#101921" : "#dadce0")
+    readonly property color divider: dark ? amoledDivider : "#e6e6e6"
+    readonly property color border: dark ? amoledBorder : "#dadce0"
 
     readonly property color success: "#4fae4e"
     readonly property color warning: "#e5a64e"

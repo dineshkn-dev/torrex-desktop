@@ -69,12 +69,14 @@ QString formatByteSize(const qint64 bytes)
 
 constexpr int kAppearanceSystem = 0;
 constexpr int kAppearanceLight = 1;
-constexpr int kAppearanceDark = 2;
-constexpr int kAppearanceAmoled = 3;
+constexpr int kAppearanceDark = 2; // AMOLED-style true black (legacy mode 3 maps here)
 
 int clampAppearanceMode(int mode)
 {
-    if (mode < kAppearanceSystem || mode > kAppearanceAmoled) {
+    if (mode == 3) {
+        return kAppearanceDark;
+    }
+    if (mode < kAppearanceSystem || mode > kAppearanceDark) {
         return kAppearanceSystem;
     }
     return mode;
@@ -213,7 +215,6 @@ void AppController::applyAppearanceColorScheme()
         hints->setColorScheme(Qt::ColorScheme::Light);
         break;
     case kAppearanceDark:
-    case kAppearanceAmoled:
         hints->setColorScheme(Qt::ColorScheme::Dark);
         break;
     default:

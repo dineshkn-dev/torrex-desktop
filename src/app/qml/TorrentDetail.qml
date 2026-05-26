@@ -162,30 +162,34 @@ Item {
                     spacing: Theme.spacingSm
 
                     DetailActionChip {
-                        glyph: "❚❚"
-                        text: qsTr("Pause")
-                        enabled: root.hasSelection && !root.detailPaused
-                        onClicked: appController.pauseTorrent(root.detailInfoHash)
+                        glyph: root.detailPaused ? "▶" : "❚❚"
+                        text: root.detailPaused ? qsTr("Resume") : qsTr("Pause")
+                        enabled: root.hasSelection
+                        onClicked: {
+                            if (root.detailPaused)
+                                appController.resumeTorrent(root.detailInfoHash)
+                            else
+                                appController.pauseTorrent(root.detailInfoHash)
+                        }
                     }
                     DetailActionChip {
-                        glyph: "▶"
-                        text: qsTr("Resume")
-                        enabled: root.hasSelection && root.detailPaused
-                        onClicked: appController.resumeTorrent(root.detailInfoHash)
-                    }
-                    DetailActionChip {
-                        glyph: "⊘"
-                        text: qsTr("Stop seeding")
-                        enabled: Theme.canStopSeeding(
+                        visible: Theme.canStopSeeding(
+                                    root.detailState, root.detailProgress, root.detailUploadStopped)
+                            || Theme.canResumeSeeding(
+                                    root.detailState, root.detailProgress, root.detailUploadStopped)
+                        glyph: Theme.canResumeSeeding(
+                            root.detailState, root.detailProgress, root.detailUploadStopped) ? "↻" : "⊘"
+                        text: Theme.canResumeSeeding(
                             root.detailState, root.detailProgress, root.detailUploadStopped)
-                        onClicked: appController.stopSeeding(root.detailInfoHash)
-                    }
-                    DetailActionChip {
-                        glyph: "↻"
-                        text: qsTr("Resume seeding")
-                        enabled: Theme.canResumeSeeding(
-                            root.detailState, root.detailProgress, root.detailUploadStopped)
-                        onClicked: appController.resumeSeeding(root.detailInfoHash)
+                            ? qsTr("Resume seeding") : qsTr("Stop seeding")
+                        enabled: root.hasSelection
+                        onClicked: {
+                            if (Theme.canResumeSeeding(
+                                    root.detailState, root.detailProgress, root.detailUploadStopped))
+                                appController.resumeSeeding(root.detailInfoHash)
+                            else
+                                appController.stopSeeding(root.detailInfoHash)
+                        }
                     }
                     DetailActionChip {
                         id: detailMoreChip

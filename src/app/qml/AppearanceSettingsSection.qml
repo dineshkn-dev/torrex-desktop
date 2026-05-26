@@ -23,8 +23,7 @@ ColumnLayout {
             model: [
                 { mode: 0, label: qsTr("System") },
                 { mode: 1, label: qsTr("Light") },
-                { mode: 2, label: qsTr("Dark") },
-                { mode: 3, label: qsTr("AMOLED") }
+                { mode: 2, label: qsTr("Dark") }
             ]
             delegate: TgTabButton {
                 required property int mode
@@ -37,32 +36,11 @@ ColumnLayout {
     }
 
     Label {
-        text: qsTr("True black backgrounds on OLED. Surfaces stay neutral; accent colors only tint buttons, progress, and highlights.")
-        font.pixelSize: Theme.fontCaption
-        color: Theme.textSecondary
-        wrapMode: Text.WordWrap
-        visible: appController.appearanceMode === 3
-        Layout.fillWidth: true
-        Layout.topMargin: Theme.spacingXs
-    }
-
-    Label {
         text: qsTr("Accent color")
         font.pixelSize: Theme.fontCaption
         color: Theme.textSecondary
         Layout.fillWidth: true
         Layout.topMargin: Theme.spacingSm
-    }
-
-    Label {
-        text: appController.appearanceMode === 3
-            ? qsTr("Same clean black UI for every accent — only controls and indicators use the color you pick.")
-            : qsTr("Tint for buttons, links, progress bars, and selected states.")
-        font.pixelSize: Theme.fontCaption
-        color: Theme.textSecondary
-        wrapMode: Text.WordWrap
-        Layout.fillWidth: true
-        Layout.bottomMargin: Theme.spacingXs
     }
 
     Flow {

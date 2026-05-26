@@ -54,9 +54,9 @@ Item {
                 font.weight: Font.DemiBold
                 color: Theme.textSecondary
                 horizontalAlignment: Text.AlignHCenter
-                Layout.minimumWidth: 100
-                Layout.preferredWidth: 100
-                Layout.maximumWidth: 100
+                Layout.minimumWidth: 76
+                Layout.preferredWidth: 76
+                Layout.maximumWidth: 76
             }
         }
 
@@ -127,8 +127,11 @@ Item {
 
                             TgMenuPicker {
                                 id: priorityPicker
-                                Layout.minimumWidth: 88
-                                Layout.preferredWidth: 100
+                                compact: true
+                                Layout.alignment: Qt.AlignTop | Qt.AlignRight
+                                Layout.minimumWidth: 76
+                                Layout.preferredWidth: 76
+                                Layout.maximumWidth: 76
                                 property var priorityModel: [
                                     { label: qsTr("Skip"), value: 0 },
                                     { label: qsTr("Low"), value: 1 },

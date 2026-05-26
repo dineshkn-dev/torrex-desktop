@@ -4,14 +4,15 @@ import Torrin
 
 Button {
     id: root
-    implicitHeight: 40
-    padding: 16
+    implicitHeight: root.compact ? 28 : 40
+    padding: root.compact ? 10 : 16
 
     property bool primary: false
+    property bool compact: false
 
     contentItem: Text {
         text: root.text
-        font.pixelSize: Theme.fontBody
+        font.pixelSize: root.compact ? Theme.fontCaption : Theme.fontBody
         font.weight: root.primary ? Font.DemiBold : Font.Normal
         color: root.primary ? Theme.textOnAccent : Theme.accent
         horizontalAlignment: Text.AlignHCenter
@@ -19,8 +20,8 @@ Button {
     }
 
     background: Rectangle {
-        radius: Theme.radiusMedium
-        implicitHeight: 40
+        radius: root.compact ? Theme.radiusSmall : Theme.radiusMedium
+        implicitHeight: root.implicitHeight
         color: {
             if (!root.enabled)
                 return Theme.border
