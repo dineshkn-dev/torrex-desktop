@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "docs/index.html"
+      - "docs/robots.txt"
+      - "docs/sitemap.xml"
+      - "docs/torrinindexnow2026.txt"
       - "docs/assets/**"
   workflow_dispatch:
 
@@ -31,3 +34,18 @@ jobs:
           path: docs
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Notify search engines (IndexNow)
+        if: success()
+        run: |
+          curl -fsS -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "host": "dineshkn-dev.github.io",
+              "key": "torrinindexnow2026",
+              "keyLocation": "https://dineshkn-dev.github.io/torrin/torrinindexnow2026.txt",
+              "urlList": [
+                "https://dineshkn-dev.github.io/torrin/"
+              ]
+            }'
+          curl -fsS "https://www.bing.com/indexnow?url=https://dineshkn-dev.github.io/torrin/&key=torrinindexnow2026" || true

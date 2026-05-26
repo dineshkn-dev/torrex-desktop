@@ -3,12 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Torrin — open-source BitTorrent client</title>
-  <meta name="description" content="Torrin is an open-source BitTorrent client for macOS, Windows, and Linux. Qt 6 Quick and libtorrent 2.x. No ads, no bundled telemetry.">
-  <meta property="og:title" content="Torrin — BitTorrent for desktop">
-  <meta property="og:description" content="Open-source torrent client for macOS, Windows, and Linux. Qt 6 + libtorrent.">
+  <title>Torrin — open-source BitTorrent client for macOS, Windows, and Linux</title>
+  <meta name="description" content="Torrin is a free, open-source BitTorrent (torrent) client for macOS, Windows, and Linux. Qt 6 Quick UI, libtorrent 2.x. No ads, no bundled telemetry. Download portable builds.">
+  <meta name="keywords" content="Torrin, open source torrent client, BitTorrent client, libtorrent, Qt 6, macOS, Windows, Linux, magnet links, GPL, desktop torrent app">
+  <link rel="canonical" href="https://dineshkn-dev.github.io/torrin/">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dineshkn-dev.github.io/torrin/">
+  <meta property="og:site_name" content="Torrin">
+  <meta property="og:title" content="Torrin — open-source BitTorrent client">
+  <meta property="og:description" content="Free torrent client for macOS, Windows, and Linux. Qt 6 + libtorrent 2.x. No ads, no bundled telemetry.">
   <meta property="og:image" content="https://raw.githubusercontent.com/dineshkn-dev/torrin/main/docs/assets/torrin-dark.png">
+  <meta property="og:image:alt" content="Torrin torrent client screenshot — list and detail view">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Torrin — open-source BitTorrent client">
+  <meta name="twitter:description" content="Free torrent client for macOS, Windows, and Linux. No ads, no bundled telemetry.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/dineshkn-dev/torrin/main/docs/assets/torrin-dark.png">
   <link rel="icon" href="https://raw.githubusercontent.com/dineshkn-dev/torrin/main/resources/brand/torrin-mark.svg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Torrin",
+    "applicationCategory": "UtilitiesApplication",
+    "applicationSubCategory": "BitTorrent client",
+    "operatingSystem": "macOS, Windows, Linux",
+    "description": "Open-source BitTorrent client for desktop with Qt 6 Quick UI and libtorrent 2.x. No ads, no bundled telemetry.",
+    "softwareVersion": "1.0.0",
+    "license": "https://spdx.org/licenses/GPL-3.0-or-later.html",
+    "isAccessibleForFree": true,
+    "downloadUrl": "https://github.com/dineshkn-dev/torrin/releases/latest",
+    "url": "https://dineshkn-dev.github.io/torrin/",
+    "codeRepository": "https://github.com/dineshkn-dev/torrin",
+    "screenshot": "https://raw.githubusercontent.com/dineshkn-dev/torrin/main/docs/assets/torrin-dark.png",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
   <style>
     :root {
       --bg: #000;
@@ -58,21 +92,22 @@
     }
     footer { margin-top: 3rem; color: var(--muted); font-size: 0.9rem; }
     a { color: var(--accent); }
+    details { margin-top: 0.75rem; }
+    summary { cursor: pointer; font-weight: 600; }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <main class="wrap">
     <h1>Torrin</h1>
     <p class="tagline">
-      Open-source BitTorrent client for <strong>macOS</strong>, <strong>Windows</strong>, and <strong>Linux</strong>,
-      built with <strong>Qt 6 Quick</strong> and <strong>libtorrent 2.x</strong>:
-      fast-resume, modern list UX, no ads, no bundled telemetry.
+      Free, <strong>open-source BitTorrent client</strong> for <strong>macOS</strong>, <strong>Windows</strong>, and <strong>Linux</strong>.
+      Built with <strong>Qt 6 Quick</strong> and <strong>libtorrent 2.x</strong> — fast-resume, modern list UX, no ads, no bundled telemetry.
     </p>
     <p>
-      <a class="cta" href="https://github.com/dineshkn-dev/torrin/releases/latest">Download latest .dmg</a>
+      <a class="cta" href="https://github.com/dineshkn-dev/torrin/releases/latest">Download latest release</a>
       <a class="cta secondary" href="https://github.com/dineshkn-dev/torrin">View on GitHub</a>
     </p>
-    <img class="hero" src="assets/torrin-dark.png" width="920" height="612" alt="Torrin torrent list and detail view">
+    <img class="hero" src="assets/torrin-dark.png" width="920" height="612" alt="Torrin open-source torrent client — dark theme list and detail view">
 
     <h2>Features</h2>
     <ul>
@@ -80,20 +115,35 @@
       <li>Search, sort, filters, and resizable master–detail UI</li>
       <li>File priorities, sequential download, recheck and reannounce</li>
       <li>Bandwidth limits, DHT/UPnP, optional proxy; light and dark appearance</li>
-      <li>Signed release <code>.dmg</code> with SHA-256, SPDX SBOM, and cosign signatures</li>
+      <li>Signed releases with SHA-256, SPDX SBOM, and cosign signatures</li>
     </ul>
 
     <div class="card">
-      <strong>Platforms:</strong> macOS, Windows x64, and Linux x64 portable builds per release.
+      <strong>Platforms:</strong> macOS (<code>.dmg</code>), Windows x64 (<code>.zip</code>), Linux x64 portable (<code>.tar.gz</code>) — one page, all builds on
+      <a href="https://github.com/dineshkn-dev/torrin/releases/latest">GitHub Releases</a>.
     </div>
 
     <h2>Install</h2>
-    <p>Download from <a href="https://github.com/dineshkn-dev/torrin/releases/latest">Releases</a>:</p>
+    <p>Download the build for your OS from <a href="https://github.com/dineshkn-dev/torrin/releases/latest">Releases</a>:</p>
     <ul>
-      <li><strong>macOS</strong> — <code>.dmg</code></li>
+      <li><strong>macOS</strong> — <code>.dmg</code> (drag to Applications)</li>
       <li><strong>Windows</strong> — <code>.zip</code> (x64, run <code>torrin.exe</code>)</li>
       <li><strong>Linux</strong> — <code>.tar.gz</code> (x64, run <code>usr/bin/torrin</code>)</li>
     </ul>
+
+    <h2>FAQ</h2>
+    <details>
+      <summary>Is Torrin a free open-source torrent client?</summary>
+      <p>Yes. Torrin is GPL-3.0-or-later. Source and signed binaries are on GitHub.</p>
+    </details>
+    <details>
+      <summary>Does Torrin work on Windows and Linux, not only macOS?</summary>
+      <p>Yes. Official portable builds ship for macOS, Windows (x64), and Linux (x64).</p>
+    </details>
+    <details>
+      <summary>Ads or telemetry?</summary>
+      <p>No ads and no bundled telemetry in official releases.</p>
+    </details>
 
     <h2>Legal &amp; security</h2>
     <p>
@@ -104,9 +154,10 @@
 
     <footer>
       <a href="https://github.com/dineshkn-dev/torrin">Source</a> ·
+      <a href="https://github.com/dineshkn-dev/torrin/blob/main/README.md">README</a> ·
       <a href="https://github.com/dineshkn-dev/torrin/blob/main/CONTRIBUTING.md">Contributing</a> ·
       <a href="https://github.com/dineshkn-dev/torrin/blob/main/docs/ARCHITECTURE.md">Architecture</a>
     </footer>
-  </div>
+  </main>
 </body>
 </html>

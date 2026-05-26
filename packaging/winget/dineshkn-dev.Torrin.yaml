@@ -1,0 +1,37 @@
+# Reference manifest for microsoft/winget-pkgs PR.
+# Submit after a Windows x64 .zip is published on GitHub Releases.
+PackageIdentifier: dineshkn-dev.Torrin
+PackageVersion: 0.2.0
+PackageLocale: en-US
+Publisher: dineshkn-dev
+PublisherUrl: https://github.com/dineshkn-dev
+PublisherSupportUrl: https://github.com/dineshkn-dev/torrin/issues
+PackageName: Torrin
+PackageUrl: https://dineshkn-dev.github.io/torrin/
+License: GPL-3.0-or-later
+LicenseUrl: https://github.com/dineshkn-dev/torrin/blob/main/LICENSE
+Copyright: Copyright (C) Torrin Contributors
+ShortDescription: Open-source BitTorrent client without ads or bundled telemetry
+Description: >-
+  Torrin is a cross-platform desktop BitTorrent client built with Qt 6 Quick
+  and libtorrent 2.x. Supports magnets, .torrent files, bandwidth limits,
+  and modern list/detail UI on Windows, macOS, and Linux.
+Moniker: torrin
+Tags:
+  - bittorrent
+  - torrent
+  - p2p
+  - download
+Installers:
+  - Architecture: x64
+    InstallerType: zip
+    NestedInstallerType: portable
+    NestedInstallerFiles:
+      - RelativeFilePath: torrin.exe
+        PortableCommandAlias: torrin
+    # Set URL and InstallerSha256 from the release SHA256SUMS.txt when Windows .zip is published.
+    InstallerUrl: https://github.com/dineshkn-dev/torrin/releases/latest/download/Torrin-0.0.0-windows-x64.zip
+    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+    ReleaseDate: 2026-05-26
+ManifestType: singleton
+ManifestVersion: 1.6.0

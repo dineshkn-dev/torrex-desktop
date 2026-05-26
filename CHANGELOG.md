@@ -4,6 +4,17 @@ All notable changes to Torrin are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- Distribution guide (`docs/DISTRIBUTION.md`), IndexNow key, and packaging references for Homebrew/Winget
+- Pages deploy notifies IndexNow/Bing after publish
+
+### Changed
+
+- README and GitHub Pages landing page improved for discoverability (FAQ, structured metadata, sitemap)
+
 ## [1.0.0] - 2026-05-26
 
 ### Added
