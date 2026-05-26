@@ -2,13 +2,13 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/dineshkn-dev/torrin?label=release)](https://github.com/dineshkn-dev/torrin/releases/latest)
-[![macOS](https://img.shields.io/badge/platform-macOS-lightgrey)](docs/specs/PRODUCT.md)
+[![CI](https://img.shields.io/github/actions/workflow/status/dineshkn-dev/torrin/ci.yml?branch=main&label=CI)](https://github.com/dineshkn-dev/torrin/actions/workflows/ci.yml)
 
-**Torrin** is an open-source **BitTorrent client for macOS**, built with **Qt 6 Quick** and **libtorrent 2.x**: fast-resume, modern list UX, no ads, and no bundled telemetry ([ADR-003](docs/architecture/ADR-003-security.md)).
+**Torrin** is an open-source **BitTorrent client** for **macOS**, **Windows**, and **Linux**, built with **Qt 6 Quick** and **libtorrent 2.x**: fast-resume, modern list UX, no ads, and no bundled telemetry ([ADR-003](docs/architecture/ADR-003-security.md)).
 
 <p align="center">
   <a href="https://github.com/dineshkn-dev/torrin/releases/latest">
-    <img src="https://img.shields.io/badge/Download-latest%20.dmg-3390ec?style=for-the-badge&logo=apple&logoColor=white" alt="Download latest release">
+    <img src="https://img.shields.io/badge/Download-latest%20release-3390ec?style=for-the-badge" alt="Download latest release">
   </a>
 </p>
 
@@ -21,9 +21,9 @@
 
 ## Why Torrin?
 
-- **Native macOS app** — Qt Quick UI, not Electron; C++20 + libtorrent 2.x
-- **Privacy-first** — no telemetry by default; settings and resume data stay on your Mac
-- **Trustworthy releases** — signed `.dmg`, SHA-256 checksums, SPDX SBOM, cosign signatures
+- **Native Qt Quick UI** — not Electron; C++20 + libtorrent 2.x
+- **Privacy-first** — no telemetry by default; data stays on your machine
+- **Trustworthy releases** — SHA-256 checksums, cosign signatures; SPDX SBOM on macOS
 - **GPL-3.0** — inspectable source, no ads
 
 ## Features
@@ -31,43 +31,40 @@
 - Magnet and `.torrent` add, pause, resume, remove, stop/resume seeding
 - Search and sort list; filters; resizable master–detail UI
 - File priorities, sequential download, force recheck / reannounce
-- Bandwidth limits, port, DHT/UPnP, proxy; system light/dark theme
+- Bandwidth limits, port, DHT/UPnP, proxy; light/dark appearance
 - Drag-and-drop, fast-resume, completion notifications
 
 Details: [docs/specs/PRODUCT.md](docs/specs/PRODUCT.md). Roadmap: [docs/planning/FUTURE.md](docs/planning/FUTURE.md).
 
-## Comparison (macOS)
-
-| | Torrin | Transmission | qBittorrent |
-|---|:---:|:---:|:---:|
-| Open source (GPL) | Yes | Yes | Yes |
-| Native Qt / non-Electron UI | Yes | — | — |
-| Rich list UX (search, sort, ETA) | Yes | Basic | Yes |
-| Signed release + SBOM | Yes | Varies | Varies |
-| No bundled telemetry (default) | Yes | Yes | Yes |
-| Windows / Linux builds | Planned ([roadmap](docs/planning/FUTURE.md#cross-platform)) | Yes | Yes |
-
-Torrin is **macOS-only today**; Windows and Linux are on the [v1.1 milestone](docs/planning/FUTURE.md#cross-platform).
-
 ## Install
 
-1. Download the latest **`.dmg`** from [Releases](https://github.com/dineshkn-dev/torrin/releases/latest).
-2. Open the disk image and drag **Torrin** to **Applications**.
-3. On first launch, if macOS blocks the app (unsigned or not notarized build), open **System Settings → Privacy & Security** and choose **Open Anyway**. [Notarized installs](docs/planning/FUTURE.md#production-macos) are planned for v1.0.
+Download from **[Releases](https://github.com/dineshkn-dev/torrin/releases/latest)** for your platform:
+
+| Platform | File | Install |
+|----------|------|---------|
+| **macOS** | `Torrin-*-macos-*.dmg` | Open the disk image, drag **Torrin** to **Applications**. If Gatekeeper blocks the app, use **System Settings → Privacy & Security → Open Anyway** until [notarized builds](docs/planning/FUTURE.md#production-macos) ship. |
+| **Windows** | `Torrin-*-windows-x64.zip` | Extract the zip and run `torrin.exe`. Windows may show SmartScreen for unsigned builds. |
+| **Linux** | `Torrin-*-linux-x64.tar.gz` | Extract and run `usr/bin/torrin` from the archive (Qt XCB bundled). |
+
+Verify downloads with `SHA256SUMS.txt` and cosign `.sig` / `.crt` files attached to the release.
 
 ### Build from source
 
-**Requirements:** CMake 3.24+, Ninja, C++20, Git, full **Xcode** on macOS.
+**Requirements:** CMake 3.24+, Ninja, C++20, Git, [vcpkg](https://vcpkg.io/) (manifest mode).
+
+| OS | Extra tooling |
+|----|----------------|
+| macOS | Full **Xcode**, Homebrew deps — see [AGENTS.md](AGENTS.md) |
+| Windows | Visual Studio 2022 build tools, `run-vcpkg` in CI |
+| Linux | `ninja`, Mesa/XCB dev packages — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 
 ```bash
-brew install cmake ninja pkg-config autoconf autoconf-archive automake libtool
-./scripts/bootstrap.sh
+export VCPKG_ROOT=~/vcpkg   # after ./scripts/bootstrap.sh on macOS
 cmake --preset dev
 cmake --build --preset dev
-./scripts/run-dev.sh
+# macOS: ./scripts/run-dev.sh
+# Win/Linux: ./build/dev/bin/torrin or torrin.exe
 ```
-
-Torrin follows macOS **Appearance** (Light / Dark / Auto). Optional: `export VCPKG_ROOT=~/vcpkg`.
 
 ## Architecture
 

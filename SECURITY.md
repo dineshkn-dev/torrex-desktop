@@ -4,7 +4,9 @@
 
 | Version | Supported |
 |---------|-----------|
-| 0.1.x   | Yes       |
+| 1.0.x   | Yes       |
+| 0.3.x   | Best effort |
+| 0.1.x   | No        |
 
 ## Reporting a vulnerability
 

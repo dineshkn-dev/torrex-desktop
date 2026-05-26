@@ -1,7 +1,7 @@
 # Forward-looking roadmap. Shipped work: docs/specs/PRODUCT.md, CHANGELOG.md.
 version: 3
 project: torrin
-released_version: "0.3.0"
+released_version: "1.0.0"
 
 milestones:
   - id: v0-3-daily-convenience
@@ -81,20 +81,23 @@ milestones:
         summary: Public privacy policy for local data and telemetry
         priority: medium
 
-  - id: v1-1-cross-platform
-    name: v1.1 — Windows and Linux releases
-    status: planned
+  - id: v1-0-cross-platform
+    name: v1.0 — Cross-platform release
+    status: done
     spec: docs/planning/FUTURE.md#cross-platform
     items:
       - id: M-200-windows-ci-package
         summary: Windows CI build and windeployqt packaging
         priority: high
+        status: done
       - id: M-201-linux-ci-package
-        summary: Linux CI build and AppImage or deb package
+        summary: Linux CI build and portable tar.gz package
         priority: high
+        status: done
       - id: M-202-ci-matrix
         summary: Restore multi-OS CI matrix from macOS-only scope
         priority: medium
+        status: done
       - id: M-203-platform-file-dialogs
         summary: Platform-native open/save and default folders
         priority: medium

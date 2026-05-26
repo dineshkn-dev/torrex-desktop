@@ -246,7 +246,7 @@ Item {
                         TgMenu {
                             id: detailMenu
                             MenuItem {
-                                text: qsTr("Reveal in Finder")
+                                text: appController.revealInFileManagerLabel
                                 onTriggered: appController.revealTorrentInFinder(root.detailInfoHash)
                             }
                             MenuItem {

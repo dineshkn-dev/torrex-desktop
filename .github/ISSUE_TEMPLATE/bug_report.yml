@@ -13,7 +13,7 @@ body:
     attributes:
       label: Torrin version
       description: e.g. 0.3.0 from Releases, or git commit if built from source
-      placeholder: "0.3.0"
+      placeholder: "1.0.0"
     validations:
       required: true
 

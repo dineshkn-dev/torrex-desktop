@@ -21,6 +21,7 @@ class AppController : public QObject {
     Q_OBJECT
     Q_PROPERTY(models::TorrentListModel* torrents READ torrents CONSTANT)
     Q_PROPERTY(QString version READ version CONSTANT)
+    Q_PROPERTY(QString revealInFileManagerLabel READ revealInFileManagerLabel CONSTANT)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(QString notificationMessage READ notificationMessage NOTIFY
                    notificationMessageChanged)
@@ -62,6 +63,7 @@ public:
 
     models::TorrentListModel* torrents() { return &torrent_model_; }
     QString version() const;
+    QString revealInFileManagerLabel() const;
 
     Q_INVOKABLE void refreshTorrents();
     Q_INVOKABLE void addMagnetUri(const QString& uri, const QString& save_path = {});

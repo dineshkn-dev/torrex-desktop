@@ -8,7 +8,7 @@ function(torrin_configure_qt_runtime target)
         target_link_libraries(${target} PRIVATE Qt6::QPNGPlugin)
     endif()
 
-    if(APPLE AND CMAKE_PREFIX_PATH)
+    if(CMAKE_PREFIX_PATH)
         foreach(prefix IN LISTS CMAKE_PREFIX_PATH)
             set(_qt_plugins "${prefix}/Qt6/plugins")
             if(EXISTS "${_qt_plugins}/imageformats")

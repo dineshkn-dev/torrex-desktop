@@ -1,7 +1,7 @@
 {
   "name": "torrin",
-  "version": "0.3.0",
-  "description": "BitTorrent client for macOS (cross-platform planned)",
+  "version": "1.0.0",
+  "description": "BitTorrent client for macOS, Windows, and Linux",
   "license": "GPL-3.0-or-later",
   "dependencies": [
     "libtorrent",

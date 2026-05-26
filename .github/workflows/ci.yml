@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-14
+    timeout-minutes: 120
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install ninja autoconf autoconf-archive automake libtool pkg-config
+      - uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
+      - run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
+      - run: ./scripts/check-core-no-qt.sh
+      - run: cmake --preset ci-release
+      - run: cmake --build --preset ci-release
+      - run: ctest --preset ci-release --output-on-failure
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    timeout-minutes: 180
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
+      - run: cmake --preset ci-release
+      - run: cmake --build --preset ci-release
+      - run: ctest --preset ci-release --output-on-failure
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config autoconf autoconf-archive automake libtool \
+            libgl1-mesa-dev libxkbcommon-dev libxcb-xkb-dev libxcb-cursor-dev \
+            libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
+            libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev \
+            libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev \
+            libxcb-xinput-dev libfontconfig1-dev libfreetype6-dev libdbus-1-dev
+      - uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
+      - run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
+      - run: ./scripts/check-core-no-qt.sh
+      - run: cmake --preset ci-release
+      - run: cmake --build --preset ci-release
+      - run: ctest --preset ci-release --output-on-failure

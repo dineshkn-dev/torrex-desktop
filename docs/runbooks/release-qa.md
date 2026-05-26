@@ -4,23 +4,30 @@ Use before or after publishing a **tagged** release build.
 
 ## Build under test
 
-- GitHub Release `.dmg` for the tag, or local:
+Use the GitHub Release assets for the tag, or a local package:
 
-```bash
-cmake --preset ci-release
-cmake --build --preset ci-release
-./scripts/package-macos.sh build/ci-release
-```
+| Platform | Command |
+|----------|---------|
+| macOS | `./scripts/package-macos.sh build/ci-release` |
+| Windows | `./scripts/package-windows.sh build/ci-release` |
+| Linux | `./scripts/package-linux.sh build/ci-release` |
 
-## Checklist
+## Checklist (each platform you ship)
 
+- [ ] App launches without missing Qt/platform plugin errors
 - [ ] Add a **legal** torrent via magnet and via `.torrent`
 - [ ] Pause, resume, remove (with and without delete data)
 - [ ] Files tab: change priority; toggle sequential download
 - [ ] Settings persist after restart (folder, limits, proxy if used)
 - [ ] Quit and reopen: torrents restore from fast-resume
-- [ ] Drag-and-drop adds a torrent
+- [ ] **Reveal in file manager** opens the correct folder
 - [ ] Completion shows in-app notification banner
-- [ ] Release assets include `.dmg`, `SHA256SUMS.txt`, SBOM, cosign files
+- [ ] Release assets include platform archive, `SHA256SUMS.txt`, cosign files
+
+## Release page
+
+- [ ] macOS `.dmg`, Windows `.zip`, Linux `.tar.gz` attached
+- [ ] `SHA256SUMS.txt` lists all archives
+- [ ] macOS SBOM present (`torrin-macos.spdx.json`)
 
 Do not commit copyrighted `.torrent` files to the repository.

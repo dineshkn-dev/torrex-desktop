@@ -47,7 +47,7 @@ hdiutil create -volname "Torrin" -srcfolder "$APP" -ov -format UDZO "$DMG_PATH" 
 CHECKSUMS="$STAGING/SHA256SUMS.txt"
 (
     cd "$STAGING"
-    shasum -a 256 "$DMG_NAME" >SHA256SUMS.txt
+    shasum -a 256 "$DMG_NAME" >>SHA256SUMS.txt
 )
 echo "package-macos: wrote $CHECKSUMS"
 echo "$STAGING"

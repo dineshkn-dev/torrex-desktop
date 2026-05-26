@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   macos:
-    name: macos-14
+    name: macOS
     runs-on: macos-14
     timeout-minutes: 120
     env:
@@ -62,38 +62,204 @@ jobs:
         run: ctest --preset ci-release --output-on-failure
 
       - name: Package .dmg
-        run: chmod +x scripts/package-macos.sh && ./scripts/package-macos.sh build/ci-release
+        run: ./scripts/package-macos.sh build/ci-release
 
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@v0
         with:
           path: build/ci-release/bin/torrin.app
           format: spdx-json
-          output-file: build/ci-release/staging/torrin.spdx.json
+          output-file: build/ci-release/staging/torrin-macos.spdx.json
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: |
+            build/ci-release/staging/*.dmg
+            build/ci-release/staging/SHA256SUMS.txt
+            build/ci-release/staging/torrin-macos.spdx.json
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    timeout-minutes: 180
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg/bincache,read;files,${{ github.workspace }}/vcpkg/bincache,write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate docs
+        shell: bash
+        run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
+
+      - name: Check core has no Qt
+        shell: bash
+        run: ./scripts/check-core-no-qt.sh
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg/bincache
+            ${{ github.workspace }}/vcpkg/downloads
+            ${{ github.workspace }}/build/ci-release/vcpkg_installed
+          key: vcpkg-windows-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: |
+            vcpkg-windows-
+
+      - name: Configure
+        run: cmake --preset ci-release
+
+      - name: Build
+        run: cmake --build --preset ci-release
+
+      - name: Test
+        run: ctest --preset ci-release --output-on-failure
+
+      - name: Package .zip
+        shell: bash
+        run: ./scripts/package-windows.sh build/ci-release
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: |
+            build/ci-release/staging/*.zip
+            build/ci-release/staging/SHA256SUMS.txt
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg/bincache,read;files,${{ github.workspace }}/vcpkg/bincache,write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config autoconf autoconf-archive automake libtool \
+            libgl1-mesa-dev libxkbcommon-dev libxcb-xkb-dev libxcb-cursor-dev \
+            libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
+            libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev \
+            libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev \
+            libxcb-xinput-dev libfontconfig1-dev libfreetype6-dev \
+            libdbus-1-dev libglib2.0-0 libfuse2 wget file librsvg2-bin
+
+      - name: Validate docs
+        run: chmod +x scripts/*.sh && ./scripts/validate-docs.sh
+
+      - name: Check core has no Qt
+        run: ./scripts/check-core-no-qt.sh
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 8528134bac3d39db8d36f4097755a97a1394e4dc
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg/bincache
+            ${{ github.workspace }}/vcpkg/downloads
+            ${{ github.workspace }}/build/ci-release/vcpkg_installed
+          key: vcpkg-linux-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: |
+            vcpkg-linux-
+
+      - name: Configure
+        run: cmake --preset ci-release
+
+      - name: Build
+        run: cmake --build --preset ci-release
+
+      - name: Test
+        run: ctest --preset ci-release --output-on-failure
+
+      - name: Package .tar.gz
+        run: ./scripts/package-linux.sh build/ci-release
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: |
+            build/ci-release/staging/*.tar.gz
+            build/ci-release/staging/SHA256SUMS.txt
+
+  publish:
+    name: Publish release
+    needs: [macos, windows, linux]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-macos
+          path: artifacts/macos
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-windows
+          path: artifacts/windows
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-linux
+          path: artifacts/linux
+
+      - name: Assemble release directory
+        run: |
+          mkdir -p artifacts/dist
+          shopt -s nullglob
+          cp -a artifacts/macos/* artifacts/dist/ 2>/dev/null || true
+          cp -a artifacts/windows/* artifacts/dist/ 2>/dev/null || true
+          cp -a artifacts/linux/* artifacts/dist/ 2>/dev/null || true
+          : > artifacts/dist/SHA256SUMS.txt
+          for sums in artifacts/macos/SHA256SUMS.txt artifacts/windows/SHA256SUMS.txt artifacts/linux/SHA256SUMS.txt; do
+            [[ -f "$sums" ]] && cat "$sums" >> artifacts/dist/SHA256SUMS.txt
+          done
+          rm -rf artifacts/macos artifacts/windows artifacts/linux
+          mv artifacts/dist artifacts
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.7.0
 
       - name: Sign release artifacts
-        working-directory: build/ci-release/staging
+        working-directory: artifacts
+        shell: bash
         run: |
-          for artifact in *.dmg torrin.spdx.json SHA256SUMS.txt; do
-            [[ -f "$artifact" ]] || continue
+          shopt -s nullglob
+          for artifact in *.dmg *.zip *.tar.gz *.spdx.json SHA256SUMS.txt; do
             cosign sign-blob --yes "$artifact" \
               --output-signature "${artifact}.sig" \
               --output-certificate "${artifact}.crt"
           done
 
-      - name: Upload release assets
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/ci-release/staging/*.dmg
-            build/ci-release/staging/SHA256SUMS.txt
-            build/ci-release/staging/torrin.spdx.json
-            build/ci-release/staging/*.sig
-            build/ci-release/staging/*.crt
+            artifacts/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

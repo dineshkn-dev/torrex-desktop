@@ -14,8 +14,10 @@ Build, test, and change the codebase. Product scope is in [docs/specs/PRODUCT.md
 | Preset | Use |
 |--------|-----|
 | `dev` | Local debug build |
-| `ci-release` | Release-like build and packaging |
+| `ci-release` | Release-like build and packaging (all platforms) |
 | `sanitize` | ASan + UBSan |
+
+Releases: `release.yml` (tag `v*`) builds macOS `.dmg`, Windows `.zip`, Linux `.tar.gz`. PR CI: `ci.yml`.
 
 ```bash
 cmake --preset dev

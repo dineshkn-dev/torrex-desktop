@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Nothing yet — see [docs/planning/FUTURE.md](docs/planning/FUTURE.md).
 
+## [1.0.0] - 2026-05-26
+
+### Added
+
+- **Windows** portable `.zip` release (x64, `windeployqt` bundle)
+- **Linux** portable `.tar.gz` release (x64, Qt plugin via linuxdeploy)
+- GitHub Actions **CI** workflow: build and test on macOS, Windows, and Linux
+- Platform-specific **Reveal in Finder / File Explorer / Open save folder** labels
+
+### Changed
+
+- Release workflow builds and publishes all three platforms on tag `v*`
+- Qt plugin discovery for dev builds on Windows and Linux
+
 ## [0.3.0] - 2026-05-26
 
 ### Added

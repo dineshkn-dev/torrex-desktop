@@ -1,6 +1,6 @@
 # Contributing to Torrin
 
-Thanks for your interest in Torrin. This project is **macOS-first** today; see [docs/planning/FUTURE.md](docs/planning/FUTURE.md) for cross-platform plans.
+Thanks for your interest in Torrin. Releases target **macOS**, **Windows**, and **Linux** (see [docs/specs/PRODUCT.md](docs/specs/PRODUCT.md)).
 
 ## Quick start
 

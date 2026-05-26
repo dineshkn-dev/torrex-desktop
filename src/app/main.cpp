@@ -25,11 +25,13 @@ void add_plugin_path(const QString& path)
 
 void add_bundle_plugin_paths()
 {
+#if defined(Q_OS_MACOS)
     const QDir macos_dir(QCoreApplication::applicationDirPath());
     const QString plugins_dir = macos_dir.absoluteFilePath(QStringLiteral("../PlugIns"));
     add_plugin_path(plugins_dir);
     add_plugin_path(plugins_dir + QStringLiteral("/imageformats"));
     add_plugin_path(plugins_dir + QStringLiteral("/platforms"));
+#endif
 }
 
 void add_vcpkg_qt_plugin_paths()
@@ -39,18 +41,26 @@ void add_vcpkg_qt_plugin_paths()
     const QFileInfo exe(QCoreApplication::applicationFilePath());
     const QDir bin_dir = exe.absoluteDir();
 
-    const QStringList plugin_roots = {
+    QStringList plugin_roots;
 #ifdef TORRIN_QT_PLUGINS_DIR
-        QStringLiteral(TORRIN_QT_PLUGINS_DIR),
+    plugin_roots << QStringLiteral(TORRIN_QT_PLUGINS_DIR);
 #endif
-        bin_dir.absoluteFilePath(QStringLiteral("../vcpkg_installed/arm64-osx/Qt6/plugins")),
-        bin_dir.absoluteFilePath(QStringLiteral("../vcpkg_installed/x64-osx/Qt6/plugins")),
-        bin_dir.absoluteFilePath(QStringLiteral("../../vcpkg_installed/arm64-osx/Qt6/plugins")),
-        bin_dir.absoluteFilePath(QStringLiteral("../../vcpkg_installed/x64-osx/Qt6/plugins")),
-        // Legacy layout (no Qt6 subdir)
-        bin_dir.absoluteFilePath(QStringLiteral("../vcpkg_installed/arm64-osx/plugins")),
-        bin_dir.absoluteFilePath(QStringLiteral("../../vcpkg_installed/arm64-osx/plugins")),
+    const QStringList triplets = {
+        QStringLiteral("arm64-osx"),
+        QStringLiteral("x64-osx"),
+        QStringLiteral("x64-windows"),
+        QStringLiteral("x64-linux"),
     };
+    for (const QString& triplet : triplets) {
+        plugin_roots << bin_dir.absoluteFilePath(QStringLiteral("../vcpkg_installed/") + triplet
+                                                 + QStringLiteral("/Qt6/plugins"));
+        plugin_roots << bin_dir.absoluteFilePath(QStringLiteral("../../vcpkg_installed/") + triplet
+                                                 + QStringLiteral("/Qt6/plugins"));
+        plugin_roots << bin_dir.absoluteFilePath(QStringLiteral("../vcpkg_installed/") + triplet
+                                                 + QStringLiteral("/plugins"));
+        plugin_roots << bin_dir.absoluteFilePath(QStringLiteral("../../vcpkg_installed/") + triplet
+                                                 + QStringLiteral("/plugins"));
+    }
 
     for (const QString& root : plugin_roots) {
         add_plugin_path(root);

@@ -2,29 +2,32 @@
 
 ## Preconditions
 
-- `scripts/verify.sh` passes on the release commit locally
-- `CHANGELOG.md` updated for the version
-- [release-qa.md](release-qa.md) checklist completed for the candidate build
+- `scripts/verify.sh` passes on the release commit locally (macOS) or CI green on `main`
+- `CHANGELOG.md` and `include/torrin/version.hpp` updated for the version
+- [release-qa.md](release-qa.md) checklist completed on at least one platform
 
 ## Cut a release
 
 1. Merge all release work to `main`.
-2. Update `include/torrin/version.hpp` and `CHANGELOG.md` if the version changes.
+2. Confirm version in `include/torrin/version.hpp`, `CMakeLists.txt`, and `vcpkg.json`.
 3. Tag and push:
 
 ```bash
-git tag v0.3.0
-git push origin v0.3.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 4. GitHub Actions **Release** workflow (`release.yml`) on tag `v*`:
-   - Builds with `ci-release` preset
-   - Produces `Torrin-<version>-macos-<arch>.dmg` and `SHA256SUMS.txt`
-   - Generates SPDX SBOM (`torrin.spdx.json`)
-   - Signs artifacts with [cosign](https://docs.sigstore.dev/) (keyless in CI)
-   - Publishes a GitHub Release with attached assets
+   - **macOS:** `Torrin-<version>-macos-<arch>.dmg`, SPDX SBOM, cosign
+   - **Windows:** `Torrin-<version>-windows-x64.zip`
+   - **Linux:** `Torrin-<version>-linux-x64.tar.gz`
+   - Combined `SHA256SUMS.txt` and cosign files on the GitHub Release
 
-## Local packaging (macOS)
+Wall time is typically 30–90 minutes (vcpkg builds Qt/libtorrent per runner).
+
+## Local packaging
+
+### macOS
 
 ```bash
 cmake --preset ci-release
@@ -33,19 +36,26 @@ cmake --build --preset ci-release
 open build/ci-release/staging/*.dmg
 ```
 
-Run the app from the bundle during development:
+### Windows (Git Bash or MSYS)
 
 ```bash
-open build/dev/bin/Torrin.app
+cmake --preset ci-release
+cmake --build --preset ci-release
+./scripts/package-windows.sh build/ci-release
 ```
 
-## Optional: notarization
+### Linux
 
-Apple notarization and stapling are **not** automated yet. To ship outside the Mac App Store:
+```bash
+cmake --preset ci-release
+cmake --build --preset ci-release
+./scripts/package-linux.sh build/ci-release
+tar -tzf build/ci-release/staging/Torrin-*-linux-x64.tar.gz | head
+```
 
-1. Sign `Torrin.app` with a Developer ID Application certificate.
-2. Notarize the `.dmg` with `notarytool` and staple the ticket.
-3. Store signing credentials in a GitHub **environment** named `release` and extend `release.yml` when ready.
+## Optional: macOS notarization
+
+Apple notarization and stapling are **not** automated yet. See [FUTURE.md](../planning/FUTURE.md#production-macos).
 
 ## Rollback
 

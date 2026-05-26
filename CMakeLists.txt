@@ -7,8 +7,8 @@ endif()
 
 project(
     torrin
-    VERSION 0.3.0
-    DESCRIPTION "Cross-platform BitTorrent client"
+    VERSION 1.0.0
+    DESCRIPTION "BitTorrent client for macOS, Windows, and Linux"
     LANGUAGES CXX
 )
 

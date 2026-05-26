@@ -30,21 +30,22 @@ Search, sort (name / date created), ETA in rows, Reveal in Finder, copy magnet, 
 | A-4 | In-app updates | Sparkle or equivalent |
 | A-5 | Privacy policy (release) | Public doc: local data, no telemetry |
 
-**Milestone:** **v1.0**
+**Milestone:** **v1.1** (after v1.0 cross-platform ship)
 
 ---
 
 ## Theme B — Cross-platform clients {#cross-platform}
 
-| ID | Item |
-|----|------|
-| B-1 | Windows CI + installer |
-| B-2 | Linux CI + package |
-| B-3 | Re-enable multi-OS CI matrix |
-| B-4 | Platform-native open/save |
-| B-5 | Platform tray / notifications |
+**Shipped in v1.0:** Windows `.zip`, Linux `.tar.gz`, multi-OS CI — [ADR-006](../architecture/ADR-006-cross-platform-release.md).
 
-**Milestone:** **v1.1**
+| ID | Item | Status |
+|----|------|--------|
+| B-1 | Windows CI + portable zip | Shipped |
+| B-2 | Linux CI + portable tar.gz | Shipped |
+| B-3 | Multi-OS CI on PR/main | Shipped |
+| B-4 | Platform-native open/save | Planned |
+| B-5 | Platform tray / notifications | Planned |
+| B-6 | Windows MSI / Linux deb or AppImage | Planned |
 
 ---
 
@@ -117,10 +118,9 @@ Search, sort (name / date created), ETA in rows, Reveal in Finder, copy magnet, 
 flowchart LR
   v02[v0.2 shipped]
   v03[v0.3 shipped]
-  v10[v1.0 macOS distro]
-  v11[v1.1 cross-platform]
+  v10[v1.0 cross-platform]
   v12[v1.2 advanced]
-  v02 --> v03 --> v10 --> v11 --> v12
+  v02 --> v03 --> v10 --> v12
 ```
 
 Update [ROADMAP.yaml](../tracker/ROADMAP.yaml) when milestone status changes.

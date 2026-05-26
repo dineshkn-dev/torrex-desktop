@@ -379,7 +379,7 @@ FocusScope {
                             onTriggered: appController.resumeSeeding(rowDelegate.infoHash)
                         }
                         MenuItem {
-                            text: qsTr("Reveal in Finder")
+                            text: appController.revealInFileManagerLabel
                             enabled: rowDelegate.infoHash.length > 0
                             onTriggered: appController.revealTorrentInFinder(rowDelegate.infoHash)
                         }

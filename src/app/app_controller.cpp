@@ -180,6 +180,17 @@ AppController::~AppController() { session_.shutdown(); }
 
 QString AppController::version() const { return QString::fromUtf8(torrin::kVersion); }
 
+QString AppController::revealInFileManagerLabel() const
+{
+#if defined(Q_OS_MACOS)
+    return tr("Reveal in Finder");
+#elif defined(Q_OS_WIN)
+    return tr("Show in File Explorer");
+#else
+    return tr("Open save folder");
+#endif
+}
+
 void AppController::loadSessionSettingsFromStore()
 {
     QSettings store;
