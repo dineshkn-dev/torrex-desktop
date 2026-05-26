@@ -1,53 +1,62 @@
 # Torrin architecture
 
-Torrin is a desktop BitTorrent client: **Qt 6 Quick** UI, **libtorrent 2.x** engine, **C++20**. The engine has **no Qt dependency**; the UI never touches libtorrent types directly.
+Desktop BitTorrent client: **Qt 6 Quick** UI, **libtorrent 2.x**, **C++20**. The engine has **no Qt**; the UI never uses libtorrent types directly.
 
 ## Diagram
 
 ```mermaid
 flowchart TB
-    subgraph ui ["UI thread (Qt Quick)"]
-        QML["QML views"]
+    subgraph ui ["UI thread"]
+        QML["QML"]
         AC["AppController"]
-        Models["Qt models\n(TorrentListModel, …)"]
-        QML --> AC
-        AC --> Models
-        Models --> QML
+        Models["Qt models"]
+        QML --> AC --> Models --> QML
     end
-
     subgraph engine ["Engine thread"]
-        SM["SessionManager"]
-        LT["libtorrent::session"]
-        SM --> LT
+        SM["SessionManager"] --> LT["libtorrent"]
     end
-
-    AC -->|"TorrentCommand queue"| SM
-    SM -->|"TorrentSnapshot copies\n(~4–10 Hz)"| Models
+    AC -->|commands| SM
+    SM -->|snapshots ~4-10 Hz| Models
 ```
 
-## Layers
+## Code layout
 
-| Layer | Path | Role |
-|-------|------|------|
-| **torrin** | `src/app/` | `main`, `AppController`, QML |
-| **torrin_models** | `src/models/` | List/files models fed to QML |
-| **torrin_core** | `src/core/` | `SessionManager`, commands, snapshots |
+| Layer | Path |
+|-------|------|
+| App + QML | `src/app/` |
+| Models | `src/models/` |
+| Engine | `src/core/` |
+| Public API | `include/torrin/` |
 
-Public C++ API: `include/torrin/`.
+## Rules
 
-## Rules (do not break)
+1. Libtorrent only on the engine thread (`TorrentCommand` queue from UI).
+2. QML sees snapshots only — no `torrent_handle`.
+3. `torrin_core` must not include Qt (`scripts/check-core-no-qt.sh`).
+4. Logic in C++; QML is presentation (`Theme.qml` for tokens).
 
-1. **All libtorrent calls on the engine thread** — UI posts `TorrentCommand` values only.
-2. **QML uses snapshots** — no `torrent_handle` or other libtorrent types in QML.
-3. **`torrin_core` must not include Qt** — enforced by `scripts/check-core-no-qt.sh`.
-4. **Presentation in QML** — business logic stays in C++; `Theme.qml` holds design tokens.
+## Build
 
-## Build and release
+```bash
+./scripts/bootstrap.sh
+cmake --preset dev && cmake --build --preset dev
+ctest --preset dev
+```
 
-- Local dev: `./scripts/bootstrap.sh` then `cmake --preset dev`.
-- Tag `v*` runs `.github/workflows/release.yml` (macOS `.dmg`, Windows `.zip`, Linux `.tar.gz`).
-- Details: [runbooks/release.md](runbooks/release.md).
+Presets: `dev` (daily), `ci-release` (packages), `sanitize` (ASan). Toolchain: `vcpkg.json` + `CMakePresets.json`.
+
+## Release
+
+Before tagging: `./scripts/verify.sh`, bump `include/torrin/version.hpp`, `CMakeLists.txt`, `vcpkg.json`, and `CHANGELOG.md`.
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+Tag `v*` runs `.github/workflows/release.yml` (macOS `.dmg`, Windows `.zip`, Linux `.tar.gz`, checksums, cosign; ~30–90 min).
+
+Optional local package: `cmake --preset ci-release && cmake --build --preset ci-release`, then `scripts/package-macos.sh` (or `-windows`/`-linux`) with `build/ci-release`.
 
 ## Privacy
 
-No bundled telemetry. Settings and session state stay on disk under the user profile. See [SECURITY.md](../SECURITY.md).
+No bundled telemetry. See [SECURITY.md](../SECURITY.md).
