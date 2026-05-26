@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Check [docs/planning/FUTURE.md](https://github.com/dineshkn-dev/torrin/blob/main/docs/planning/FUTURE.md) and [ROADMAP](https://github.com/dineshkn-dev/torrin/blob/main/docs/tracker/ROADMAP.yaml) before filing — your idea may already be planned.
+        Check the [README](https://github.com/dineshkn-dev/torrin#features) and [CHANGELOG.md](https://github.com/dineshkn-dev/torrin/blob/main/CHANGELOG.md) for what already ships.
 
   - type: textarea
     id: problem
@@ -29,9 +29,9 @@ body:
     attributes:
       label: Platform
       options:
-        - macOS (current)
-        - Windows (planned)
-        - Linux (planned)
+        - macOS
+        - Windows
+        - Linux
         - All platforms
     validations:
       required: true
@@ -41,5 +41,5 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: This is not already covered in FUTURE.md or ROADMAP.yaml
+        - label: I searched existing issues for duplicates
           required: false

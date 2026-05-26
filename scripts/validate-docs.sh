@@ -6,12 +6,8 @@ cd "$ROOT"
 
 required=(
     AGENTS.md
-    docs/INDEX.md
-    docs/CONVENTIONS.md
-    docs/specs/PRODUCT.md
-    docs/planning/FUTURE.md
-    docs/tracker/ROADMAP.yaml
-    docs/architecture/ADR-001-stack.md
+    docs/ARCHITECTURE.md
+    docs/runbooks/release.md
     SECURITY.md
 )
 
@@ -21,15 +17,5 @@ for f in "${required[@]}"; do
         exit 1
     fi
 done
-
-# ROADMAP milestone specs must exist
-while IFS= read -r spec; do
-    base="${spec%%#*}"
-    base="${base#docs/}"
-    if [[ ! -f "docs/$base" ]]; then
-        echo "validate-docs: ROADMAP references missing spec: $spec"
-        exit 1
-    fi
-done < <(grep -E 'spec: docs/' docs/tracker/ROADMAP.yaml | sed 's/.*spec: //' | cut -d# -f1)
 
 echo "validate-docs: OK"

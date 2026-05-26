@@ -4,10 +4,6 @@ All notable changes to Torrin are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
-
-Nothing yet — see [docs/planning/FUTURE.md](docs/planning/FUTURE.md).
-
 ## [1.0.0] - 2026-05-26
 
 ### Added

@@ -221,14 +221,6 @@ QtObject {
         return Qt.rgba(accent.r, accent.g, accent.b, alpha)
     }
 
-    // Responsive layout helpers (pane / window width in px).
-    function clampWidth(requested, parentWidth, minWidth, margin) {
-        if (!parentWidth || parentWidth <= 0)
-            return requested
-        const cap = Math.max(minWidth, parentWidth - margin)
-        return Math.min(requested, cap)
-    }
-
     function heroRingSize(paneWidth) {
         if (paneWidth <= 0)
             return 96
@@ -265,12 +257,6 @@ QtObject {
         return paneWidth >= 220
     }
 
-    function statLabelWidth(rowWidth) {
-        if (rowWidth <= 0)
-            return 120
-        return Math.min(140, Math.max(64, Math.floor(rowWidth * 0.38)))
-    }
-
     function priorityColumnWidth(paneWidth) {
         if (paneWidth <= 0)
             return 76
@@ -285,8 +271,7 @@ QtObject {
         flickable.pixelAligned = false
         flickable.boundsBehavior = Flickable.DragAndOvershootBounds
         flickable.interactive = true
-        // Handled by ScrollWheelHandler for device-specific tuning.
-        flickable.wheelScrollMultiplier = 0
+        // Wheel deltas are tuned in ScrollWheelHandler (applyWheelScroll).
     }
 
     function applyWheelScroll(flickable, event) {

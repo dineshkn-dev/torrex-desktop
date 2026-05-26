@@ -6,7 +6,5 @@
 /include/torrin/ @dineshkn
 /cmake/ @dineshkn
 /.github/workflows/ @dineshkn
-/packaging/ @dineshkn
-/docs/security/ @dineshkn
 /vcpkg.json @dineshkn
 /vcpkg-configuration.json @dineshkn

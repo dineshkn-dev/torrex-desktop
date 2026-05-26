@@ -1,1 +1,0 @@
-- [Torrin](https://github.com/dineshkn-dev/torrin) — Open-source BitTorrent client for macOS (Qt 6 Quick, libtorrent 2.x). Modern list UX, no bundled telemetry, signed releases with SBOM.

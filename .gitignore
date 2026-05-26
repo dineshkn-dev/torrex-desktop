@@ -4,6 +4,8 @@
 /cmake-build-*/
 /vcpkg_installed/
 /.cache/
+build.log
+*.log
 
 # vcpkg
 /vcpkg/

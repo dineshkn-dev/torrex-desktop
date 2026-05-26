@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import QtQuick.Dialogs
-import Qt.labs.settings
+import QtCore
 import Torrin
 
 ApplicationWindow {
@@ -31,10 +31,6 @@ ApplicationWindow {
     property bool hasTorrents: appController.torrents.totalCount > 0
     property bool filterHidesAllTorrents: hasTorrents && appController.torrents.count === 0
 
-    readonly property int defaultListPaneWidth: Math.round(
-        Math.min(Theme.listMaxWidth,
-                 Math.max(Theme.listMinWidth, width * 0.34)))
-
     property string _removeInfoHash: ""
     property bool _removeDeleteFiles: false
     Connections {
@@ -59,7 +55,7 @@ ApplicationWindow {
     onWidthChanged: Qt.callLater(enforceSplitLayout)
 
     Shortcut {
-        sequences: [StandardKey.Find]
+        sequences: [ StandardKey.Find ]
         context: Qt.ApplicationShortcut
         enabled: window.hasTorrents
         onActivated: listPane.focusSearchField()
@@ -73,7 +69,7 @@ ApplicationWindow {
     }
 
     Shortcut {
-        sequence: StandardKey.Delete
+        sequences: [ StandardKey.Delete ]
         context: Qt.ApplicationShortcut
         enabled: window.hasTorrents && listPane.selectedInfoHash.length > 0
         onActivated: window.confirmRemove(

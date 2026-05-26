@@ -1,6 +1,6 @@
 # Torrin — contributor guide
 
-Build, test, and change the codebase. Product scope is in [docs/specs/PRODUCT.md](docs/specs/PRODUCT.md); planned work is in [docs/planning/FUTURE.md](docs/planning/FUTURE.md).
+Build and test: see [README.md](README.md). Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Quick start
 
@@ -17,7 +17,7 @@ Build, test, and change the codebase. Product scope is in [docs/specs/PRODUCT.md
 | `ci-release` | Release-like build and packaging (all platforms) |
 | `sanitize` | ASan + UBSan |
 
-Releases: `release.yml` (tag `v*`) builds macOS `.dmg`, Windows `.zip`, Linux `.tar.gz`. PR CI: `ci.yml`.
+Releases: tag `v*` → `release.yml` (macOS `.dmg`, Windows `.zip`, Linux `.tar.gz`). PRs: `ci.yml`.
 
 ```bash
 cmake --preset dev
@@ -36,7 +36,7 @@ ctest --preset dev
 | `src/app/` | Application entry and `AppController` |
 | `src/app/qml/` | Qt Quick UI |
 | `include/torrin/` | Public C++ API |
-| `docs/` | Product spec, planning, ADRs — [docs/INDEX.md](docs/INDEX.md) |
+| `docs/` | [ARCHITECTURE.md](docs/ARCHITECTURE.md), [release runbook](docs/runbooks/release.md) |
 | `tests/` | gtest |
 | `scripts/` | bootstrap, verify, validate-docs |
 
@@ -46,7 +46,7 @@ ctest --preset dev
 2. **All libtorrent calls on the engine thread** — UI uses queued commands only
 3. **QML binds to snapshots** — never expose `torrent_handle` to QML
 4. **No secrets in the repo**
-5. **Behavior or scope changes** — update `docs/specs/PRODUCT.md` and/or `docs/planning/FUTURE.md` + `docs/tracker/ROADMAP.yaml`
+5. **User-visible changes** — update `CHANGELOG.md` and README if needed
 
 ## Release
 
@@ -54,7 +54,7 @@ Tag `v*` triggers [.github/workflows/release.yml](.github/workflows/release.yml)
 
 ## Sensitive paths
 
-Coordinate with ADRs before changing: `cmake/DeployQt.cmake`, `.github/workflows/release.yml`, `vcpkg-configuration.json`.
+Get maintainer review before changing: `cmake/DeployQt.cmake`, `.github/workflows/release.yml`, `vcpkg-configuration.json`.
 
 ## License
 
