@@ -13,8 +13,8 @@
 3. Tag and push:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 4. GitHub Actions **Release** workflow (`release.yml`) on tag `v*`:
@@ -41,7 +41,7 @@ open build/dev/bin/Torrin.app
 
 ## Optional: notarization
 
-Apple notarization and stapling are **not** automated in v0.1. To ship outside the Mac App Store:
+Apple notarization and stapling are **not** automated yet. To ship outside the Mac App Store:
 
 1. Sign `Torrin.app` with a Developer ID Application certificate.
 2. Notarize the `.dmg` with `notarytool` and staple the ticket.

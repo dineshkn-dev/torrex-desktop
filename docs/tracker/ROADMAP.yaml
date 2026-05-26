@@ -14,7 +14,7 @@ milestones:
         priority: high
         status: done
       - id: M-111-list-sort
-        summary: Sort list by name, progress, speed, date, size
+        summary: Sort list by name or date created
         priority: high
         status: done
       - id: M-112-list-eta

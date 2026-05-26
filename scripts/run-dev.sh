@@ -13,10 +13,6 @@ fi
 
 # Old non-bundle executable embeds pre-revamp QML; remove so it cannot be launched by mistake.
 # Remove legacy flat Mach-O executables (pre-bundle layout).
-if [[ -f "${BIN}/torrex" ]] && file "${BIN}/torrex" | grep -q Mach-O; then
-  rm -f "${BIN}/torrex"
-  echo "removed stale ${BIN}/torrex"
-fi
 if [[ -f "${BIN}/torrin" ]] && file "${BIN}/torrin" | grep -q Mach-O; then
   rm -f "${BIN}/torrin"
   echo "removed stale ${BIN}/torrin (use torrin.app or the shell launcher)"

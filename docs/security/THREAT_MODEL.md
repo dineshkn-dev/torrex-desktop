@@ -17,7 +17,7 @@
 | T5 | Supply-chain compromise | vcpkg pin, SBOM, signed releases |
 | T6 | Secret leakage in repo | gitleaks, pre-commit, no keys in client |
 
-## Out of scope (v0.1)
+## Out of scope (current release)
 
 - Built-in content search or indexers
 - VPN integration

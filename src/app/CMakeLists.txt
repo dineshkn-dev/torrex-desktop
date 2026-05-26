@@ -15,7 +15,6 @@ qt_add_qml_module(torrin
         qml/Main.qml
         qml/ResizableSplitView.qml
         qml/Theme.qml
-        qml/ThemedPanel.qml
         qml/ThemedProgressBar.qml
         qml/ConfirmPopup.qml
         qml/AddTorrentFilePicker.qml
@@ -40,7 +39,6 @@ qt_add_qml_module(torrin
         qml/SortSegmentBar.qml
         qml/ListToolbarCard.qml
         qml/EmptyState.qml
-        qml/DetailStat.qml
         qml/DetailStatRow.qml
         qml/DetailCard.qml
         qml/DetailProgressRing.qml
@@ -81,7 +79,6 @@ qt_add_resources(torrin "brand"
     BASE "${CMAKE_SOURCE_DIR}/resources"
     FILES
         "${CMAKE_SOURCE_DIR}/resources/brand/torrin-mark.svg"
-        "${CMAKE_SOURCE_DIR}/resources/brand/torrin-app-icon.svg"
 )
 
 include(${CMAKE_SOURCE_DIR}/cmake/TorrinQtRuntime.cmake)

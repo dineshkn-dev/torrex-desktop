@@ -18,6 +18,12 @@
 .DS_Store
 Thumbs.db
 
+# IDE / local agent config (not published)
+.cursor/
+
+# Generated icon intermediates (source: resources/brand/torrin-app-icon.svg)
+/resources/macos/Torrin.iconset/
+
 # Qt
 *.qmlc
 *.jsc

@@ -11,7 +11,7 @@
 ## Qt / QML
 
 - **Models** live in `src/models/`; expose only value types and enums to QML.
-- **QML** under `src/ui/qml/`; theme tokens in `theme/Theme.qml`.
+- **QML** under `src/app/qml/`; design tokens in `Theme.qml` (singleton).
 - **No business logic in QML** — only presentation and user input; delegate to `AppController`.
 
 ## Git
