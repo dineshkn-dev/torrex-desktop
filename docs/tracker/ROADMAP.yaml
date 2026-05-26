@@ -1,12 +1,12 @@
 # Forward-looking roadmap. Shipped work: docs/specs/PRODUCT.md, CHANGELOG.md.
 version: 3
 project: torrin
-released_version: "0.2.0"
+released_version: "0.3.0"
 
 milestones:
   - id: v0-3-daily-convenience
     name: v0.3 — Daily convenience and list UX
-    status: in_progress
+    status: done
     spec: docs/planning/FUTURE.md#daily-convenience
     items:
       - id: M-110-list-search
@@ -29,27 +29,36 @@ milestones:
         summary: Copy magnet URI for selected torrent
         priority: medium
         status: done
-      - id: M-115-export-torrent
-        summary: Export .torrent file for sharing
-        priority: medium
       - id: M-116-pause-resume-all
         summary: Global pause all and resume all controls
         priority: high
         status: done
-      - id: M-117-disk-space-warning
-        summary: Free-space display and low-disk warnings
+      - id: M-117-disk-space-display
+        summary: Free-space line on download volume in list status bar
         priority: medium
-        status: in_progress
+        status: done
+      - id: M-120-keyboard-shortcuts
+        summary: Shortcuts for pause, remove, search, navigation
+        priority: medium
+        status: done
+
+  - id: v0-4-convenience-backlog
+    name: v0.4 — Remaining convenience
+    status: planned
+    spec: docs/planning/FUTURE.md#daily-convenience
+    items:
+      - id: M-115-export-torrent
+        summary: Export .torrent file for sharing
+        priority: medium
       - id: M-118-onboarding
         summary: First-run wizard for folder and network tips
         priority: medium
       - id: M-119-multi-select
         summary: Multi-select torrents for bulk actions
         priority: medium
-      - id: M-120-keyboard-shortcuts
-        summary: Shortcuts for pause, remove, search, navigation
+      - id: M-121-low-disk-warning
+        summary: Alert when download volume is low on space
         priority: medium
-        status: done
 
   - id: v1-0-production-macos
     name: v1.0 — Production macOS distribution
@@ -217,3 +226,4 @@ milestones:
         priority: low
 
 # Retired IDs (do not reuse): M-300 per-file-progress, M-301 selective-download — shipped v0.2
+# M-117-disk-space-warning → M-117-disk-space-display (v0.3); low-disk alert → M-121 (v0.4)

@@ -13,8 +13,8 @@
 3. Tag and push:
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
 
 4. GitHub Actions **Release** workflow (`release.yml`) on tag `v*`:

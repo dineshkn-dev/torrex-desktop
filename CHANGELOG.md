@@ -8,6 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Nothing yet — see [docs/planning/FUTURE.md](docs/planning/FUTURE.md).
 
+## [0.3.0] - 2026-05-26
+
+### Added
+
+- Search torrent list by name, info hash, or save path
+- Sort list by **name** or **date created** (ascending / descending)
+- ETA in list rows; **pause all** and **resume all** in list actions menu
+- **Reveal in Finder** and **copy magnet link** from row menu and detail **More** menu
+- Keyboard shortcuts: **Find** (search), **Space** (pause/resume), **Delete** (remove)
+- Free-space line on the download volume in the list status bar
+- Resizable master–detail split with remembered list width; responsive layout in narrow panes
+- Modern list toolbar: pill search field, segmented sort control, filter chips
+
+### Changed
+
+- Single **dark** appearance (AMOLED-style); system mode follows macOS with the same palette
+- Consolidated detail action chips (pause/resume and stop/resume seeding toggles)
+- Improved scroll feel (rubber-band overshoot, balanced mouse vs trackpad wheel)
+- Repository and branding cleanup (`torrin` naming, leaner docs)
+
+### Fixed
+
+- Sort/filter controls wrap inside the list pane when the splitter is narrow (no clipping under detail pane)
+- Search field loses focus when clicking elsewhere in the app
+- Sort segment bar layout (sliding indicator no longer renders as a stray pill)
+
 ## [0.2.0] - 2026-05-25
 
 ### Added

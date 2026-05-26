@@ -10,10 +10,11 @@ Planning for work **after the current release**. Shipped behavior: [PRODUCT.md](
 |------|---------|
 | Core | Magnet / `.torrent` add, pause, resume, remove, fast-resume, filters, settings |
 | v0.2 | Stop / resume seeding, recheck / reannounce, detail metrics, file priorities, AMOLED dark theme, UI revamp |
+| v0.3 | List search/sort, ETA, Finder/magnet actions, pause/resume all, shortcuts, resizable UI, list toolbar |
 
-### v0.3 (in progress) {#daily-convenience}
+### v0.3 (shipped) {#daily-convenience}
 
-Most list UX is shipped (search, sort by name / date created, ETA, Reveal in Finder, copy magnet, pause/resume all, shortcuts, free-space text). **Still open:** export `.torrent`, low-disk warnings, onboarding, multi-select — see [ROADMAP.yaml](../tracker/ROADMAP.yaml) milestone `v0-3-daily-convenience`.
+Search, sort (name / date created), ETA in rows, Reveal in Finder, copy magnet, pause/resume all, keyboard shortcuts, free-space line, resizable split, list toolbar UX. **Deferred to v0.4:** export `.torrent`, low-disk alerts, onboarding, multi-select — [ROADMAP.yaml](../tracker/ROADMAP.yaml) milestone `v0-4-convenience-backlog`.
 
 ---
 
@@ -115,7 +116,7 @@ Most list UX is shipped (search, sort by name / date created, ETA, Reveal in Fin
 ```mermaid
 flowchart LR
   v02[v0.2 shipped]
-  v03[v0.3 list UX]
+  v03[v0.3 shipped]
   v10[v1.0 macOS distro]
   v11[v1.1 cross-platform]
   v12[v1.2 advanced]

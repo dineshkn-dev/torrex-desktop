@@ -1,6 +1,6 @@
 # Torrin product specification
 
-What the **current macOS release** does. Version **0.2.0** (see [CHANGELOG.md](../../CHANGELOG.md)). Planned work: [ROADMAP.yaml](../tracker/ROADMAP.yaml).
+What the **current macOS release** does. Version **0.3.0** (see [CHANGELOG.md](../../CHANGELOG.md)). Planned work: [ROADMAP.yaml](../tracker/ROADMAP.yaml).
 
 ## Capabilities
 
