@@ -4,11 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "docs/index.html"
-      - "docs/robots.txt"
-      - "docs/sitemap.xml"
-      - "docs/torrinindexnow2026.txt"
-      - "docs/assets/**"
+      - ".github/workflows/pages.yml"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:

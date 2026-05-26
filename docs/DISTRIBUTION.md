@@ -42,9 +42,9 @@ Do not commit `docs/CNAME` until you control the domain DNS.
 
 | Channel | Status | Notes |
 |---------|--------|--------|
-| [Homebrew cask](https://github.com/Homebrew/homebrew-cask) | PR submitted from `packaging/homebrew/` | Uses GitHub release `.dmg`; update version/SHA when tagging |
+| [Homebrew cask](https://github.com/Homebrew/homebrew-cask) | [PR #266242](https://github.com/Homebrew/homebrew-cask/pull/266242) | Uses GitHub release `.dmg`; update version/SHA when tagging |
 | [Winget](https://github.com/microsoft/winget-pkgs) | Manifest in `packaging/winget/` | Submit after a Windows `.zip` is on [Releases](https://github.com/dineshkn-dev/torrin/releases) |
-| [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted-data) | PR submitted | May require 4+ months since first release per their policy |
+| [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted-data) | [PR #2511](https://github.com/awesome-selfhosted/awesome-selfhosted-data/pull/2511) | May require 4+ months since first release per their policy |
 
 ## Releases
 
