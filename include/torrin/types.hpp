@@ -47,6 +47,8 @@ struct TorrentSnapshot {
     /// True when a completed torrent has upload disabled via stop-seeding (not paused).
     bool upload_stopped = false;
     bool sequential_download = false;
+    /// Unix seconds when the torrent was added to the session (libtorrent added_time).
+    std::int64_t added_time = 0;
     std::vector<TorrentFileSnapshot> files;
 };
 

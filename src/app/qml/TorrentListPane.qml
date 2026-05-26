@@ -4,12 +4,15 @@ import QtQuick.Layouts
 import Torrin
 
 // Left sidebar: filters, torrent list, status (Telegram chat-list style).
-Item {
+FocusScope {
     id: root
+    focus: true
     clip: true
 
     property bool filterHidesAll: false
     readonly property bool compactHeader: Theme.listPaneCompactHeader(root.width)
+    readonly property int toolbarInnerWidth: Math.max(0, root.width - Theme.spacingMd * 4)
+    readonly property int chipPadding: Theme.listPaneChipPadding(root.width)
     property string selectedInfoHash: ""
     property int selectedState: -1
     readonly property int torrentCount: torrentList.count
@@ -25,6 +28,26 @@ Item {
         searchField.selectAll()
     }
 
+    function blurSearch() {
+        if (!searchField.activeFocus)
+            return
+        searchField.focus = false
+        root.forceActiveFocus(Qt.MouseFocusReason)
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        onTapped: {
+            if (!searchField.activeFocus)
+                return
+            const pos = searchField.mapFromItem(root, point.position.x, point.position.y)
+            const inside = pos.x >= 0 && pos.y >= 0
+                && pos.x <= searchField.width && pos.y <= searchField.height
+            if (!inside)
+                root.blurSearch()
+        }
+    }
+
     Rectangle {
         anchors.fill: parent
         color: Theme.sidebarBackground
@@ -32,6 +55,7 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
+        clip: true
         spacing: 0
 
         // Header
@@ -83,7 +107,10 @@ Item {
                 filled: true
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Add torrent")
-                onClicked: addMenu.popupAt(addTorrentButton, 0, addTorrentButton.height)
+                onClicked: {
+                    root.blurSearch()
+                    addMenu.popupAt(addTorrentButton, 0, addTorrentButton.height)
+                }
 
                 TgMenu {
                     id: addMenu
@@ -103,7 +130,10 @@ Item {
                 text: "⋯"
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("List actions")
-                onClicked: listActionsMenu.popupAt(listActionsButton, 0, listActionsButton.height)
+                onClicked: {
+                    root.blurSearch()
+                    listActionsMenu.popupAt(listActionsButton, 0, listActionsButton.height)
+                }
 
                 TgMenu {
                     id: listActionsMenu
@@ -122,116 +152,50 @@ Item {
                 glyph: "settings"
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Settings")
-                onClicked: root.settingsRequested()
+                onClicked: {
+                    root.blurSearch()
+                    root.settingsRequested()
+                }
             }
         }
 
-        TgTextField {
-            id: searchField
+        ListToolbarCard {
             Layout.fillWidth: true
             Layout.leftMargin: Theme.spacingMd
             Layout.rightMargin: Theme.spacingMd
-            Layout.bottomMargin: Theme.spacingXs
-            placeholderText: qsTr("Search torrents…")
-            text: appController.torrents.searchQuery
-            onTextChanged: {
-                if (text !== appController.torrents.searchQuery)
-                    appController.torrents.searchQuery = text
-            }
-        }
+            Layout.bottomMargin: Theme.spacingSm
 
-        TgScrollView {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 40
-            Layout.leftMargin: Theme.spacingMd
-            Layout.rightMargin: Theme.spacingMd
-            Layout.bottomMargin: Theme.spacingXs
-            horizontalPolicy: ScrollBar.AsNeeded
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AlwaysOff
+            ListSearchField {
+                id: searchField
+                Layout.fillWidth: true
+                placeholderText: qsTr("Search torrents…")
+                text: appController.torrents.searchQuery
+                onTextChanged: {
+                    if (text !== appController.torrents.searchQuery)
+                        appController.torrents.searchQuery = text
+                }
             }
 
-            Row {
-                id: sortRow
-                height: parent.height
-                spacing: Theme.spacingSm
-
-                Label {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Sort")
-                    font.pixelSize: Theme.fontCaption
-                    color: Theme.textSecondary
+            SortSegmentBar {
+                Layout.fillWidth: true
+                sortRole: appController.torrents.sortRole
+                sortAscending: appController.torrents.sortAscending
+                onSortRoleSelected: function(role) {
+                    root.blurSearch()
+                    appController.torrents.sortRole = role
+                    appController.torrents.sortAscending = role === 0
                 }
-
-                TgTabButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Name")
-                    checkable: false
-                    padding: 10
-                    onClicked: {
-                        appController.torrents.sortRole = 0
-                        appController.torrents.sortAscending = true
-                    }
-                }
-                TgTabButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Progress")
-                    checkable: false
-                    padding: 10
-                    onClicked: appController.torrents.sortRole = 1
-                }
-                TgTabButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Down")
-                    checkable: false
-                    padding: 10
-                    onClicked: appController.torrents.sortRole = 2
-                }
-                TgTabButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Up")
-                    checkable: false
-                    padding: 10
-                    onClicked: appController.torrents.sortRole = 3
-                }
-                TgTabButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("ETA")
-                    checkable: false
-                    padding: 10
-                    onClicked: appController.torrents.sortRole = 4
-                }
-
-                TgIconButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: appController.torrents.sortAscending ? "↑" : "↓"
-                    ToolTip.visible: hovered
-                    ToolTip.text: appController.torrents.sortAscending
-                        ? qsTr("Ascending — click to reverse")
-                        : qsTr("Descending — click to reverse")
-                    onClicked: appController.torrents.sortAscending =
+                onSortDirectionToggled: {
+                    root.blurSearch()
+                    appController.torrents.sortAscending =
                         !appController.torrents.sortAscending
                 }
             }
-        }
 
-        // Filter chips (horizontal scroll when narrow)
-        TgScrollView {
-            id: filterScroll
-            Layout.fillWidth: true
-            Layout.preferredHeight: 44
-            Layout.bottomMargin: Theme.spacingXs
-            horizontalPolicy: ScrollBar.AsNeeded
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AlwaysOff
-            }
-
-            Row {
-                id: chipRow
-                height: filterScroll.height
+            Flow {
+                id: chipFlow
+                Layout.fillWidth: true
                 spacing: Theme.spacingSm
-                leftPadding: Theme.spacingMd
-                rightPadding: Theme.spacingMd
 
                 Repeater {
                     model: ListModel {
@@ -243,10 +207,11 @@ Item {
                     delegate: FilterChip {
                         required property string filterId
                         required property string title
-                        anchors.verticalCenter: parent.verticalCenter
                         text: title
+                        chipPadding: root.chipPadding
                         checked: appController.torrents.activeFilter === filterId
                         onClicked: {
+                            root.blurSearch()
                             const savedHash = root.selectedInfoHash
                             appController.torrents.setFilter(filterId)
                             const row = appController.torrents.rowForInfoHash(savedHash)
@@ -381,7 +346,10 @@ Item {
                     paused: { void(_rev); return appController.torrents.stateAt(index) === 4 }
                     selected: torrentList.currentIndex === index
 
-                    onClicked: torrentList.currentIndex = index
+                    onClicked: {
+                        root.blurSearch()
+                        torrentList.currentIndex = index
+                    }
                     onContextMenuRequested: function(menuX, menuY) {
                         rowMenu.popupAt(rowDelegate, menuX, menuY)
                     }

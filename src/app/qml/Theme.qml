@@ -253,6 +253,14 @@ QtObject {
         return paneWidth > 0 && paneWidth < 300
     }
 
+    function listPaneChipPadding(paneWidth) {
+        if (paneWidth > 0 && paneWidth < 340)
+            return 8
+        if (paneWidth > 0 && paneWidth < 420)
+            return 10
+        return 12
+    }
+
     function showTorrentRowSpeed(paneWidth) {
         return paneWidth >= 220
     }

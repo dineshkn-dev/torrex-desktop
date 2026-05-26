@@ -33,10 +33,7 @@ public:
 
     enum SortRole {
         SortByName = 0,
-        SortByProgress = 1,
-        SortByDownloadRate = 2,
-        SortByUploadRate = 3,
-        SortByEta = 4,
+        SortByDateCreated = 1,
     };
     Q_ENUM(SortRole)
 

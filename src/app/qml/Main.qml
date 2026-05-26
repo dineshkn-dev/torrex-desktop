@@ -184,6 +184,7 @@ ApplicationWindow {
 
             TorrentListPane {
                 id: listPane
+                z: 0
                 SplitView.minimumWidth: splitHost.listMinWidth
                 SplitView.maximumWidth: window.clampListPaneWidth(Theme.listMaxWidth)
                 SplitView.preferredWidth: window.clampListPaneWidth(uiSettings.listPaneWidth)
@@ -203,11 +204,17 @@ ApplicationWindow {
             }
 
             TorrentDetail {
+                z: 1
                 SplitView.fillWidth: true
                 SplitView.minimumWidth: splitHost.detailMinWidth
                 SplitView.fillHeight: true
                 torrentRow: listPane.currentIndex
                 windowRef: window
+
+                TapHandler {
+                    acceptedButtons: Qt.LeftButton
+                    onTapped: listPane.blurSearch()
+                }
             }
         }
     }

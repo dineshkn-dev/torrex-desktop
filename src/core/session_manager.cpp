@@ -144,6 +144,7 @@ TorrentSnapshot snapshot_from_status(const lt::torrent_status& st)
     snap.num_connections = st.num_connections;
     snap.has_metadata = st.has_metadata;
     snap.save_path = st.save_path;
+    snap.added_time = static_cast<std::int64_t>(st.added_time);
     if (st.errc) {
         snap.state = TorrentState::Error;
     }

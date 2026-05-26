@@ -6,7 +6,6 @@
 #include <QStringList>
 
 #include <algorithm>
-#include <climits>
 
 namespace torrin::models {
 
@@ -98,17 +97,8 @@ void TorrentListModel::sortFilteredRows()
         };
 
         switch (sort_role_) {
-        case SortByProgress:
-            return less(left.progress_percent, right.progress_percent);
-        case SortByDownloadRate:
-            return less(left.download_rate, right.download_rate);
-        case SortByUploadRate:
-            return less(left.upload_rate, right.upload_rate);
-        case SortByEta: {
-            const int left_eta = left.eta_seconds < 0 ? INT_MAX : left.eta_seconds;
-            const int right_eta = right.eta_seconds < 0 ? INT_MAX : right.eta_seconds;
-            return less(left_eta, right_eta);
-        }
+        case SortByDateCreated:
+            return less(left.added_time, right.added_time);
         case SortByName:
         default:
             return tie_break_name();
@@ -155,7 +145,8 @@ void TorrentListModel::setSearchQuery(const QString& query)
 
 void TorrentListModel::setSortRole(const int role)
 {
-    const int clamped = std::clamp(role, static_cast<int>(SortByName), static_cast<int>(SortByEta));
+    const int clamped =
+        std::clamp(role, static_cast<int>(SortByName), static_cast<int>(SortByDateCreated));
     if (clamped == sort_role_) {
         return;
     }
@@ -190,7 +181,7 @@ void TorrentListModel::refresh()
     const bool count_changed = next.size() != items_.size();
     items_ = next;
     rebuildFilteredRows();
-    const bool needs_reorder = sort_role_ != SortByName;
+    const bool needs_reorder = sort_role_ != SortByName || !sort_ascending_;
 
     if (!count_changed && !filtered_rows_.empty() && !needs_reorder) {
         emit dataChanged(index(0), index(static_cast<int>(filtered_rows_.size()) - 1));

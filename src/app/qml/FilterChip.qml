@@ -6,14 +6,24 @@ ToolButton {
     id: root
     checkable: true
     checked: false
-    implicitHeight: 32
-    padding: 12
+    property int chipPadding: 12
+    implicitHeight: 30
+    padding: chipPadding
 
     background: Rectangle {
-        radius: 16
-        color: root.checked ? Theme.accent : (root.hovered ? Theme.hover : "transparent")
-        border.color: root.checked ? Theme.accent : Theme.border
-        border.width: 1
+        id: chipBg
+        radius: height / 2
+        color: {
+            if (root.checked)
+                return Theme.accent
+            if (root.pressed)
+                return Theme.accentGlow(0.18)
+            if (root.hovered)
+                return Theme.hover
+            return Theme.accentGlow(0.06)
+        }
+        border.color: root.checked ? Theme.accentGlow(0.5) : Theme.border
+        border.width: root.checked ? 0 : 1
 
         Behavior on color {
             ColorAnimation {
@@ -21,11 +31,18 @@ ToolButton {
                 easing.type: Easing.OutCubic
             }
         }
-        Behavior on border.color {
-            ColorAnimation {
+        Behavior on border.width {
+            NumberAnimation {
                 duration: Theme.animFast
                 easing.type: Easing.OutCubic
             }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            visible: root.checked
+            color: Theme.accentGlow(0.22)
         }
     }
 

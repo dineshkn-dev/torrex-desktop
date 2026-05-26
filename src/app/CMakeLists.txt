@@ -35,6 +35,10 @@ qt_add_qml_module(torrin
         qml/TgButton.qml
         qml/TgTextField.qml
         qml/FilterChip.qml
+        qml/TgSearchIcon.qml
+        qml/ListSearchField.qml
+        qml/SortSegmentBar.qml
+        qml/ListToolbarCard.qml
         qml/EmptyState.qml
         qml/DetailStat.qml
         qml/DetailStatRow.qml
