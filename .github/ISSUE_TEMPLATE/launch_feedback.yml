@@ -1,0 +1,37 @@
+name: Launch feedback
+description: Feedback after discovering Torrin (HN, Reddit, lists, etc.)
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying Torrin. Tell us how you found the project and what would make it your daily macOS client.
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: How did you find Torrin?
+      options:
+        - Hacker News
+        - Reddit
+        - GitHub search / topics
+        - Awesome list / blog
+        - Friend / word of mouth
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Feedback
+      description: UX, missing features, bugs, or comparison to Transmission / qBittorrent
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Torrin version
+      placeholder: "0.3.0"

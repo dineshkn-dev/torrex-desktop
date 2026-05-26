@@ -1,4 +1,5 @@
 #include "app_controller.hpp"
+#include "screenshot_mode.hpp"
 
 #include <torrin/session_settings.hpp>
 #include <torrin/torrent_preview.hpp>
@@ -27,6 +28,11 @@ namespace {
 
 QString builtin_default_download_path()
 {
+    if (screenshotMode()) {
+        const QString path = screenshotDownloadDirectory();
+        QDir().mkpath(path);
+        return path;
+    }
     const QString base =
         QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
     const QString path = base + QStringLiteral("/Torrin");
@@ -36,6 +42,11 @@ QString builtin_default_download_path()
 
 QString session_data_directory()
 {
+    if (screenshotMode()) {
+        const QString path = screenshotSessionDirectory();
+        QDir().mkpath(path);
+        return path;
+    }
     const QString base =
         QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     const QString path = base + QStringLiteral("/session");
@@ -117,11 +128,15 @@ AppController::AppController(QObject* parent)
     , session_(session_data_directory().toStdString())
     , torrent_model_(session_, this)
 {
-    download_folder_ =
-        QSettings().value(QStringLiteral("downloadFolder"), builtin_default_download_path())
-            .toString();
-    if (download_folder_.isEmpty()) {
-        download_folder_ = builtin_default_download_path();
+    if (screenshotMode()) {
+        download_folder_ = screenshotDownloadDirectory();
+    } else {
+        download_folder_ =
+            QSettings().value(QStringLiteral("downloadFolder"), builtin_default_download_path())
+                .toString();
+        if (download_folder_.isEmpty()) {
+            download_folder_ = builtin_default_download_path();
+        }
     }
     QDir().mkpath(download_folder_);
 
@@ -129,7 +144,11 @@ AppController::AppController(QObject* parent)
     pushSettingsToEngine();
 
     session_.start();
-    setStatusMessage(tr("Ready — downloads go to %1").arg(download_folder_));
+    setStatusMessage(tr("Ready — downloads go to %1").arg(redactUserPath(download_folder_)));
+
+    if (screenshotMode()) {
+        seedScreenshotDemoTorrents(*this);
+    }
 
     auto* timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &AppController::refreshTorrents);
@@ -639,7 +658,9 @@ void AppController::refreshTorrents()
     torrent_model_.refresh();
     detectCompletionNotifications();
     const int count = torrent_model_.rowCount();
-    setStatusMessage(tr("%1 torrent(s) — saving to %2").arg(count).arg(download_folder_));
+    setStatusMessage(tr("%1 torrent(s) — saving to %2")
+                         .arg(count)
+                         .arg(redactUserPath(download_folder_)));
 }
 
 void AppController::handleDroppedUrls(const QList<QUrl>& urls)
@@ -897,7 +918,7 @@ void AppController::addTorrentFileWithSelection(const QUrl& file_url,
             setStatusMessage(QString::fromStdString(async_err));
         } else {
             refreshTorrents();
-            setStatusMessage(tr("Torrent added — downloading to %1").arg(folder));
+            setStatusMessage(tr("Torrent added — downloading to %1").arg(redactUserPath(folder)));
         }
     });
 }
@@ -941,7 +962,7 @@ void AppController::addMagnetWithSelection(const QString& uri,
             setStatusMessage(QString::fromStdString(async_err));
         } else {
             refreshTorrents();
-            setStatusMessage(tr("Magnet added — downloading to %1").arg(folder));
+            setStatusMessage(tr("Magnet added — downloading to %1").arg(redactUserPath(folder)));
         }
     });
 }
@@ -978,7 +999,7 @@ void AppController::addMagnetUri(const QString& uri, const QString& save_path)
             setStatusMessage(QString::fromStdString(async_err));
         } else {
             refreshTorrents();
-            setStatusMessage(tr("Magnet added — downloading to %1").arg(folder));
+            setStatusMessage(tr("Magnet added — downloading to %1").arg(redactUserPath(folder)));
         }
     });
 }
@@ -1015,7 +1036,7 @@ void AppController::addTorrentFile(const QUrl& file_url, const QString& save_pat
             setStatusMessage(QString::fromStdString(async_err));
         } else {
             refreshTorrents();
-            setStatusMessage(tr("Torrent added — downloading to %1").arg(folder));
+            setStatusMessage(tr("Torrent added — downloading to %1").arg(redactUserPath(folder)));
         }
     });
 }

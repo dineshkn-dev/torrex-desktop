@@ -3,6 +3,7 @@ qt_standard_project_setup()
 qt_add_executable(torrin
     main.cpp
     app_controller.cpp
+    screenshot_mode.cpp
 )
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)

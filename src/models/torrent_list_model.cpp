@@ -1,7 +1,10 @@
 #include "torrent_list_model.hpp"
+#include "screenshot_demo_stats.hpp"
 
 #include <torrin/torrent_filter.hpp>
 
+#include <QProcessEnvironment>
+#include <QRegularExpression>
 #include <QVariantMap>
 #include <QStringList>
 
@@ -10,6 +13,18 @@
 namespace torrin::models {
 
 namespace {
+
+QString redactUserPath(QString path)
+{
+    if (qEnvironmentVariableIsSet("TORRIN_SCREENSHOT") || path.isEmpty()) {
+        return path;
+    }
+    static const QRegularExpression userHome(
+        QStringLiteral("^/Users/(?!Shared)[^/]+"),
+        QRegularExpression::CaseInsensitiveOption);
+    path.replace(userHome, QStringLiteral("/Users/Shared/Torrin"));
+    return path;
+}
 
 bool snapshot_matches_search(const TorrentSnapshot& item, const QString& query_lower)
 {
@@ -58,7 +73,7 @@ QVariant TorrentListModel::data(const QModelIndex& index, int role) const
     case UploadRateRole:
         return static_cast<qlonglong>(item->upload_rate);
     case SavePathRole:
-        return QString::fromStdString(item->save_path);
+        return redactUserPath(QString::fromStdString(item->save_path));
     default:
         return {};
     }
@@ -177,9 +192,10 @@ void TorrentListModel::setSortAscending(const bool ascending)
 
 void TorrentListModel::refresh()
 {
-    const std::vector<TorrentSnapshot> next = session_.snapshots();
+    std::vector<TorrentSnapshot> next = session_.snapshots();
+    applyScreenshotDemoStats(next);
     const bool count_changed = next.size() != items_.size();
-    items_ = next;
+    items_ = std::move(next);
     rebuildFilteredRows();
     const bool needs_reorder = sort_role_ != SortByName || !sort_ascending_;
 
@@ -311,7 +327,7 @@ bool TorrentListModel::hasMetadataAt(const int row) const
 QString TorrentListModel::savePathAt(const int row) const
 {
     const TorrentSnapshot* item = snapshotAt(row);
-    return item == nullptr ? QString{} : QString::fromStdString(item->save_path);
+    return item == nullptr ? QString{} : redactUserPath(QString::fromStdString(item->save_path));
 }
 
 qint64 TorrentListModel::downloadRateAt(const int row) const

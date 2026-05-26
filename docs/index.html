@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Torrin — open-source BitTorrent client for macOS</title>
+  <meta name="description" content="Torrin is an open-source BitTorrent client for macOS, built with Qt 6 Quick and libtorrent 2.x. No ads, no bundled telemetry.">
+  <meta property="og:title" content="Torrin — BitTorrent for macOS">
+  <meta property="og:description" content="Open-source torrent client for macOS. Qt 6 + libtorrent. Fast-resume, modern list UX.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/dineshkn-dev/torrin/main/docs/assets/torrin-dark.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/dineshkn-dev/torrin/main/resources/brand/torrin-mark.svg">
+  <style>
+    :root {
+      --bg: #000;
+      --text: #f5f5f5;
+      --muted: #8e8e93;
+      --accent: #3390ec;
+      --card: #0c0c0c;
+      --border: #2c2c2e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem; }
+    .tagline { color: var(--muted); font-size: 1.1rem; margin-bottom: 1.5rem; }
+    .cta {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      margin-right: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .cta.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .hero { width: 100%; border-radius: 16px; border: 1px solid var(--border); margin: 1.5rem 0; }
+    h2 { font-size: 1.25rem; margin-top: 2rem; }
+    ul { padding-left: 1.25rem; }
+    li { margin: 0.35rem 0; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+    }
+    footer { margin-top: 3rem; color: var(--muted); font-size: 0.9rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Torrin</h1>
+    <p class="tagline">
+      Open-source BitTorrent client for <strong>macOS</strong>, built with <strong>Qt 6 Quick</strong> and <strong>libtorrent 2.x</strong>:
+      fast-resume, modern list UX, no ads, no bundled telemetry.
+    </p>
+    <p>
+      <a class="cta" href="https://github.com/dineshkn-dev/torrin/releases/latest">Download latest .dmg</a>
+      <a class="cta secondary" href="https://github.com/dineshkn-dev/torrin">View on GitHub</a>
+    </p>
+    <img class="hero" src="assets/torrin-dark.png" width="920" height="612" alt="Torrin torrent list and detail view">
+
+    <h2>Features</h2>
+    <ul>
+      <li>Magnet and <code>.torrent</code> add, pause, resume, remove, stop/resume seeding</li>
+      <li>Search, sort, filters, and resizable master–detail UI</li>
+      <li>File priorities, sequential download, recheck and reannounce</li>
+      <li>Bandwidth limits, DHT/UPnP, optional proxy; light and dark appearance</li>
+      <li>Signed release <code>.dmg</code> with SHA-256, SPDX SBOM, and cosign signatures</li>
+    </ul>
+
+    <div class="card">
+      <strong>Platform:</strong> macOS today (Apple Silicon and Intel per release).
+      Windows and Linux are on the
+      <a href="https://github.com/dineshkn-dev/torrin/blob/main/docs/planning/FUTURE.md#cross-platform">roadmap</a>.
+    </div>
+
+    <h2>Install</h2>
+    <ol>
+      <li>Download the <code>.dmg</code> from <a href="https://github.com/dineshkn-dev/torrin/releases/latest">Releases</a>.</li>
+      <li>Drag <strong>Torrin</strong> to <strong>Applications</strong>.</li>
+      <li>If macOS blocks the app, use <strong>System Settings → Privacy &amp; Security → Open Anyway</strong> (notarized builds planned for v1.0).</li>
+    </ol>
+
+    <h2>Legal &amp; security</h2>
+    <p>
+      Torrin is a tool. Use it only for content you have the right to download or share.
+      Licensed under <a href="https://github.com/dineshkn-dev/torrin/blob/main/LICENSE">GPL-3.0-or-later</a>.
+      Report vulnerabilities via <a href="https://github.com/dineshkn-dev/torrin/blob/main/SECURITY.md">SECURITY.md</a>.
+    </p>
+
+    <footer>
+      <a href="https://github.com/dineshkn-dev/torrin">Source</a> ·
+      <a href="https://github.com/dineshkn-dev/torrin/blob/main/CONTRIBUTING.md">Contributing</a> ·
+      <a href="https://github.com/dineshkn-dev/torrin/blob/main/docs/specs/PRODUCT.md">Product spec</a>
+    </footer>
+  </div>
+</body>
+</html>

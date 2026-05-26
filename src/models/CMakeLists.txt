@@ -1,5 +1,6 @@
 add_library(torrin_models STATIC
     torrent_list_model.cpp
+    screenshot_demo_stats.cpp
 )
 
 add_library(torrin::models ALIAS torrin_models)

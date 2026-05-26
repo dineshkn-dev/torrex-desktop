@@ -11,5 +11,9 @@
 | [security/THREAT_MODEL.md](security/THREAT_MODEL.md) | Threat model |
 | [runbooks/release.md](runbooks/release.md) | Release process |
 | [runbooks/release-qa.md](runbooks/release-qa.md) | Release QA checklist |
+| [assets/](assets/) | README / release screenshots |
+| [launch/LAUNCH_KIT.md](launch/LAUNCH_KIT.md) | Show HN, Reddit, launch copy |
+| [launch/CURATED_LISTS.md](launch/CURATED_LISTS.md) | Awesome lists and AlternativeTo |
+| [launch/RELEASE_v0.3.0.md](launch/RELEASE_v0.3.0.md) | GitHub Release notes source |
 
-Contributors: [AGENTS.md](../AGENTS.md).
+Contributors: [CONTRIBUTING.md](../CONTRIBUTING.md) · [AGENTS.md](../AGENTS.md).
