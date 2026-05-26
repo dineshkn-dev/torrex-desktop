@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import Torrin
 
-// Scroll area tuned for fast wheel + smooth inertial flick (Telegram-like).
+// Scroll area: rubber-band overshoot, smooth flick, tuned mouse / trackpad wheels.
 ScrollView {
     id: root
     clip: true
@@ -13,17 +13,15 @@ ScrollView {
         const flick = root.contentItem
         if (!flick || flick.flickDeceleration === undefined)
             return
-        flick.flickDeceleration = Theme.flickDeceleration
-        flick.maximumFlickVelocity = Theme.maxFlickVelocity
-        if ("wheelScrollMultiplier" in flick)
-            flick.wheelScrollMultiplier = Theme.wheelScrollMultiplier
-        flick.pixelAligned = false
-        flick.boundsBehavior = Flickable.StopAtBounds
-        flick.interactive = true
+        Theme.applyFlickablePhysics(flick)
     }
 
     Component.onCompleted: applyScrollFeel()
     onContentItemChanged: applyScrollFeel()
+
+    ScrollWheelHandler {
+        flickable: root.contentItem
+    }
 
     ScrollBar.vertical: ScrollBar {
         id: verticalBar

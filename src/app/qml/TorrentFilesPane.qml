@@ -5,10 +5,13 @@ import Torrin
 
 Item {
     id: root
+    clip: true
 
     required property string infoHash
     required property var fileEntries
     required property int dataRevision
+
+    readonly property int priorityColWidth: Theme.priorityColumnWidth(root.width)
 
     signal filePriorityChanged(int fileIndex, int priority)
 
@@ -29,6 +32,7 @@ Item {
                 : qsTr("Waiting for metadata…")
             font.pixelSize: Theme.fontCaption
             color: Theme.textSecondary
+            wrapMode: Text.WordWrap
             Layout.fillWidth: true
             Layout.leftMargin: Theme.spacingXs
         }
@@ -54,24 +58,20 @@ Item {
                 font.weight: Font.DemiBold
                 color: Theme.textSecondary
                 horizontalAlignment: Text.AlignHCenter
-                Layout.minimumWidth: 76
-                Layout.preferredWidth: 76
-                Layout.maximumWidth: 76
+                Layout.minimumWidth: root.priorityColWidth
+                Layout.preferredWidth: root.priorityColWidth
+                Layout.maximumWidth: root.priorityColWidth
             }
         }
 
-        // ListView needs a parent Item with fillHeight in ColumnLayout (otherwise height = 0).
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            ListView {
+            TgListView {
                 id: fileList
                 anchors.fill: parent
                 clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                flickDeceleration: Theme.flickDeceleration
-                maximumFlickVelocity: Theme.maxFlickVelocity
                 spacing: Theme.spacingSm
                 model: root.fileEntries
 
@@ -122,6 +122,8 @@ Item {
                                     }
                                     color: Theme.textSecondary
                                     font.pixelSize: Theme.fontCaption
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
                                 }
                             }
 
@@ -129,9 +131,9 @@ Item {
                                 id: priorityPicker
                                 compact: true
                                 Layout.alignment: Qt.AlignTop | Qt.AlignRight
-                                Layout.minimumWidth: 76
-                                Layout.preferredWidth: 76
-                                Layout.maximumWidth: 76
+                                Layout.minimumWidth: root.priorityColWidth
+                                Layout.preferredWidth: root.priorityColWidth
+                                Layout.maximumWidth: root.priorityColWidth
                                 property var priorityModel: [
                                     { label: qsTr("Skip"), value: 0 },
                                     { label: qsTr("Low"), value: 1 },

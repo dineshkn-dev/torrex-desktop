@@ -7,6 +7,7 @@ ToolButton {
     id: root
     implicitHeight: 34
     padding: 12
+    implicitWidth: contentRow.implicitWidth + padding * 2
     enabled: root.enabled
 
     property string glyph: ""
@@ -38,6 +39,7 @@ ToolButton {
     readonly property color _textColor: root.enabled ? Theme.textPrimary : Theme.textMuted
 
     contentItem: Row {
+        id: contentRow
         spacing: Theme.spacingXs
         height: root._lineHeight
 

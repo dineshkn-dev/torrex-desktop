@@ -68,9 +68,10 @@ Rectangle {
 
         Label {
             text: root.rateText
-            font.pixelSize: Theme.fontTitle
+            font.pixelSize: root.width > 0 && root.width < 120 ? Theme.fontBody : Theme.fontTitle
             font.weight: Font.DemiBold
             color: root.active ? root.tint : Theme.textSecondary
+            elide: Text.ElideRight
             Layout.fillWidth: true
         }
     }

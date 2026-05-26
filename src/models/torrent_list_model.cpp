@@ -5,7 +5,25 @@
 #include <QVariantMap>
 #include <QStringList>
 
+#include <algorithm>
+#include <climits>
+
 namespace torrin::models {
+
+namespace {
+
+bool snapshot_matches_search(const TorrentSnapshot& item, const QString& query_lower)
+{
+    if (query_lower.isEmpty()) {
+        return true;
+    }
+    const auto contains = [&](const std::string& field) {
+        return QString::fromStdString(field).toLower().contains(query_lower);
+    };
+    return contains(item.name) || contains(item.info_hash.v1_hex) || contains(item.save_path);
+}
+
+} // namespace
 
 TorrentListModel::TorrentListModel(SessionManager& session, QObject* parent)
     : QAbstractListModel(parent), session_(session)
@@ -60,16 +78,110 @@ QHash<int, QByteArray> TorrentListModel::roleNames() const
     };
 }
 
+void TorrentListModel::sortFilteredRows()
+{
+    const auto compare = [this](const int left_index, const int right_index) {
+        const TorrentSnapshot& left = items_[static_cast<std::size_t>(left_index)];
+        const TorrentSnapshot& right = items_[static_cast<std::size_t>(right_index)];
+        auto tie_break_name = [&]() {
+            const QString left_name = QString::fromStdString(left.name);
+            const QString right_name = QString::fromStdString(right.name);
+            return sort_ascending_ ? left_name.localeAwareCompare(right_name) < 0
+                                   : left_name.localeAwareCompare(right_name) > 0;
+        };
+
+        auto less = [&](const auto& left_value, const auto& right_value) -> bool {
+            if (left_value == right_value) {
+                return tie_break_name();
+            }
+            return sort_ascending_ ? left_value < right_value : left_value > right_value;
+        };
+
+        switch (sort_role_) {
+        case SortByProgress:
+            return less(left.progress_percent, right.progress_percent);
+        case SortByDownloadRate:
+            return less(left.download_rate, right.download_rate);
+        case SortByUploadRate:
+            return less(left.upload_rate, right.upload_rate);
+        case SortByEta: {
+            const int left_eta = left.eta_seconds < 0 ? INT_MAX : left.eta_seconds;
+            const int right_eta = right.eta_seconds < 0 ? INT_MAX : right.eta_seconds;
+            return less(left_eta, right_eta);
+        }
+        case SortByName:
+        default:
+            return tie_break_name();
+        }
+    };
+
+    std::sort(filtered_rows_.begin(), filtered_rows_.end(), compare);
+}
+
 void TorrentListModel::rebuildFilteredRows()
 {
+    const QString query_lower = search_query_.trimmed().toLower();
     filtered_rows_.clear();
     filtered_rows_.reserve(items_.size());
     for (int i = 0; i < static_cast<int>(items_.size()); ++i) {
-        if (torrent_matches_filter(items_[static_cast<std::size_t>(i)],
-                                   active_filter_.toUtf8().constData())) {
-            filtered_rows_.push_back(i);
+        const TorrentSnapshot& item = items_[static_cast<std::size_t>(i)];
+        if (!torrent_matches_filter(item, active_filter_.toUtf8().constData())) {
+            continue;
         }
+        if (!snapshot_matches_search(item, query_lower)) {
+            continue;
+        }
+        filtered_rows_.push_back(i);
     }
+    sortFilteredRows();
+}
+
+void TorrentListModel::setSearchQuery(const QString& query)
+{
+    const QString trimmed = query.trimmed();
+    if (trimmed == search_query_) {
+        return;
+    }
+    search_query_ = trimmed;
+    rebuildFilteredRows();
+    beginResetModel();
+    endResetModel();
+    emit countChanged();
+    ++data_revision_;
+    emit dataRevisionChanged();
+    emit searchQueryChanged();
+    emit snapshotsUpdated();
+}
+
+void TorrentListModel::setSortRole(const int role)
+{
+    const int clamped = std::clamp(role, static_cast<int>(SortByName), static_cast<int>(SortByEta));
+    if (clamped == sort_role_) {
+        return;
+    }
+    sort_role_ = clamped;
+    rebuildFilteredRows();
+    beginResetModel();
+    endResetModel();
+    ++data_revision_;
+    emit dataRevisionChanged();
+    emit sortRoleChanged();
+    emit snapshotsUpdated();
+}
+
+void TorrentListModel::setSortAscending(const bool ascending)
+{
+    if (ascending == sort_ascending_) {
+        return;
+    }
+    sort_ascending_ = ascending;
+    rebuildFilteredRows();
+    beginResetModel();
+    endResetModel();
+    ++data_revision_;
+    emit dataRevisionChanged();
+    emit sortAscendingChanged();
+    emit snapshotsUpdated();
 }
 
 void TorrentListModel::refresh()
@@ -78,8 +190,9 @@ void TorrentListModel::refresh()
     const bool count_changed = next.size() != items_.size();
     items_ = next;
     rebuildFilteredRows();
+    const bool needs_reorder = sort_role_ != SortByName;
 
-    if (!count_changed && !filtered_rows_.empty()) {
+    if (!count_changed && !filtered_rows_.empty() && !needs_reorder) {
         emit dataChanged(index(0), index(static_cast<int>(filtered_rows_.size()) - 1));
         ++data_revision_;
         emit dataRevisionChanged();

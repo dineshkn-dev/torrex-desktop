@@ -79,5 +79,18 @@ Popup {
         color: Theme.sidebarBackground
         border.color: Theme.border
         border.width: 1
+        clip: true
+    }
+
+    contentItem: Item {
+        clip: true
+        implicitWidth: root.width
+        implicitHeight: root.height
+
+        default property alias children: sheetBody.data
+        Item {
+            id: sheetBody
+            anchors.fill: parent
+        }
     }
 }

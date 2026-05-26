@@ -66,8 +66,9 @@ QtObject {
     readonly property int sheetPadding: 24
     readonly property int listWidth: 340
     readonly property int listMinWidth: 260
-    readonly property int listMaxWidth: 400
+    readonly property int listMaxWidth: 520
     readonly property int rowHeight: 68
+    readonly property int detailMinWidth: 360
     readonly property int detailMaxWidth: 720
     readonly property int progressThin: 4
     readonly property int progressThick: 10
@@ -76,9 +77,12 @@ QtObject {
     readonly property int animFast: 140
     readonly property int animNormal: 220
     readonly property int animSlow: 320
-    readonly property int flickDeceleration: 2400
-    readonly property int maxFlickVelocity: 14000
-    readonly property real wheelScrollMultiplier: 1.9
+    readonly property int flickDeceleration: 2000
+    readonly property int maxFlickVelocity: 15000
+    // Mouse wheels use angleDelta (120 per notch); trackpads use pixelDelta.
+    readonly property int mouseWheelLinePixels: 72
+    readonly property real mouseWheelScrollMultiplier: 1.0
+    readonly property real trackpadScrollMultiplier: 1.0
     readonly property real sheetEnterScale: 0.94
     readonly property int sheetWidth: 640
     readonly property int sheetWideWidth: 760
@@ -215,5 +219,107 @@ QtObject {
 
     function accentGlow(alpha) {
         return Qt.rgba(accent.r, accent.g, accent.b, alpha)
+    }
+
+    // Responsive layout helpers (pane / window width in px).
+    function clampWidth(requested, parentWidth, minWidth, margin) {
+        if (!parentWidth || parentWidth <= 0)
+            return requested
+        const cap = Math.max(minWidth, parentWidth - margin)
+        return Math.min(requested, cap)
+    }
+
+    function heroRingSize(paneWidth) {
+        if (paneWidth <= 0)
+            return 96
+        if (paneWidth < 360)
+            return 72
+        if (paneWidth < 480)
+            return 88
+        return 104
+    }
+
+    function metricsGridColumns(paneWidth) {
+        if (paneWidth > 0 && paneWidth < 420)
+            return 1
+        return 2
+    }
+
+    function stackSpeedCards(paneWidth) {
+        return paneWidth > 0 && paneWidth < 400
+    }
+
+    function listPaneCompactHeader(paneWidth) {
+        return paneWidth > 0 && paneWidth < 300
+    }
+
+    function showTorrentRowSpeed(paneWidth) {
+        return paneWidth >= 220
+    }
+
+    function statLabelWidth(rowWidth) {
+        if (rowWidth <= 0)
+            return 120
+        return Math.min(140, Math.max(64, Math.floor(rowWidth * 0.38)))
+    }
+
+    function priorityColumnWidth(paneWidth) {
+        if (paneWidth <= 0)
+            return 76
+        return Math.min(88, Math.max(64, Math.floor(paneWidth * 0.24)))
+    }
+
+    function applyFlickablePhysics(flickable) {
+        if (!flickable || flickable.flickDeceleration === undefined)
+            return
+        flickable.flickDeceleration = flickDeceleration
+        flickable.maximumFlickVelocity = maxFlickVelocity
+        flickable.pixelAligned = false
+        flickable.boundsBehavior = Flickable.DragAndOvershootBounds
+        flickable.interactive = true
+        // Handled by ScrollWheelHandler for device-specific tuning.
+        flickable.wheelScrollMultiplier = 0
+    }
+
+    function applyWheelScroll(flickable, event) {
+        if (!flickable || !event)
+            return
+
+        let deltaY = 0
+        let deltaX = 0
+        const pixel = event.pixelDelta
+        const angle = event.angleDelta
+
+        if (pixel) {
+            if (pixel.y !== 0)
+                deltaY = pixel.y * trackpadScrollMultiplier
+            if (pixel.x !== 0)
+                deltaX = pixel.x * trackpadScrollMultiplier
+        }
+        if (angle) {
+            if (deltaY === 0 && angle.y !== 0)
+                deltaY = (angle.y / 120) * mouseWheelLinePixels * mouseWheelScrollMultiplier
+            if (deltaX === 0 && angle.x !== 0)
+                deltaX = (angle.x / 120) * mouseWheelLinePixels * mouseWheelScrollMultiplier
+        }
+
+        if (deltaY === 0 && deltaX === 0)
+            return
+
+        if (deltaY !== 0) {
+            const minY = -flickable.topMargin
+            const maxY = Math.max(minY,
+                flickable.contentHeight - flickable.height + flickable.bottomMargin)
+            flickable.contentY = Math.min(maxY, Math.max(minY, flickable.contentY - deltaY))
+        }
+
+        if (deltaX !== 0) {
+            const minX = -flickable.leftMargin
+            const maxX = Math.max(minX,
+                flickable.contentWidth - flickable.width + flickable.rightMargin)
+            flickable.contentX = Math.min(maxX, Math.max(minX, flickable.contentX - deltaX))
+        }
+
+        event.accepted = true
     }
 }

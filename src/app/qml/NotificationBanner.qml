@@ -13,7 +13,9 @@ Rectangle {
     anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
     anchors.top: parent ? parent.top : undefined
     anchors.topMargin: Theme.spacingLg
-    width: Math.min(400, parent ? parent.width - 48 : 400)
+    width: parent && parent.width > 0
+        ? Math.max(200, Math.min(400, parent.width - 48))
+        : 400
     implicitHeight: messageLabel.implicitHeight + Theme.spacingLg * 2
     z: 1000
 

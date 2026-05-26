@@ -129,6 +129,13 @@ public:
     Q_INVOKABLE void loadSessionSettingsFromStore();
     Q_INVOKABLE void clearNotification();
     Q_INVOKABLE void copyText(const QString& text);
+    Q_INVOKABLE QString magnetUriForTorrent(const QString& info_hash) const;
+    Q_INVOKABLE void copyMagnetForTorrent(const QString& info_hash);
+    Q_INVOKABLE void revealTorrentInFinder(const QString& info_hash);
+    Q_INVOKABLE void togglePauseResumeTorrent(const QString& info_hash);
+    Q_INVOKABLE void pauseAllTorrents();
+    Q_INVOKABLE void resumeAllTorrents();
+    Q_INVOKABLE QString downloadFolderFreeSpaceText() const;
 
     Q_INVOKABLE void pauseTorrent(const QString& info_hash);
     Q_INVOKABLE void resumeTorrent(const QString& info_hash);

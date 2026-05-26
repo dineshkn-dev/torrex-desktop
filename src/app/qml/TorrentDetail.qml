@@ -5,6 +5,7 @@ import Torrin
 
 Item {
     id: root
+    clip: true
 
     required property int torrentRow
     property var windowRef: null
@@ -118,12 +119,17 @@ Item {
                 anchors.margins: Theme.spacingXl
                 spacing: Theme.spacingLg
 
+                readonly property bool compact: width > 0 && width < 440
+                readonly property int ringSize: Theme.heroRingSize(width)
+
                 RowLayout {
                     Layout.fillWidth: true
+                    visible: !heroCol.compact
                     spacing: Theme.spacingLg
 
                     DetailProgressRing {
-                        size: 104
+                        Layout.alignment: Qt.AlignTop
+                        size: heroCol.ringSize
                         progress: root.detailProgress
                         ringColor: root.detailProgress >= 100 ? Theme.success : Theme.accent
                     }
@@ -138,7 +144,7 @@ Item {
                             font.weight: Font.DemiBold
                             color: Theme.textPrimary
                             wrapMode: Text.Wrap
-                            maximumLineCount: 4
+                            maximumLineCount: 6
                             Layout.fillWidth: true
                         }
 
@@ -152,8 +158,48 @@ Item {
                                 + Theme.formatBytes(root.detailTotal)
                             font.pixelSize: Theme.fontCaption
                             color: Theme.textSecondary
+                            wrapMode: Text.WordWrap
                             Layout.fillWidth: true
                         }
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    visible: heroCol.compact
+                    spacing: Theme.spacingMd
+
+                    DetailProgressRing {
+                        Layout.alignment: Qt.AlignHCenter
+                        size: heroCol.ringSize
+                        progress: root.detailProgress
+                        ringColor: root.detailProgress >= 100 ? Theme.success : Theme.accent
+                    }
+
+                    Label {
+                        text: root.detailName
+                        font.pixelSize: width < 360 ? Theme.fontHeadline : Theme.fontTitle
+                        font.weight: Font.DemiBold
+                        color: Theme.textPrimary
+                        wrapMode: Text.Wrap
+                        horizontalAlignment: Text.AlignHCenter
+                        Layout.fillWidth: true
+                    }
+
+                    DetailStatusPill {
+                        Layout.alignment: Qt.AlignHCenter
+                        torrentState: root.detailState
+                        uploadStopped: root.detailUploadStopped
+                    }
+
+                    Label {
+                        text: Theme.formatBytes(root.detailDownloaded) + " / "
+                            + Theme.formatBytes(root.detailTotal)
+                        font.pixelSize: Theme.fontCaption
+                        color: Theme.textSecondary
+                        wrapMode: Text.WordWrap
+                        horizontalAlignment: Text.AlignHCenter
+                        Layout.fillWidth: true
                     }
                 }
 
@@ -199,6 +245,15 @@ Item {
 
                         TgMenu {
                             id: detailMenu
+                            MenuItem {
+                                text: qsTr("Reveal in Finder")
+                                onTriggered: appController.revealTorrentInFinder(root.detailInfoHash)
+                            }
+                            MenuItem {
+                                text: qsTr("Copy magnet link")
+                                onTriggered: appController.copyMagnetForTorrent(root.detailInfoHash)
+                            }
+                            TgMenuSeparator {}
                             MenuItem {
                                 text: qsTr("Force recheck")
                                 onTriggered: appController.forceRecheck(root.detailInfoHash)

@@ -2,11 +2,10 @@ import QtQuick
 import QtQuick.Controls.Basic
 import Torrin
 
-// Segmented tab control — equal-width segments (RowLayout + Repeater does not split evenly).
+// Segmented tab control — equal-width segments; width follows parent.
 Item {
     id: root
     implicitHeight: 36
-    implicitWidth: 240
 
     property int currentIndex: 0
     property var tabs: []
@@ -14,7 +13,7 @@ Item {
     signal tabActivated(int index)
 
     readonly property int tabCount: tabs.length
-    readonly property real segmentWidth: tabCount > 0
+    readonly property real segmentWidth: tabCount > 0 && width > 0
         ? (width - tabRow.spacing * Math.max(0, tabCount - 1)) / tabCount
         : 0
 
@@ -40,7 +39,7 @@ Item {
                 required property int index
                 required property var modelData
 
-                width: root.segmentWidth
+                width: Math.max(0, root.segmentWidth)
                 height: tabRow.height
                 checkable: true
                 checked: root.currentIndex === index
@@ -76,6 +75,7 @@ Item {
                     color: tabButton.checked ? Theme.textPrimary : Theme.textSecondary
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
                 }
             }
         }

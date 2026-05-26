@@ -8,7 +8,10 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QClipboard>
+#include <QDesktopServices>
 #include <QGuiApplication>
+#include <QProcess>
+#include <QStorageInfo>
 #include <QLoggingCategory>
 #include <QSettings>
 #include <QStyleHints>
@@ -425,6 +428,135 @@ void AppController::copyText(const QString& text)
         clip->setText(trimmed);
         setStatusMessage(tr("Copied to clipboard."));
     }
+}
+
+QString AppController::magnetUriForTorrent(const QString& info_hash) const
+{
+    const QString id = info_hash.trimmed().toLower();
+    if (id.isEmpty()) {
+        return {};
+    }
+    return QStringLiteral("magnet:?xt=urn:btih:%1").arg(id);
+}
+
+void AppController::copyMagnetForTorrent(const QString& info_hash)
+{
+    const QString magnet = magnetUriForTorrent(info_hash);
+    if (magnet.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    copyText(magnet);
+}
+
+void AppController::revealTorrentInFinder(const QString& info_hash)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+
+    QString folder;
+    for (const TorrentSnapshot& snap : session_.snapshots()) {
+        if (QString::fromStdString(snap.info_hash.v1_hex).compare(id, Qt::CaseInsensitive) == 0) {
+            folder = QString::fromStdString(snap.save_path);
+            break;
+        }
+    }
+    if (folder.isEmpty()) {
+        setStatusMessage(tr("Torrent not found."));
+        return;
+    }
+
+    const QFileInfo info(folder);
+    const QString path = info.exists() ? info.absoluteFilePath() : folder;
+    if (!QFileInfo::exists(path)) {
+        setStatusMessage(tr("Save path does not exist yet."));
+        return;
+    }
+
+#if defined(Q_OS_MACOS)
+    QProcess::startDetached(QStringLiteral("open"),
+                            {QStringLiteral("-R"), QDir::toNativeSeparators(path)});
+#else
+    QDesktopServices::openUrl(QUrl::fromLocalFile(QFileInfo(path).absolutePath()));
+#endif
+    setStatusMessage(tr("Revealed in file manager."));
+}
+
+void AppController::togglePauseResumeTorrent(const QString& info_hash)
+{
+    const QString id = info_hash.trimmed();
+    if (id.isEmpty()) {
+        setStatusMessage(tr("No torrent selected."));
+        return;
+    }
+    for (const TorrentSnapshot& snap : session_.snapshots()) {
+        if (QString::fromStdString(snap.info_hash.v1_hex).compare(id, Qt::CaseInsensitive) != 0) {
+            continue;
+        }
+        if (snap.state == TorrentState::Paused) {
+            resumeTorrent(id);
+        } else {
+            pauseTorrent(id);
+        }
+        return;
+    }
+    setStatusMessage(tr("Torrent not found."));
+}
+
+void AppController::pauseAllTorrents()
+{
+    if (!session_.is_running()) {
+        setStatusMessage(tr("Session is not running."));
+        return;
+    }
+    int paused = 0;
+    for (const TorrentSnapshot& snap : session_.snapshots()) {
+        if (snap.state == TorrentState::Paused) {
+            continue;
+        }
+        if (session_.pause_torrent(snap.info_hash.v1_hex).empty()) {
+            ++paused;
+        }
+    }
+    refreshTorrents();
+    setStatusMessage(paused > 0 ? tr("Paused %1 torrent(s).").arg(paused)
+                                : tr("No torrents to pause."));
+}
+
+void AppController::resumeAllTorrents()
+{
+    if (!session_.is_running()) {
+        setStatusMessage(tr("Session is not running."));
+        return;
+    }
+    int resumed = 0;
+    for (const TorrentSnapshot& snap : session_.snapshots()) {
+        if (snap.state != TorrentState::Paused) {
+            continue;
+        }
+        if (session_.resume_torrent(snap.info_hash.v1_hex).empty()) {
+            ++resumed;
+        }
+    }
+    refreshTorrents();
+    setStatusMessage(resumed > 0 ? tr("Resumed %1 torrent(s).").arg(resumed)
+                                 : tr("No paused torrents."));
+}
+
+QString AppController::downloadFolderFreeSpaceText() const
+{
+    QStorageInfo storage(download_folder_);
+    if (!storage.isValid() || !storage.isReady()) {
+        return {};
+    }
+    const qint64 free_bytes = storage.bytesAvailable();
+    if (free_bytes < 0) {
+        return {};
+    }
+    return tr("%1 free on download volume").arg(formatByteSize(free_bytes));
 }
 
 void AppController::postNotification(const QString& message)

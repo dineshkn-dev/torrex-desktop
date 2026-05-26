@@ -48,7 +48,7 @@ Item {
         Label {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Math.round(root.progress) + "%"
-            font.pixelSize: Theme.fontHeadline
+            font.pixelSize: root.size < 80 ? Theme.fontBody : Theme.fontHeadline
             font.weight: Font.DemiBold
             color: Theme.textPrimary
         }

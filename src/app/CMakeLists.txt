@@ -13,6 +13,7 @@ qt_add_qml_module(torrin
     RESOURCE_PREFIX /qt/qml
     QML_FILES
         qml/Main.qml
+        qml/ResizableSplitView.qml
         qml/Theme.qml
         qml/ThemedPanel.qml
         qml/ThemedProgressBar.qml
@@ -50,6 +51,8 @@ qt_add_qml_module(torrin
         qml/TgSwitch.qml
         qml/TgMenu.qml
         qml/TgMenuSeparator.qml
+        qml/ScrollWheelHandler.qml
+        qml/TgListView.qml
         qml/TgScrollView.qml
         qml/TgFormScroll.qml
         qml/TgSheet.qml

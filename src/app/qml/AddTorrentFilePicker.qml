@@ -156,6 +156,9 @@ ColumnLayout {
         border.width: 1
         clip: true
 
+        // Minimum width keeps columns readable; parent sheet scrolls horizontally if needed.
+        implicitWidth: root.colToggle + root.colSize + root.colType + Theme.spacingMd * 6 + 120
+
         Column {
             id: tableColumn
             width: parent.width

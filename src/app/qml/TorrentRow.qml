@@ -6,6 +6,7 @@ import Torrin
 Item {
     id: root
     height: Theme.rowHeight
+    clip: true
 
     property int rowIndex: -1
     property string name: ""
@@ -15,6 +16,9 @@ Item {
     property bool uploadStopped: false
     property real downloadRate: 0
     property real uploadRate: 0
+    property int etaSeconds: -1
+    property bool paused: false
+    readonly property bool showSpeed: Theme.showTorrentRowSpeed(root.width)
     property bool selected: false
     property bool hovered: false
 
@@ -81,11 +85,11 @@ Item {
 
             Label {
                 text: root.speedText
-                visible: root.speedText.length > 0
+                visible: root.showSpeed && root.speedText.length > 0
                 font.pixelSize: Theme.fontCaption
                 color: Theme.textSecondary
                 elide: Text.ElideLeft
-                Layout.maximumWidth: Math.min(96, root.width * 0.38)
+                Layout.maximumWidth: Math.max(48, Math.min(88, root.width * 0.32))
             }
         }
 
@@ -131,7 +135,14 @@ Item {
         }
     }
 
-    readonly property string metaLine: Theme.stateLabel(root.state, root.uploadStopped)
+    readonly property string metaLine: {
+        const status = Theme.stateLabel(root.state, root.uploadStopped)
+        const eta = Theme.formatEtaForTorrent(
+            root.etaSeconds, root.state, root.progress, root.paused)
+        if (eta.length > 0 && eta !== qsTr("—") && eta !== status)
+            return status + " · " + eta
+        return status
+    }
 
     readonly property string speedText: {
         if (root.downloadRate > 0)

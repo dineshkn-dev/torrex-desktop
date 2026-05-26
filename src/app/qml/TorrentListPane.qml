@@ -6,9 +6,10 @@ import Torrin
 // Left sidebar: filters, torrent list, status (Telegram chat-list style).
 Item {
     id: root
-    implicitWidth: Theme.listWidth
+    clip: true
 
     property bool filterHidesAll: false
+    readonly property bool compactHeader: Theme.listPaneCompactHeader(root.width)
     property string selectedInfoHash: ""
     property int selectedState: -1
     readonly property int torrentCount: torrentList.count
@@ -18,6 +19,11 @@ Item {
     signal addMagnetRequested()
     signal addTorrentRequested()
     signal settingsRequested()
+
+    function focusSearchField() {
+        searchField.forceActiveFocus()
+        searchField.selectAll()
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -37,32 +43,34 @@ Item {
             Layout.bottomMargin: Theme.spacingSm
             spacing: Theme.spacingSm
 
-            ColumnLayout {
-                spacing: Theme.spacingXs
+            RowLayout {
+                spacing: Theme.spacingSm
                 Layout.alignment: Qt.AlignVCenter
+                Layout.fillWidth: !root.compactHeader
+                Layout.maximumWidth: root.compactHeader ? logoBlock.implicitWidth : -1
 
-                RowLayout {
-                    spacing: Theme.spacingSm
+                TorrinLogo {
+                    id: logoBlock
+                    size: root.compactHeader ? 28 : 36
+                }
 
-                    TorrinLogo {
-                        size: 36
+                ColumnLayout {
+                    visible: !root.compactHeader
+                    spacing: 0
+
+                    Label {
+                        text: qsTr("Torrin")
+                        font.pixelSize: Theme.fontTitle
+                        font.weight: Font.DemiBold
+                        color: Theme.textPrimary
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
                     }
 
-                    ColumnLayout {
-                        spacing: 0
-
-                        Label {
-                            text: qsTr("Torrin")
-                            font.pixelSize: Theme.fontTitle
-                            font.weight: Font.DemiBold
-                            color: Theme.textPrimary
-                        }
-
-                        Label {
-                            text: appController.version
-                            font.pixelSize: Theme.fontCaption
-                            color: Theme.textSecondary
-                        }
+                    Label {
+                        text: appController.version
+                        font.pixelSize: Theme.fontCaption
+                        color: Theme.textSecondary
                     }
                 }
             }
@@ -91,10 +99,119 @@ Item {
             }
 
             TgIconButton {
+                id: listActionsButton
+                text: "⋯"
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("List actions")
+                onClicked: listActionsMenu.popupAt(listActionsButton, 0, listActionsButton.height)
+
+                TgMenu {
+                    id: listActionsMenu
+                    MenuItem {
+                        text: qsTr("Pause all")
+                        onTriggered: appController.pauseAllTorrents()
+                    }
+                    MenuItem {
+                        text: qsTr("Resume all")
+                        onTriggered: appController.resumeAllTorrents()
+                    }
+                }
+            }
+
+            TgIconButton {
                 glyph: "settings"
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Settings")
                 onClicked: root.settingsRequested()
+            }
+        }
+
+        TgTextField {
+            id: searchField
+            Layout.fillWidth: true
+            Layout.leftMargin: Theme.spacingMd
+            Layout.rightMargin: Theme.spacingMd
+            Layout.bottomMargin: Theme.spacingXs
+            placeholderText: qsTr("Search torrents…")
+            text: appController.torrents.searchQuery
+            onTextChanged: {
+                if (text !== appController.torrents.searchQuery)
+                    appController.torrents.searchQuery = text
+            }
+        }
+
+        TgScrollView {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 40
+            Layout.leftMargin: Theme.spacingMd
+            Layout.rightMargin: Theme.spacingMd
+            Layout.bottomMargin: Theme.spacingXs
+            horizontalPolicy: ScrollBar.AsNeeded
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AlwaysOff
+            }
+
+            Row {
+                id: sortRow
+                height: parent.height
+                spacing: Theme.spacingSm
+
+                Label {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("Sort")
+                    font.pixelSize: Theme.fontCaption
+                    color: Theme.textSecondary
+                }
+
+                TgTabButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("Name")
+                    checkable: false
+                    padding: 10
+                    onClicked: {
+                        appController.torrents.sortRole = 0
+                        appController.torrents.sortAscending = true
+                    }
+                }
+                TgTabButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("Progress")
+                    checkable: false
+                    padding: 10
+                    onClicked: appController.torrents.sortRole = 1
+                }
+                TgTabButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("Down")
+                    checkable: false
+                    padding: 10
+                    onClicked: appController.torrents.sortRole = 2
+                }
+                TgTabButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("Up")
+                    checkable: false
+                    padding: 10
+                    onClicked: appController.torrents.sortRole = 3
+                }
+                TgTabButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("ETA")
+                    checkable: false
+                    padding: 10
+                    onClicked: appController.torrents.sortRole = 4
+                }
+
+                TgIconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: appController.torrents.sortAscending ? "↑" : "↓"
+                    ToolTip.visible: hovered
+                    ToolTip.text: appController.torrents.sortAscending
+                        ? qsTr("Ascending — click to reverse")
+                        : qsTr("Descending — click to reverse")
+                    onClicked: appController.torrents.sortAscending =
+                        !appController.torrents.sortAscending
+                }
             }
         }
 
@@ -105,7 +222,9 @@ Item {
             Layout.preferredHeight: 44
             Layout.bottomMargin: Theme.spacingXs
             horizontalPolicy: ScrollBar.AsNeeded
-            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AlwaysOff
+            }
 
             Row {
                 id: chipRow
@@ -162,19 +281,17 @@ Item {
                 wrapMode: Text.WordWrap
                 color: Theme.textSecondary
                 font.pixelSize: Theme.fontBody
-                text: qsTr("No torrents match this filter.")
+                text: appController.torrents.searchQuery.length > 0
+                    ? qsTr("No torrents match your search.")
+                    : qsTr("No torrents match this filter.")
             }
 
-            ListView {
+            TgListView {
                 id: torrentList
                 anchors.fill: parent
                 model: appController.torrents
                 clip: true
                 visible: !root.filterHidesAll
-                boundsBehavior: Flickable.StopAtBounds
-                flickDeceleration: Theme.flickDeceleration
-                maximumFlickVelocity: Theme.maxFlickVelocity
-                pixelAligned: false
                 spacing: Theme.spacingXs
                 cacheBuffer: Theme.rowHeight * 4
                 reuseItems: true
@@ -260,6 +377,8 @@ Item {
                     uploadStopped: { void(_rev); return appController.torrents.uploadStoppedAt(index) }
                     downloadRate: { void(_rev); return appController.torrents.downloadRateAt(index) }
                     uploadRate: { void(_rev); return appController.torrents.uploadRateAt(index) }
+                    etaSeconds: { void(_rev); return appController.torrents.etaSecondsAt(index) }
+                    paused: { void(_rev); return appController.torrents.stateAt(index) === 4 }
                     selected: torrentList.currentIndex === index
 
                     onClicked: torrentList.currentIndex = index
@@ -290,6 +409,16 @@ Item {
                             enabled: Theme.canResumeSeeding(
                                 rowDelegate.state, rowDelegate.progress, rowDelegate.uploadStopped)
                             onTriggered: appController.resumeSeeding(rowDelegate.infoHash)
+                        }
+                        MenuItem {
+                            text: qsTr("Reveal in Finder")
+                            enabled: rowDelegate.infoHash.length > 0
+                            onTriggered: appController.revealTorrentInFinder(rowDelegate.infoHash)
+                        }
+                        MenuItem {
+                            text: qsTr("Copy magnet link")
+                            enabled: rowDelegate.infoHash.length > 0
+                            onTriggered: appController.copyMagnetForTorrent(rowDelegate.infoHash)
                         }
                         TgMenuSeparator {}
                         MenuItem {
@@ -334,7 +463,16 @@ Item {
             spacing: Theme.spacingSm
 
             Label {
-                text: appController.statusMessage
+                text: {
+                    appController.torrents.dataRevision
+                    const free = appController.downloadFolderFreeSpaceText()
+                    const status = appController.statusMessage
+                    if (free.length > 0 && status.length > 0)
+                        return status + " · " + free
+                    if (free.length > 0)
+                        return free
+                    return status
+                }
                 font.pixelSize: Theme.fontCaption
                 color: Theme.textSecondary
                 elide: Text.ElideRight

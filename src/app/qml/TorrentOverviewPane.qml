@@ -5,6 +5,7 @@ import Torrin
 
 Item {
     id: root
+    clip: true
 
     required property real downloadRate
     required property real uploadRate
@@ -29,6 +30,9 @@ Item {
 
     readonly property string etaDisplay: Theme.formatEtaForTorrent(
         root.etaSeconds, root.torrentState, root.progress, root.paused)
+    readonly property bool stackSpeed: Theme.stackSpeedCards(root.width)
+    readonly property int metricColumns: Theme.metricsGridColumns(root.width)
+    readonly property bool narrowStorage: root.width > 0 && root.width < 400
 
     signal sequentialToggled(bool enabled)
 
@@ -37,6 +41,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
+            visible: !root.stackSpeed
             spacing: Theme.spacingMd
 
             DetailSpeedCard {
@@ -53,29 +58,54 @@ Item {
             }
         }
 
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.stackSpeed
+            spacing: Theme.spacingMd
+
+            DetailSpeedCard {
+                Layout.fillWidth: true
+                direction: qsTr("Download")
+                rateText: root.downloadRateText
+                paused: root.paused
+                tint: Theme.accent
+            }
+            DetailSpeedCard {
+                Layout.fillWidth: true
+                direction: qsTr("Upload")
+                rateText: root.uploadRateText
+                paused: root.paused
+                tint: Theme.success
+            }
+        }
+
         GridLayout {
             Layout.fillWidth: true
-            columns: 2
+            columns: root.metricColumns
             columnSpacing: Theme.spacingMd
             rowSpacing: Theme.spacingMd
 
             DetailMetricTile {
+                Layout.fillWidth: true
                 caption: qsTr("Peers")
                 value: root.peers > 0 ? String(root.peers) : qsTr("—")
                 hint: root.connections > 0 ? qsTr("%1 connected").arg(root.connections) : ""
                 accent: Theme.accent
             }
             DetailMetricTile {
+                Layout.fillWidth: true
                 caption: qsTr("Seeds")
                 value: root.seeds > 0 ? String(root.seeds) : qsTr("—")
                 accent: Theme.success
             }
             DetailMetricTile {
+                Layout.fillWidth: true
                 caption: qsTr("ETA")
                 value: root.etaDisplay
                 accent: Theme.warning
             }
             DetailMetricTile {
+                Layout.fillWidth: true
                 caption: qsTr("Ratio")
                 value: Theme.formatRatio(root.uploaded, root.downloaded)
                 accent: Theme.accentColors.violet
@@ -104,8 +134,9 @@ Item {
                         font.pixelSize: Theme.fontBody
                         font.weight: Font.DemiBold
                         color: Theme.textPrimary
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
                     }
-                    Item { Layout.fillWidth: true }
                     Label {
                         text: root.progress + "%"
                         font.pixelSize: Theme.fontCaption
@@ -145,8 +176,10 @@ Item {
                 value: root.savePath.length > 0 ? root.savePath : qsTr("—")
                 wrapValue: true
             }
+
             RowLayout {
                 Layout.fillWidth: true
+                visible: !root.narrowStorage
                 spacing: Theme.spacingSm
                 DetailStatRow {
                     Layout.fillWidth: true
@@ -158,6 +191,24 @@ Item {
                     onClicked: appController.copyText(root.infoHash)
                 }
             }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                visible: root.narrowStorage
+                spacing: Theme.spacingSm
+                DetailStatRow {
+                    Layout.fillWidth: true
+                    label: qsTr("Info hash")
+                    value: Theme.shortInfoHash(root.infoHash)
+                    wrapValue: true
+                }
+                TgButton {
+                    Layout.fillWidth: true
+                    text: qsTr("Copy info hash")
+                    onClicked: appController.copyText(root.infoHash)
+                }
+            }
+
             DetailStatRow {
                 label: qsTr("Metadata")
                 value: root.hasMetadata ? qsTr("Ready") : qsTr("Fetching…")

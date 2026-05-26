@@ -3,8 +3,8 @@
 | Document | Purpose |
 |----------|---------|
 | [specs/PRODUCT.md](specs/PRODUCT.md) | What v0.1 ships today |
-| [planning/FUTURE.md](planning/FUTURE.md) | Next major themes and sequencing |
-| [tracker/ROADMAP.yaml](tracker/ROADMAP.yaml) | Planned milestones (machine-readable) |
+| [planning/FUTURE.md](planning/FUTURE.md) | Full product plan (themes A–G, v0.3 → v1.3+) |
+| [tracker/ROADMAP.yaml](tracker/ROADMAP.yaml) | All planned work items (machine-readable) |
 | [CONVENTIONS.md](CONVENTIONS.md) | Code and QML conventions |
 | [specs/engine-session.md](specs/engine-session.md) | Engine (`SessionManager`) behavior |
 | [architecture/](architecture/) | Architecture decision records |

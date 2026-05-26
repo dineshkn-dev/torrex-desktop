@@ -14,6 +14,9 @@ class TorrentListModel : public QAbstractListModel {
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
     Q_PROPERTY(int totalCount READ totalCount NOTIFY countChanged)
     Q_PROPERTY(QString activeFilter READ activeFilter NOTIFY activeFilterChanged)
+    Q_PROPERTY(QString searchQuery READ searchQuery WRITE setSearchQuery NOTIFY searchQueryChanged)
+    Q_PROPERTY(int sortRole READ sortRole WRITE setSortRole NOTIFY sortRoleChanged)
+    Q_PROPERTY(bool sortAscending READ sortAscending WRITE setSortAscending NOTIFY sortAscendingChanged)
     Q_PROPERTY(int dataRevision READ dataRevision NOTIFY dataRevisionChanged)
 
 public:
@@ -28,6 +31,15 @@ public:
     };
     Q_ENUM(Roles)
 
+    enum SortRole {
+        SortByName = 0,
+        SortByProgress = 1,
+        SortByDownloadRate = 2,
+        SortByUploadRate = 3,
+        SortByEta = 4,
+    };
+    Q_ENUM(SortRole)
+
     explicit TorrentListModel(SessionManager& session, QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -38,6 +50,12 @@ public:
     Q_INVOKABLE void setFilter(const QString& filter_id);
     [[nodiscard]] int totalCount() const { return static_cast<int>(items_.size()); }
     [[nodiscard]] QString activeFilter() const { return active_filter_; }
+    [[nodiscard]] QString searchQuery() const { return search_query_; }
+    void setSearchQuery(const QString& query);
+    [[nodiscard]] int sortRole() const { return sort_role_; }
+    void setSortRole(int role);
+    [[nodiscard]] bool sortAscending() const { return sort_ascending_; }
+    void setSortAscending(bool ascending);
     Q_INVOKABLE int rowForInfoHash(const QString& info_hash_hex) const;
     [[nodiscard]] int dataRevision() const { return data_revision_; }
 
@@ -65,16 +83,23 @@ signals:
     void countChanged();
     void snapshotsUpdated();
     void activeFilterChanged();
+    void searchQueryChanged();
+    void sortRoleChanged();
+    void sortAscendingChanged();
     void dataRevisionChanged();
 
 private:
     void rebuildFilteredRows();
+    void sortFilteredRows();
     [[nodiscard]] const TorrentSnapshot* snapshotAt(int row) const;
 
     SessionManager& session_;
     std::vector<TorrentSnapshot> items_;
     std::vector<int> filtered_rows_;
     QString active_filter_ = QStringLiteral("all");
+    QString search_query_;
+    int sort_role_ = SortByName;
+    bool sort_ascending_ = true;
     int data_revision_ = 0;
 };
 

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import Qt.labs.settings
 import Torrin
 
 ApplicationWindow {
@@ -21,11 +22,18 @@ ApplicationWindow {
         }
     }
 
+    Settings {
+        id: uiSettings
+        category: "ui"
+        property int listPaneWidth: Theme.listWidth
+    }
+
     property bool hasTorrents: appController.torrents.totalCount > 0
     property bool filterHidesAllTorrents: hasTorrents && appController.torrents.count === 0
 
-    readonly property int listPaneWidth: Math.round(
-        Math.min(Theme.listMaxWidth, Math.max(Theme.listMinWidth, width * 0.32)))
+    readonly property int defaultListPaneWidth: Math.round(
+        Math.min(Theme.listMaxWidth,
+                 Math.max(Theme.listMinWidth, width * 0.34)))
 
     property string _removeInfoHash: ""
     property bool _removeDeleteFiles: false
@@ -43,7 +51,34 @@ ApplicationWindow {
         }
     }
 
-    Component.onCompleted: appController.refreshTorrents()
+    Component.onCompleted: {
+        appController.refreshTorrents()
+        Qt.callLater(enforceSplitLayout)
+    }
+
+    onWidthChanged: Qt.callLater(enforceSplitLayout)
+
+    Shortcut {
+        sequences: [StandardKey.Find]
+        context: Qt.ApplicationShortcut
+        enabled: window.hasTorrents
+        onActivated: listPane.focusSearchField()
+    }
+
+    Shortcut {
+        sequence: "Space"
+        context: Qt.ApplicationShortcut
+        enabled: window.hasTorrents && listPane.selectedInfoHash.length > 0
+        onActivated: appController.togglePauseResumeTorrent(listPane.selectedInfoHash)
+    }
+
+    Shortcut {
+        sequence: StandardKey.Delete
+        context: Qt.ApplicationShortcut
+        enabled: window.hasTorrents && listPane.selectedInfoHash.length > 0
+        onActivated: window.confirmRemove(
+            listPane.selectedInfoHash, false, appController.torrents.nameAt(listPane.currentIndex))
+    }
 
     function confirmRemove(infoHash, deleteFiles, torrentName) {
         window._removeInfoHash = infoHash
@@ -57,6 +92,24 @@ ApplicationWindow {
             : qsTr("Remove \"%1\" from Torrin? Downloaded files will stay on disk.")
                   .arg(torrentName)
         removeConfirmPopup.open()
+    }
+
+    function clampListPaneWidth(requested) {
+        if (!splitHost || splitHost.width <= 0)
+            return Math.round(Math.max(Theme.listMinWidth, Math.min(Theme.listMaxWidth, requested)))
+        const maxW = Math.max(Theme.listMinWidth,
+            Math.min(Theme.listMaxWidth, Math.floor(splitHost.width * 0.55)))
+        const minDetail = splitHost.detailMinWidth + 12
+        const capByWindow = Math.max(Theme.listMinWidth, splitHost.width - minDetail)
+        return Math.round(Math.max(Theme.listMinWidth, Math.min(maxW, capByWindow, requested)))
+    }
+
+    function enforceSplitLayout() {
+        if (!hasTorrents || !splitHost || splitHost.width <= 0)
+            return
+        const maxList = clampListPaneWidth(uiSettings.listPaneWidth)
+        if (listPane.width > maxList + 1)
+            listPane.SplitView.preferredWidth = maxList
     }
 
     ConfirmPopup {
@@ -122,17 +175,19 @@ ApplicationWindow {
             onAddTorrent: torrentFileDialog.open()
         }
 
-        RowLayout {
+        ResizableSplitView {
+            id: splitHost
             anchors.fill: parent
             visible: window.hasTorrents
-            spacing: 0
+
+            onWidthChanged: Qt.callLater(window.enforceSplitLayout)
 
             TorrentListPane {
                 id: listPane
-                Layout.preferredWidth: window.listPaneWidth
-                Layout.minimumWidth: Theme.listMinWidth
-                Layout.maximumWidth: Theme.listMaxWidth
-                Layout.fillHeight: true
+                SplitView.minimumWidth: splitHost.listMinWidth
+                SplitView.maximumWidth: window.clampListPaneWidth(Theme.listMaxWidth)
+                SplitView.preferredWidth: window.clampListPaneWidth(uiSettings.listPaneWidth)
+                SplitView.fillHeight: true
                 filterHidesAll: window.filterHidesAllTorrents
                 onConfirmRemove: function(infoHash, deleteFiles, name) {
                     window.confirmRemove(infoHash, deleteFiles, name)
@@ -140,17 +195,17 @@ ApplicationWindow {
                 onAddMagnetRequested: magnetDialog.open()
                 onAddTorrentRequested: torrentFileDialog.open()
                 onSettingsRequested: settingsDialog.open()
-            }
 
-            Rectangle {
-                width: 1
-                Layout.fillHeight: true
-                color: Theme.divider
+                onWidthChanged: {
+                    if (width > 0 && Math.abs(width - uiSettings.listPaneWidth) > 2)
+                        uiSettings.listPaneWidth = window.clampListPaneWidth(width)
+                }
             }
 
             TorrentDetail {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                SplitView.fillWidth: true
+                SplitView.minimumWidth: splitHost.detailMinWidth
+                SplitView.fillHeight: true
                 torrentRow: listPane.currentIndex
                 windowRef: window
             }

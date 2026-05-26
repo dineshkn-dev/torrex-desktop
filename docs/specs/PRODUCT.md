@@ -22,6 +22,12 @@ Torrin v0.1 is a **macOS** BitTorrent client. This document describes what the s
 ### User interface
 
 - Sidebar **filters** (All, Downloading, Seeding, Paused)
+- **Search** torrent list by name, info hash, or save path
+- **Sort** by name, progress, download rate, upload rate, or ETA (ascending / descending)
+- **List actions**: pause all, resume all; row context menu and detail **More** menu include Reveal in Finder and copy magnet link
+- **Keyboard shortcuts**: Find (search), Space (pause/resume selection), Delete (remove)
+- Status bar shows **free space** on the download volume
+- **Resizable master–detail** split (drag handle; list width remembered) with responsive layout in narrow panes
 - **Master–detail** layout with Overview and Files tabs
 - **Appearance** settings: system / light / **dark** (true black AMOLED-style, neutral grays — unchanged by accent) and **accent color** (blue, teal, violet, rose, orange, green) for controls and highlights
 - **Drag-and-drop** magnets and `.torrent` files onto the window

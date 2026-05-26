@@ -7,6 +7,7 @@ import Torrin
 ColumnLayout {
     id: root
     spacing: Theme.spacingMd
+    Layout.fillWidth: true
 
     Label {
         text: qsTr("Theme")

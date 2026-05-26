@@ -1,9 +1,56 @@
-# Forward-looking roadmap. Shipped work is documented in docs/specs/PRODUCT.md and CHANGELOG.md.
-version: 2
+# Forward-looking roadmap. Shipped work: docs/specs/PRODUCT.md, CHANGELOG.md.
+version: 3
 project: torrin
 released_version: "0.2.0"
 
 milestones:
+  - id: v0-3-daily-convenience
+    name: v0.3 — Daily convenience and list UX
+    status: in_progress
+    spec: docs/planning/FUTURE.md#daily-convenience
+    items:
+      - id: M-110-list-search
+        summary: Search torrent list by name, hash, or path
+        priority: high
+        status: done
+      - id: M-111-list-sort
+        summary: Sort list by name, progress, speed, date, size
+        priority: high
+        status: done
+      - id: M-112-list-eta
+        summary: Show ETA or Paused/Done in torrent rows
+        priority: medium
+        status: done
+      - id: M-113-reveal-in-finder
+        summary: Reveal download folder or file in Finder
+        priority: high
+        status: done
+      - id: M-114-copy-magnet
+        summary: Copy magnet URI for selected torrent
+        priority: medium
+        status: done
+      - id: M-115-export-torrent
+        summary: Export .torrent file for sharing
+        priority: medium
+      - id: M-116-pause-resume-all
+        summary: Global pause all and resume all controls
+        priority: high
+        status: done
+      - id: M-117-disk-space-warning
+        summary: Free-space display and low-disk warnings
+        priority: medium
+        status: in_progress
+      - id: M-118-onboarding
+        summary: First-run wizard for folder and network tips
+        priority: medium
+      - id: M-119-multi-select
+        summary: Multi-select torrents for bulk actions
+        priority: medium
+      - id: M-120-keyboard-shortcuts
+        summary: Shortcuts for pause, remove, search, navigation
+        priority: medium
+        status: done
+
   - id: v1-0-production-macos
     name: v1.0 — Production macOS distribution
     status: planned
@@ -15,8 +62,14 @@ milestones:
       - id: M-101-notarization
         summary: Notarize and staple release DMG for Gatekeeper
         priority: high
-      - id: M-102-auto-update
-        summary: Evaluate Sparkle or equivalent update channel
+      - id: M-102-hardened-runtime
+        summary: Document entitlements for libtorrent and Qt
+        priority: high
+      - id: M-103-auto-update
+        summary: Sparkle or equivalent in-app update channel
+        priority: medium
+      - id: M-104-privacy-policy-release
+        summary: Public privacy policy for local data and telemetry
         priority: medium
 
   - id: v1-1-cross-platform
@@ -31,26 +84,59 @@ milestones:
         summary: Linux CI build and AppImage or deb package
         priority: high
       - id: M-202-ci-matrix
-        summary: Restore multi-OS CI matrix from macOS-only v0.1 scope
+        summary: Restore multi-OS CI matrix from macOS-only scope
+        priority: medium
+      - id: M-203-platform-file-dialogs
+        summary: Platform-native open/save and default folders
+        priority: medium
+      - id: M-204-platform-tray-notify
+        summary: Tray icon and completion notifications on Win/Linux
         priority: medium
 
   - id: v1-2-torrent-advanced
-    name: v1.2 — Advanced torrent features
+    name: v1.2 — Advanced torrent control
     status: planned
     spec: docs/planning/FUTURE.md#torrent-advanced
     items:
-      - id: M-300-per-file-progress
-        summary: Per-file download progress in Files tab
-        priority: medium
-      - id: M-301-selective-download
-        summary: Choose files before starting download
+      - id: M-300-tracker-editor
+        summary: View, add, and remove trackers on active torrents
         priority: high
-      - id: M-302-tracker-editor
-        summary: View and edit trackers on active torrents
-        priority: low
-      - id: M-303-watch-folder
-        summary: Auto-add torrents from a watched directory
+      - id: M-301-queue-limits
+        summary: Max active downloads/uploads and queue ordering
+        priority: high
+      - id: M-302-seed-ratio-limit
+        summary: Stop seeding when ratio threshold is reached
         priority: medium
+      - id: M-303-seed-time-limit
+        summary: Stop seeding after configurable time
+        priority: medium
+      - id: M-304-categories-tags
+        summary: User tags and list filtering by category
+        priority: medium
+      - id: M-305-watch-folder
+        summary: Auto-add torrents from a watched directory
+        priority: high
+      - id: M-306-scheduled-bandwidth
+        summary: Time-of-day bandwidth profiles
+        priority: low
+      - id: M-307-ip-blocklist
+        summary: Optional peer blocklist with clear privacy UX
+        priority: low
+      - id: M-308-peer-list-detail
+        summary: Per-torrent peer list with rates and client info
+        priority: medium
+      - id: M-309-rss-autodownload
+        summary: RSS feeds and rules for automatic torrent add
+        priority: medium
+      - id: M-310-bulk-file-priority
+        summary: Bulk priority by extension or pattern in Files tab
+        priority: medium
+      - id: M-311-add-torrent-summary
+        summary: Rich pre-add summary (trackers, comment, file count)
+        priority: medium
+      - id: M-312-torrent-health-score
+        summary: Health indicator from peers, trackers, and errors
+        priority: low
 
   - id: v1-x-ui-polish
     name: UI polish and native integration
@@ -58,15 +144,76 @@ milestones:
     spec: docs/planning/FUTURE.md#ui-polish
     items:
       - id: M-399-telegram-ui-revamp
-        summary: Telegram-inspired layout, design tokens, list/detail panes
+        summary: Telegram-inspired layout, tokens, list/detail panes
+        priority: high
+        status: done
+      - id: M-398-detail-pane-v2
+        summary: Detail hero, metrics, speed cards, seeding controls
+        priority: high
+        status: done
+      - id: M-397-amoled-dark-theme
+        summary: Single dark theme with true black AMOLED palette
         priority: high
         status: done
       - id: M-400-native-notifications
-        summary: macOS notification center for completed downloads
-        priority: medium
+        summary: macOS Notification Center for completed downloads
+        priority: high
       - id: M-401-tray-menubar
-        summary: Menu bar icon and background controls
-        priority: low
-      - id: M-402-list-search-sort
-        summary: Search and sort torrent list
+        summary: Menu bar icon and background pause/resume
+        priority: high
+      - id: M-402-transfer-graph
+        summary: Download/upload speed sparkline in detail pane
         priority: medium
+      - id: M-403-sequential-preview
+        summary: Open or play first file while downloading sequentially
+        priority: medium
+      - id: M-404-theme-schedule
+        summary: Optional auto light/dark by time of day
+        priority: low
+      - id: M-405-notification-polish
+        summary: In-app notification stack, dismiss, click-to-focus
+        priority: low
+
+  - id: v1-5-trust-ops
+    name: Trust, maintenance, and localization
+    status: planned
+    spec: docs/planning/FUTURE.md#trust-ops
+    items:
+      - id: M-500-dependency-automation
+        summary: Dependabot or Renovate for vcpkg and Actions
+        priority: medium
+      - id: M-501-crash-reporting
+        summary: Opt-in crash reports without torrent content
+        priority: low
+      - id: M-502-privacy-policy
+        summary: Document local storage and optional telemetry
+        priority: high
+      - id: M-503-localization
+        summary: Qt translations for at least one non-English locale
+        priority: medium
+      - id: M-504-threat-model-updates
+        summary: Update threat model for new network surfaces
+        priority: medium
+
+  - id: v1-6-optional-extras
+    name: v1.3+ — Optional ambitious features
+    status: planned
+    spec: docs/planning/FUTURE.md#optional-extras
+    items:
+      - id: M-600-remote-control-lan
+        summary: LAN Web UI to list and control torrents
+        priority: low
+      - id: M-601-remote-tailscale
+        summary: Optional secure remote access via Tailscale
+        priority: low
+      - id: M-602-streaming-server
+        summary: HTTP range server for in-progress media files
+        priority: low
+      - id: M-603-completion-scripts
+        summary: User script hook on torrent complete (sandboxed)
+        priority: low
+      - id: M-604-statistics-dashboard
+        summary: All-time session upload/download statistics
+        priority: low
+
+# Retired IDs (do not reuse): M-300 per-file-progress, M-301 selective-download — shipped v0.2
